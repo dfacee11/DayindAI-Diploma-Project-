@@ -11,7 +11,7 @@ class Firstpage extends StatefulWidget {
 
 class _FirstpageState extends State<Firstpage> {
   final _formKey = GlobalKey<FormState>();
-
+  bool _isObscured = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   @override
@@ -24,7 +24,7 @@ class _FirstpageState extends State<Firstpage> {
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: 120),
+                SizedBox(height: 80),
                 Align(
                   alignment: Alignment.center,
                   child: Padding(
@@ -48,12 +48,18 @@ class _FirstpageState extends State<Firstpage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 60),
+                SizedBox(height: 0),
+                Text("Подготовка к интервью с помощью AI",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400)),
+                SizedBox(height: 45),
                 Text("Войти",
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                         fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
                 SizedBox(height: 20),
                 SizedBox(
                     width: 300,
@@ -63,25 +69,61 @@ class _FirstpageState extends State<Firstpage> {
                         Padding(
                           padding: EdgeInsets.only(left: 8.0),
                           child: Text("Введите Email",
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white)),
+                              style: GoogleFonts.inter(
+                                  fontSize: 16, color: Colors.white)),
                         ),
                         SizedBox(height: 5),
                         TextFormField(
+                          //TextFormField for email input
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Пожалуйста введите Email";
+                            }
+                            if (!value.contains("@")) {
+                              return "Пожалуйста введите корректный Email";
+                            }
+                            return null;
+                          },
                           controller: _emailController,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
                             hintText: "Email",
+                            hintStyle: GoogleFonts.inter(),
                             prefixIcon: Icon(LucideIcons.mail),
-                            border: OutlineInputBorder(
+                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(
+                                width: 3,
+                                color: Colors.transparent,
+                              ),
                             ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                                width: 2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
+                            ),
+                            helperText: ' ',
                           ),
                         ),
                       ],
                     )),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 SizedBox(
                   width: 300,
                   child: Column(
@@ -90,43 +132,133 @@ class _FirstpageState extends State<Firstpage> {
                       Padding(
                         padding: EdgeInsets.only(left: 8.0),
                         child: Text("Введите пароль",
-                            style:
-                                TextStyle(fontSize: 16, color: Colors.white)),
+                            style: GoogleFonts.inter(
+                                fontSize: 16, color: Colors.white)),
                       ),
                       SizedBox(height: 5),
                       TextFormField(
+                        //TextFormField for password input
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Пожалуйста введите пароль";
+                          }
+                          if (value.length < 6) {
+                            return "Пароль должен быть не менее 6 символов";
+                          }
+                          return null;
+                        },
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: _isObscured,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
                           hintText: "Пароль",
+                          hintStyle: GoogleFonts.inter(),
                           prefixIcon: Icon(LucideIcons.lock),
-                          border: OutlineInputBorder(
+                          suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(
+                                  () {
+                                    _isObscured = !_isObscured;
+                                  },
+                                );
+                              },
+                              icon: Icon(_isObscured
+                                  ? LucideIcons.eyeOff
+                                  : LucideIcons.eye)),
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(
+                              width: 3,
+                              color: Colors.transparent,
+                            ),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(
+                              color: Colors.red,
+                            ),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                          ),
+                          helperText: " ",
+                          helperStyle: TextStyle(height: 0.2),
                         ),
                       ),
                       Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                              onPressed: () {}, child: Text("Забыли пароль"))),
+                        alignment: Alignment.topRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "Забыли пароль",
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.withOpacity(0.8)),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(height: 25),
+                SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {},
+                  //Buttton for login
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(horizontal: 70, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: Text("Войти",
-                      style: TextStyle(fontSize: 22, color: Colors.white)),
+                      style: GoogleFonts.inter(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Нет аккаунта?",
+                        style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: Text(
+                        "Зарегистрироваться",
+                        style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: 40,
                 ),
               ],
             ),

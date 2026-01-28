@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dayindai/Login%20Page/FirstPage.dart';
+import 'package:dayindai/HomePage/HomePage.dart';
+import 'package:dayindai/Login Page/RegisterPage.dart';
 
 
 void main() {
@@ -18,7 +20,13 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const Firstpage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const Firstpage(),
+        '/home': (context) => const HomePage(),
+        '/register': (context) => const RegisterPage(),
+
+      },
     );
   }
 }
