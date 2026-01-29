@@ -26,6 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool hasUppercase = false;
   bool hasDigit = false;
 
+  // добавлен флаг загрузки
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -292,10 +295,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 250,
                               height: 60,
                               child: ElevatedButton(
-                                onPressed: () async {
+                                onPressed: _isLoading ? null : () async {
                                   if (!_formKey.currentState!.validate())
                                     return;
 
+                                  setState(() { _isLoading = true; });
+
+                                  // Показываем диалог загрузки
                                   showDialog(
                                     context: context,
                                     barrierDismissible: false,
@@ -304,27 +310,36 @@ class _RegisterPageState extends State<RegisterPage> {
                                   );
 
                                   try {
+                                    // Ограничим операцию таймаутом на случай медленной сети
                                     await _authService.registerUser(
                                       name: _nameController.text.trim(),
                                       surname: _surnameController.text.trim(),
                                       email: _emailController.text.trim(),
                                       password: _passwordController.text,
-                                    );
+                                    ).timeout(const Duration(seconds: 30));
 
-                                    // ✅ закрываем ТОЛЬКО диалог
+                                    // Закрываем диалог
                                     if (mounted) Navigator.of(context).pop();
 
-                                    // ❌ НИКАКОЙ НАВИГАЦИИ ЗДЕСЬ
+                                    // Навигация на страницу подтверждения (заменяем текущую)
+                                    if (mounted) {
+                                      Navigator.pushReplacementNamed(context, '/confirmEmail');
+                                    }
+                                  } on TimeoutException catch (_) {
+                                    if (mounted) Navigator.of(context).pop();
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Превышено время ожидания. Попробуйте ещё раз.')),
+                                    );
                                   } on FirebaseAuthException catch (e) {
                                     if (mounted) Navigator.of(context).pop();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content:
-                                                Text(e.message ?? 'Ошибка')));
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(e.message ?? 'Ошибка')));
                                   } catch (e) {
                                     if (mounted) Navigator.of(context).pop();
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('Ошибка: $e')));
+                                  } finally {
+                                    if (mounted) setState(() { _isLoading = false; });
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -333,11 +348,20 @@ class _RegisterPageState extends State<RegisterPage> {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                 ),
-                                child: Text(
-                                  "Зарегистрироваться",
-                                  style: GoogleFonts.inter(
-                                      color: Colors.white, fontSize: 18),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        "Зарегистрироваться",
+                                        style: GoogleFonts.inter(
+                                            color: Colors.white, fontSize: 18),
+                                      ),
                               ),
                             )),
                       ],

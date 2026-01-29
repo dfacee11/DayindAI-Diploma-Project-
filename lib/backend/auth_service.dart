@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -11,26 +12,47 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final userCredential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    debugPrint('AuthService.registerUser: start email=$email');
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      debugPrint('AuthService.registerUser: created uid=${userCredential.user?.uid}');
 
-    // Обновим displayName (необязательно, но полезно)
-    await userCredential.user?.updateDisplayName('$name $surname');
+      final user = userCredential.user;
+      if (user == null) {
+        debugPrint('AuthService.registerUser: user is null after creation');
+        throw FirebaseAuthException(
+            code: 'user-null', message: 'Пользователь не создан');
+      }
 
-    // Отправим письмо подтверждения
-    await userCredential.user?.sendEmailVerification();
+      // Обновим displayName (необязательно, но полезно)
+      await user.updateDisplayName('$name $surname');
+      debugPrint('AuthService.registerUser: updated displayName');
 
-    // Сохраним профиль в Firestore
-    await _firestore.collection('users').doc(userCredential.user!.uid).set({
-      'name': name,
-      'surname': surname,
-      'email': email,
-      'createdAt': FieldValue.serverTimestamp(),
-      'emailVerified': userCredential.user!.emailVerified ?? false,
-    });
+      // Отправим письмо подтверждения
+      await user.sendEmailVerification();
+      debugPrint('AuthService.registerUser: sendEmailVerification called');
 
-    return userCredential;
+      // Сохраним профиль в Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        'name': name,
+        'surname': surname,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'emailVerified': user.emailVerified ?? false,
+      });
+      debugPrint('AuthService.registerUser: user profile saved to Firestore');
+
+      // Обновим локальное состояние пользователя
+      await _auth.currentUser?.reload();
+      debugPrint('AuthService.registerUser: reload currentUser done');
+
+      return userCredential;
+    } catch (e, st) {
+      debugPrint('AuthService.registerUser: ERROR: $e\n$st');
+      rethrow;
+    }
   }
 }
