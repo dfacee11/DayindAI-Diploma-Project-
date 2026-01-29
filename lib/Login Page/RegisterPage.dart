@@ -291,6 +291,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 250,
                               height: 60,
                               child: ElevatedButton(
+                                // Внутри ElevatedButton onPressed:
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
                                     try {
