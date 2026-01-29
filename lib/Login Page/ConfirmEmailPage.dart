@@ -126,7 +126,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
       if (user != null && user.emailVerified) {
         if (!mounted) return;
         _checkTimer?.cancel();
-        Navigator.pushReplacementNamed(context, '/verified');
+    
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

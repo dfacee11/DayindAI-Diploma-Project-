@@ -10,9 +10,8 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: FirebaseAuth.instance.userChanges(), // 🔥 ВАЖНО
       builder: (context, snapshot) {
-        // Пока ждём состояние аутентификации — показываем индикатор
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -21,34 +20,15 @@ class AuthGate extends StatelessWidget {
 
         final user = snapshot.data;
 
-        // Пользователь не вошёл
         if (user == null) {
           return const Firstpage();
         }
 
-        // Если есть пользователь, сначала попробуем обновить (reload) данные пользователя,
-        // потому что локально может храниться устаревший emailVerified.
-        return FutureBuilder<User?>(
-          future: FirebaseAuth.instance.currentUser
-              ?.reload()
-              .then((_) => FirebaseAuth.instance.currentUser),
-          builder: (context, reloadSnapshot) {
-            if (reloadSnapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
+        if (!user.emailVerified) {
+          return const ConfirmEmailPage();
+        }
 
-            final refreshedUser = reloadSnapshot.data ?? user;
-
-            if (!refreshedUser.emailVerified) {
-              return const ConfirmEmailPage();
-            }
-
-            // Если email подтверждён — показываем главный экран
-            return const HomePage();
-          },
-        );
+        return const HomePage();
       },
     );
   }

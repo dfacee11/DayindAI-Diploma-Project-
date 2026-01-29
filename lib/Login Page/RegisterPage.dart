@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dayindai/backend/auth_service.dart';
 import 'package:dayindai/AuthGate.dart';
 import 'ConfirmEmailPage.dart';
+import 'dart:async';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -291,34 +292,39 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 250,
                               height: 60,
                               child: ElevatedButton(
-                                // Внутри ElevatedButton onPressed:
                                 onPressed: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    try {
-                                      final cred =
-                                          await _authService.registerUser(
-                                        name: _nameController.text.trim(),
-                                        surname: _surnameController.text.trim(),
-                                        email: _emailController.text.trim(),
-                                        password: _passwordController.text,
-                                      );
+                                  if (!_formKey.currentState!.validate())
+                                    return;
 
-                                      // Для отладки: покажем uid и emailVerified
-                                      final user = cred.user;
-                                      debugPrint(
-                                          'Registered user uid=${user?.uid}, emailVerified=${user?.emailVerified}');
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                        child: CircularProgressIndicator()),
+                                  );
 
-                                      // Переходим сразу на страницу подтверждения почты
-                                      Navigator.pushReplacementNamed(
-                                          context, '/confirmEmail');
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                  try {
+                                    await _authService.registerUser(
+                                      name: _nameController.text.trim(),
+                                      surname: _surnameController.text.trim(),
+                                      email: _emailController.text.trim(),
+                                      password: _passwordController.text,
+                                    );
+
+                                    // ✅ закрываем ТОЛЬКО диалог
+                                    if (mounted) Navigator.of(context).pop();
+
+                                    // ❌ НИКАКОЙ НАВИГАЦИИ ЗДЕСЬ
+                                  } on FirebaseAuthException catch (e) {
+                                    if (mounted) Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                             content:
-                                                Text('Ошибка регистрации: $e')),
-                                      );
-                                    }
+                                                Text(e.message ?? 'Ошибка')));
+                                  } catch (e) {
+                                    if (mounted) Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Ошибка: $e')));
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
