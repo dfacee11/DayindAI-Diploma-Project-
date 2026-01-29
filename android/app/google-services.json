@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "451170474146",
+    "project_id": "dayindai",
+    "storage_bucket": "dayindai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:451170474146:android:904458a814b30d30889ffb",
+        "android_client_info": {
+          "package_name": "com.example.dayindai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwzLh588PaXMUXBt7i0aLPulmvRToLI3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

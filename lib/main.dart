@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:dayindai/Login%20Page/FirstPage.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:dayindai/Login Page/FirstPage.dart';
 import 'package:dayindai/HomePage/HomePage.dart';
 import 'package:dayindai/Login Page/RegisterPage.dart';
+import 'package:dayindai/Login Page/ConfirmReg.dart';
+import 'package:dayindai/Login Page/ConfirmEmailPage.dart';
+import 'package:dayindai/Login Page/EmailVerifed.dart';
+import 'package:dayindai/AuthGate.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-void main() {
   runApp(const MainApp());
 }
 
@@ -20,12 +30,14 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      home: const AuthGate(),
       routes: {
-        '/': (context) => const Firstpage(),
+        '/FirstPage': (context) => const Firstpage(),
         '/home': (context) => const HomePage(),
-        '/register': (context) => const RegisterPage(),
-
+        '/register': (context) => RegisterPage(),
+        '/confirm': (context) => const ConfirmReg(),
+        '/confirmEmail': (context) => const ConfirmEmailPage(),
+        '/verified': (context) => const EmailVerifiedPage(),
       },
     );
   }
