@@ -5,29 +5,32 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> registerUser({
+  Future<UserCredential> registerUser({
     required String name,
     required String surname,
     required String email,
     required String password,
   }) async {
-    // 1. Создание пользователя
-    UserCredential userCredential =
-        await _auth.createUserWithEmailAndPassword(
+    final userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    // 2. Отправка письма подтверждения
-    await userCredential.user!.sendEmailVerification();
+    // Обновим displayName (необязательно, но полезно)
+    await userCredential.user?.updateDisplayName('$name $surname');
 
-    // 3. Сохранение данных в Firestore
+    // Отправим письмо подтверждения
+    await userCredential.user?.sendEmailVerification();
+
+    // Сохраним профиль в Firestore
     await _firestore.collection('users').doc(userCredential.user!.uid).set({
       'name': name,
       'surname': surname,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
-      'emailVerified': false,
+      'emailVerified': userCredential.user!.emailVerified ?? false,
     });
+
+    return userCredential;
   }
 }

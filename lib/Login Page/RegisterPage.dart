@@ -4,6 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dayindai/backend/auth_service.dart';
+import 'package:dayindai/AuthGate.dart';
+import 'ConfirmEmailPage.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -292,13 +294,22 @@ class _RegisterPageState extends State<RegisterPage> {
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
                                     try {
-                                      await _authService.registerUser(
-                                        name: _nameController.text,
-                                        surname: _surnameController.text,
-                                        email: _emailController.text,
+                                      final cred =
+                                          await _authService.registerUser(
+                                        name: _nameController.text.trim(),
+                                        surname: _surnameController.text.trim(),
+                                        email: _emailController.text.trim(),
                                         password: _passwordController.text,
                                       );
-                                      Navigator.of(context).pop();
+
+                                      // Для отладки: покажем uid и emailVerified
+                                      final user = cred.user;
+                                      debugPrint(
+                                          'Registered user uid=${user?.uid}, emailVerified=${user?.emailVerified}');
+
+                                      // Переходим сразу на страницу подтверждения почты
+                                      Navigator.pushReplacementNamed(
+                                          context, '/confirmEmail');
                                     } catch (e) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(

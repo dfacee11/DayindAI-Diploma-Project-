@@ -28,13 +28,10 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
   void _startEmailVerificationCheck() {
     _checkTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       await FirebaseAuth.instance.currentUser?.reload();
+      await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
-
-      if (user != null && user.emailVerified) {
-        timer.cancel();
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/verified');
-      }
+      debugPrint(
+          'ConfirmEmailPage: after reload user=${user?.uid}, emailVerified=${user?.emailVerified}');
     });
   }
 
@@ -124,7 +121,6 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
                 style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 30),
-
               _canResend
                   ? ElevatedButton(
                       onPressed: _isSending ? null : _resendEmail,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Firstpage extends StatefulWidget {
   const Firstpage({super.key});
@@ -215,9 +216,31 @@ class _FirstpageState extends State<Firstpage> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   //Buttton for login
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.pushReplacementNamed(context, '/home');
+                      try {
+                        final cred = await FirebaseAuth.instance
+                            .signInWithEmailAndPassword(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text,
+                        );
+
+                        final user = cred.user;
+                        if (user != null && !user.emailVerified) {
+                          // Если email не подтверждён — показываем экран подтверждения
+                          Navigator.pushReplacementNamed(context, '/confirmEmail');
+                        } else {
+                          Navigator.pushReplacementNamed(context, '/home');
+                        }
+                      } on FirebaseAuthException catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.message ?? 'Ошибка входа')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Ошибка: $e')),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
