@@ -26,7 +26,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
   }
 
   /// Проверяем каждые 3 секунды, подтверждён ли email.
-  /// Если подтверждён — переходим на /verified.
+  /// Если подтверждён — переходим ��а /verified.
   void _startEmailVerificationCheck() {
     _checkTimer?.cancel();
     _checkTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
@@ -117,15 +117,16 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
   /// Ручная проверка статуса (кнопка "Проверить сейчас")
   Future<void> _checkNow() async {
     if (_checking) return;
-    _checking = true;
+    _checking = true; // блокируем параллельные проверки
     try {
       await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
       debugPrint(
           'ConfirmEmailPage manual check: user=${user?.uid}, emailVerified=${user?.emailVerified}');
       if (user != null && user.emailVerified) {
-        if (!mounted) return;
+        // Остановим периодическую проверку и перейдём на экран подтверждения
         _checkTimer?.cancel();
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/verified');
       } else {
         if (!mounted) return;
@@ -141,6 +142,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
       );
     } finally {
       _checking = false;
+      if (mounted) setState(() {}); // обновим UI, если нужно
     }
   }
 
@@ -171,8 +173,8 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
               const SizedBox(height: 10),
               Text(
                 email.isNotEmpty
-                    ? 'Мы отправили письмо на $email для подтверждения. После подтверждения вы будете перенаправлены автоматически.'
-                    : 'Мы отправили письмо для подтверждения email. После подтверждения вы будете перенаправлены автоматически.',
+                    ? 'Мы отправили письмо на $email для подтверждения.\nПосле подтверждения вы перейдёте дальше автоматически.'
+                    : 'Мы отправили письмо для подтверждения email.\nПосле подтверждения вы перейдёте дальше автоматически.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70),
               ),

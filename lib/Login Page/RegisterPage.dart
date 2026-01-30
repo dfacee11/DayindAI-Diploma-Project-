@@ -341,6 +341,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                           }
                                         }
                                       },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.resolveWith<Color>(
+                                    (states) {
+                                      if (states
+                                          .contains(MaterialState.disabled)) {
+                                        return Colors.grey;
+                                      }
+                                      if (states
+                                          .contains(MaterialState.pressed)) {
+                                        return Colors.red.shade700;
+                                      }
+                                      return Colors.red;
+                                    },
+                                  ),
+                                  foregroundColor:
+                                      MaterialStateProperty.all(Colors.white),
+                                ),
                                 child: _isLoading
                                     ? const SizedBox(
                                         width: 20,
