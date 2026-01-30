@@ -301,71 +301,46 @@ class _RegisterPageState extends State<RegisterPage> {
                                         if (!_formKey.currentState!.validate())
                                           return;
 
+                                        setState(() => _isLoading = true);
+
                                         try {
-                                          await _authService
-                                              .registerUser(
-                                                name:
-                                                    _nameController.text.trim(),
-                                                surname: _surnameController.text
-                                                    .trim(),
-                                                email: _emailController.text
-                                                    .trim(),
-                                                password:
-                                                    _passwordController.text,
-                                              )
-                                              .timeout(
-                                                  const Duration(seconds: 30));
+                                          await _authService.registerUser(
+                                            name: _nameController.text.trim(),
+                                            surname:
+                                                _surnameController.text.trim(),
+                                            email: _emailController.text.trim(),
+                                            password: _passwordController.text,
+                                          );
 
-                                          await FirebaseAuth
-                                              .instance.currentUser
-                                              ?.reload();
-
-                                          // 🔥 закрываем RegisterPage
                                           if (!mounted) return;
-                                          Navigator.of(context).pop();
-                                          // 🔥 ИСПРАВЛЕННЫЙ КОД: используем MaterialPageRoute
-                                        } on TimeoutException catch (_) {
-                                          if (mounted)
-                                            Navigator.of(context).pop();
-                                          if (mounted)
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      'Превышено время ожидания. Попробуйте ещё раз.')),
-                                            );
+
+                                          // ✅ СРАЗУ идём на ConfirmEmailPage
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const ConfirmEmailPage(),
+                                            ),
+                                          );
                                         } on FirebaseAuthException catch (e) {
-                                          if (mounted)
-                                            Navigator.of(context).pop();
-                                          if (mounted)
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                  content: Text(e.message ??
-                                                      'Ошибка регистрации')),
-                                            );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(e.message ??
+                                                    'Ошибка регистрации')),
+                                          );
                                         } catch (e) {
-                                          if (mounted)
-                                            Navigator.of(context).pop();
-                                          if (mounted)
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                  content: Text('Ошибка: $e')),
-                                            );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text('Ошибка: $e')),
+                                          );
                                         } finally {
-                                          if (mounted)
-                                            setState(() {
-                                              _isLoading = false;
-                                            });
+                                          if (mounted) {
+                                            setState(() => _isLoading = false);
+                                          }
                                         }
                                       },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
                                 child: _isLoading
                                     ? const SizedBox(
                                         width: 20,

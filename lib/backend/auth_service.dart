@@ -13,47 +13,36 @@ class AuthService {
     required String password,
   }) async {
     debugPrint('AuthService.registerUser: start email=$email');
-    try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+
+    final userCredential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = userCredential.user;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-null',
+        message: 'Пользователь не создан',
       );
-      debugPrint('AuthService.registerUser: created uid=${userCredential.user?.uid}');
-
-      final user = userCredential.user;
-      if (user == null) {
-        debugPrint('AuthService.registerUser: user is null after creation');
-        throw FirebaseAuthException(
-            code: 'user-null', message: 'Пользователь не создан');
-      }
-
-      // Обновим displayName (необязательно, но полезно)
-      await user.updateDisplayName('$name $surname');
-      debugPrint('AuthService.registerUser: updated displayName');
-
-      // Отправим письмо подтверждения
-      await user.sendEmailVerification();
-      debugPrint('AuthService.registerUser: sendEmailVerification called');
-
-      // Сохраним профиль в Firestore
-      await _firestore.collection('users').doc(user.uid).set({
-        'name': name,
-        'surname': surname,
-        'email': email,
-        'createdAt': FieldValue.serverTimestamp(),
-        'emailVerified': user.emailVerified ?? false,
-      });
-      debugPrint('AuthService.registerUser: user profile saved to Firestore');
-
-      // Обновим локальное состояние пользователя
-      await _auth.currentUser?.reload();
-      debugPrint('AuthService.registerUser: reload currentUser done');
-
-      return userCredential;
-    } catch (e, st) {
-      debugPrint('AuthService.registerUser: ERROR: $e\n$st');
-      rethrow;
     }
+
+    // Обновляем displayName (опционально)
+    await user.updateDisplayName('$name $surname');
+
+    // 🔥 ВАЖНО: отправляем письмо
+    await user.sendEmailVerification();
+
+    // Сохраняем профиль
+    await _firestore.collection('users').doc(user.uid).set({
+      'name': name,
+      'surname': surname,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    debugPrint('AuthService.registerUser: success uid=${user.uid}');
+    return userCredential;
   }
 
   Future<UserCredential> signIn({
@@ -62,7 +51,8 @@ class AuthService {
   }) async {
     debugPrint('AuthService.signIn: email=$email');
     try {
-      final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final cred = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
       debugPrint('AuthService.signIn: success uid=${cred.user?.uid}');
       return cred;
     } catch (e, st) {
