@@ -117,7 +117,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
   /// Ручная проверка статуса (кнопка "Проверить сейчас")
   Future<void> _checkNow() async {
     if (_checking) return;
-    setState(() {});
+    _checking = true;
     try {
       await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
@@ -126,7 +126,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
       if (user != null && user.emailVerified) {
         if (!mounted) return;
         _checkTimer?.cancel();
-    
+        Navigator.pushReplacementNamed(context, '/verified');
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -139,6 +139,8 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка при проверке: $e')),
       );
+    } finally {
+      _checking = false;
     }
   }
 
@@ -169,8 +171,8 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
               const SizedBox(height: 10),
               Text(
                 email.isNotEmpty
-                    ? 'Мы отправили письмо на $email для подтверждения.\nПосле подтверждения вы перейдёте дальше автоматически.'
-                    : 'Мы отправили письмо для подтверждения email.\nПосле подтверждения вы перейдёте дальше автоматиче��ки.',
+                    ? 'Мы отправили письмо на $email для подтверждения. После подтверждения вы будете перенаправлены автоматически.'
+                    : 'Мы отправили письмо для подтверждения email. После подтверждения вы будете перенаправлены автоматически.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70),
               ),

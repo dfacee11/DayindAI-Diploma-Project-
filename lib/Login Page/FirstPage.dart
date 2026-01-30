@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dayindai/backend/auth_service.dart';
+import 'RegisterPage.dart';
 
 class Firstpage extends StatefulWidget {
   const Firstpage({super.key});
@@ -15,21 +17,84 @@ class _FirstpageState extends State<Firstpage> {
   bool _isObscured = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
+
+  Future<void> _showPasswordResetDialog() async {
+    final _resetEmailController =
+        TextEditingController(text: _emailController.text);
+    final _dialogKey = GlobalKey<FormState>();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Восстановление пароля'),
+        content: Form(
+          key: _dialogKey,
+          child: TextFormField(
+            controller: _resetEmailController,
+            decoration: const InputDecoration(hintText: 'Введите email'),
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Введите email';
+              if (!value.contains('@')) return 'Некорректный email';
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (!_dialogKey.currentState!.validate()) return;
+              final email = _resetEmailController.text.trim();
+              Navigator.of(context).pop(); // закрываем диалог
+              // Показываем короткий индикатор и отправляем письмо
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Отправка письма восстановления...')),
+              );
+              try {
+                await _authService.sendPasswordResetEmail(email);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Письмо для восстановления отправлено')),
+                );
+              } on FirebaseAuthException catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(e.message ?? 'Ошибка отправки письма')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ошибка: $e')),
+                );
+              }
+            },
+            child: const Text('Отправить'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF121423),
+      backgroundColor: const Color(0xFF121423),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: 80),
+                const SizedBox(height: 80),
                 Align(
                   alignment: Alignment.center,
                   child: Padding(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     child: RichText(
                       text: TextSpan(
                           text: "Dayind",
@@ -49,31 +114,31 @@ class _FirstpageState extends State<Firstpage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 0),
+                const SizedBox(height: 0),
                 Text("Подготовка к интервью с помощью AI",
                     style: GoogleFonts.montserrat(
                         fontSize: 16,
                         color: Colors.white,
                         fontWeight: FontWeight.w400)),
-                SizedBox(height: 45),
+                const SizedBox(height: 45),
                 Text("Войти",
                     style: GoogleFonts.inter(
                         fontSize: 32,
                         color: Colors.white,
                         fontWeight: FontWeight.bold)),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 SizedBox(
                     width: 300,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.only(left: 8.0),
+                          padding: const EdgeInsets.only(left: 8.0),
                           child: Text("Введите Email",
                               style: GoogleFonts.inter(
                                   fontSize: 16, color: Colors.white)),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           //TextFormField for email input
                           validator: (value) {
@@ -91,30 +156,30 @@ class _FirstpageState extends State<Firstpage> {
                             fillColor: Colors.white,
                             hintText: "Email",
                             hintStyle: GoogleFonts.inter(),
-                            prefixIcon: Icon(LucideIcons.mail),
+                            prefixIcon: const Icon(LucideIcons.mail),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 width: 3,
                                 color: Colors.transparent,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: Colors.blue,
                                 width: 2,
                               ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: Colors.red,
                               ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: Colors.red,
                                 width: 2,
                               ),
@@ -124,19 +189,19 @@ class _FirstpageState extends State<Firstpage> {
                         ),
                       ],
                     )),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: 300,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.only(left: 8.0),
                         child: Text("Введите пароль",
                             style: GoogleFonts.inter(
                                 fontSize: 16, color: Colors.white)),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       TextFormField(
                         //TextFormField for password input
                         validator: (value) {
@@ -155,7 +220,7 @@ class _FirstpageState extends State<Firstpage> {
                           fillColor: Colors.white,
                           hintText: "Пароль",
                           hintStyle: GoogleFonts.inter(),
-                          prefixIcon: Icon(LucideIcons.lock),
+                          prefixIcon: const Icon(LucideIcons.lock),
                           suffixIcon: IconButton(
                               onPressed: () {
                                 setState(
@@ -169,39 +234,39 @@ class _FirstpageState extends State<Firstpage> {
                                   : LucideIcons.eye)),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               width: 3,
                               color: Colors.transparent,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: Colors.blue,
                               width: 2,
                             ),
                           ),
                           errorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: Colors.red,
                             ),
                           ),
                           focusedErrorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: Colors.red,
                               width: 2,
                             ),
                           ),
                           helperText: " ",
-                          helperStyle: TextStyle(height: 0.2),
+                          helperStyle: const TextStyle(height: 0.2),
                         ),
                       ),
                       Align(
                         alignment: Alignment.topRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: _showPasswordResetDialog,
                           child: Text(
                             "Забыли пароль",
                             style: TextStyle(
@@ -213,23 +278,28 @@ class _FirstpageState extends State<Firstpage> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   //Buttton for login
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      setState(() {
+                        _isLoading = true;
+                      });
                       try {
-                        final cred = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
+                        final cred = await _authService.signIn(
                           email: _emailController.text.trim(),
                           password: _passwordController.text,
                         );
 
                         final user = cred.user;
                         if (user != null && !user.emailVerified) {
-                          // Если email не подтверждён — показываем экран подтверждения
-                          Navigator.pushReplacementNamed(context, '/confirmEmail');
+                          // Е��ли email не подтверждён — показываем экран подтверждения
+                          if (!mounted) return;
+                          Navigator.pushReplacementNamed(
+                              context, '/confirmEmail');
                         } else {
+                          if (!mounted) return;
                           Navigator.pushReplacementNamed(context, '/home');
                         }
                       } on FirebaseAuthException catch (e) {
@@ -240,24 +310,39 @@ class _FirstpageState extends State<Firstpage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Ошибка: $e')),
                         );
+                      } finally {
+                        if (mounted)
+                          setState(() {
+                            _isLoading = false;
+                          });
                       }
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 70, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 70, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: Text("Войти",
-                      style: GoogleFonts.inter(
-                          fontSize: 22,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text("Войти",
+                          style: GoogleFonts.inter(
+                              fontSize: 22,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -268,7 +353,11 @@ class _FirstpageState extends State<Firstpage> {
                             fontWeight: FontWeight.w400)),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/register');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterPage()),
+                        );
                       },
                       child: Text(
                         "Зарегистрироваться",
@@ -280,7 +369,7 @@ class _FirstpageState extends State<Firstpage> {
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 40,
                 ),
               ],

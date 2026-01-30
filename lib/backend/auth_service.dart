@@ -55,4 +55,37 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<UserCredential> signIn({
+    required String email,
+    required String password,
+  }) async {
+    debugPrint('AuthService.signIn: email=$email');
+    try {
+      final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      debugPrint('AuthService.signIn: success uid=${cred.user?.uid}');
+      return cred;
+    } catch (e, st) {
+      debugPrint('AuthService.signIn: ERROR: $e\n$st');
+      rethrow;
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    debugPrint('AuthService.sendPasswordResetEmail: email=$email');
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      debugPrint('AuthService.sendPasswordResetEmail: sent');
+    } catch (e, st) {
+      debugPrint('AuthService.sendPasswordResetEmail: ERROR: $e\n$st');
+      rethrow;
+    }
+  }
+
+  Future<void> signOut() async {
+    debugPrint('AuthService.signOut');
+    await _auth.signOut();
+  }
+
+  User? currentUser() => _auth.currentUser;
 }
