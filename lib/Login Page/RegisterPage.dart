@@ -314,30 +314,30 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                           if (!mounted) return;
 
-                                          // ✅ СРАЗУ идём на ConfirmEmailPage
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ConfirmEmailPage(),
-                                            ),
-                                          );
+                                          // Остановим индикатор ДО навигации, чтобы избежать "залипания" UI
+                                          setState(() => _isLoading = false);
+
+                                          // Навигируем по имени маршрута (предполагается, что '/confirmEmail' в main.dart)
+                                          Navigator.pushReplacementNamed(
+                                              context, '/confirmEmail');
                                         } on FirebaseAuthException catch (e) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                                content: Text(e.message ??
-                                                    'Ошибка регистрации')),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                                content: Text('Ошибка: $e')),
-                                          );
-                                        } finally {
                                           if (mounted) {
                                             setState(() => _isLoading = false);
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(e.message ??
+                                                      'Ошибка регистрации')),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (mounted) {
+                                            setState(() => _isLoading = false);
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text('Ошибка: $e')),
+                                            );
                                           }
                                         }
                                       },

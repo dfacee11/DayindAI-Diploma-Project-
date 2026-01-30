@@ -14,6 +14,7 @@ class AuthService {
   }) async {
     debugPrint('AuthService.registerUser: start email=$email');
 
+    // Создаём пользователя и возвращаем UserCredential как можно быстрее
     final userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -27,18 +28,30 @@ class AuthService {
       );
     }
 
-    // Обновляем displayName (опционально)
-    await user.updateDisplayName('$name $surname');
+    // Обновляем displayName (await, короткая операция)
+    try {
+      await user.updateDisplayName('$name $surname');
+    } catch (e) {
+      debugPrint('AuthService.registerUser: updateDisplayName error: $e');
+    }
 
-    // 🔥 ВАЖНО: отправляем письмо
-    await user.sendEmailVerification();
+    // Fire-and-forget: отправим письмо подтверждения и запишем профиль в фоне,
+    // не блокируя возвращение управления вызывающему коду.
+    user.sendEmailVerification().then((_) {
+      debugPrint('AuthService.registerUser: email verification sent');
+    }).catchError((e) {
+      debugPrint('AuthService.registerUser: sendEmailVerification error: $e');
+    });
 
-    // Сохраняем профиль
-    await _firestore.collection('users').doc(user.uid).set({
+    _firestore.collection('users').doc(user.uid).set({
       'name': name,
       'surname': surname,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
+    }).then((_) {
+      debugPrint('AuthService.registerUser: profile saved to firestore uid=${user.uid}');
+    }).catchError((e) {
+      debugPrint('AuthService.registerUser: firestore set error: $e');
     });
 
     debugPrint('AuthService.registerUser: success uid=${user.uid}');

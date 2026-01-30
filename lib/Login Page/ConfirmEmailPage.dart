@@ -26,7 +26,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
   }
 
   /// Проверяем каждые 3 секунды, подтверждён ли email.
-  /// Если подтверждён — переходим ��а /verified.
+  /// Если подтверждён — переходим на /verified.
   void _startEmailVerificationCheck() {
     _checkTimer?.cancel();
     _checkTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
@@ -98,7 +98,7 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Ошибка отправки письма')),
+        SnackBar(content: Text(e.message ?? 'Ошибка отп��авки письма')),
       );
     } catch (e) {
       if (!mounted) return;
