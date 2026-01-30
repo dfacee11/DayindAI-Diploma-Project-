@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dayindai/backend/auth_service.dart';
 import 'RegisterPage.dart';
 
@@ -18,66 +19,101 @@ class _FirstpageState extends State<Firstpage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _isLoading = false;
 
-  Future<void> _showPasswordResetDialog() async {
-    final _resetEmailController =
-        TextEditingController(text: _emailController.text);
-    final _dialogKey = GlobalKey<FormState>();
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Восстановление пароля'),
-        content: Form(
-          key: _dialogKey,
-          child: TextFormField(
-            controller: _resetEmailController,
-            decoration: const InputDecoration(hintText: 'Введите email'),
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Введите email';
-              if (!value.contains('@')) return 'Некорректный email';
-              return null;
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (!_dialogKey.currentState!.validate()) return;
-              final email = _resetEmailController.text.trim();
-              Navigator.of(context).pop(); // закрываем диалог
-              // Показываем короткий индикатор и отправляем письмо
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Отправка письма восстановления...')),
-              );
-              try {
-                await _authService.sendPasswordResetEmail(email);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Письмо для восстановления отправлено')),
-                );
-              } on FirebaseAuthException catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(e.message ?? 'Ошибка отправки письма')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Ошибка: $e')),
-                );
-              }
-            },
-            child: const Text('Отправить'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    try {
+      final cred = await _authService.signIn(email: email, password: password);
+      final user = cred.user;
+
+      if (user == null) {
+        throw FirebaseAuthException(
+            code: 'user-null', message: 'Пользователь не найден после входа');
+      }
+
+      // Опциональная проверка профиля в Firestore (не прерывает вход)
+      try {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (!doc.exists) {
+          debugPrint('FirstPage: user profile not found in firestore uid=${user.uid}');
+          // При необходимости можно создать профиль здесь
+        } else {
+          final data = doc.data();
+          if (data != null && data['disabled'] == true) {
+            // Если хотите блокировать вход: разлогиньте и покажите сообщение
+            await _authService.signOut();
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Учётная запись заблокирована. Обратитесь к администратору.')),
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('FirstPage: firestore check error: $e');
+        // не критично — продолжаем
+      }
+
+      // Обновляем состояние пользователя и проверяем emailVerified
+      await user.reload();
+      final freshUser = FirebaseAuth.instance.currentUser;
+
+      if (freshUser != null && !freshUser.emailVerified) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/confirmEmail');
+        return;
+      }
+
+      // Всё хорошо — переходим в приложение
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'Пользователь с таким email не найден';
+          break;
+        case 'wrong-password':
+          message = 'Неверный пароль';
+          break;
+        case 'invalid-email':
+          message = 'Неверный формат email';
+          break;
+        case 'too-many-requests':
+          message = 'Слишком много попыток. Попробуйте позже.';
+          break;
+        default:
+          message = e.message ?? 'Ошибка при входе';
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -266,7 +302,10 @@ class _FirstpageState extends State<Firstpage> {
                       Align(
                         alignment: Alignment.topRight,
                         child: TextButton(
-                          onPressed: _showPasswordResetDialog,
+                          onPressed: () {
+                            // Убедитесь, что в main.dart добавлен маршрут '/reset'
+                            Navigator.pushNamed(context, '/resetPassword');
+                          },
                           child: Text(
                             "Забыли пароль",
                             style: TextStyle(
@@ -281,43 +320,7 @@ class _FirstpageState extends State<Firstpage> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   //Buttton for login
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      try {
-                        final cred = await _authService.signIn(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text,
-                        );
-
-                        final user = cred.user;
-                        if (user != null && !user.emailVerified) {
-                          // Е��ли email не подтверждён — показываем экран подтверждения
-                          if (!mounted) return;
-                          Navigator.pushReplacementNamed(
-                              context, '/confirmEmail');
-                        } else {
-                          if (!mounted) return;
-                          Navigator.pushReplacementNamed(context, '/home');
-                        }
-                      } on FirebaseAuthException catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.message ?? 'Ошибка входа')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Ошибка: $e')),
-                        );
-                      } finally {
-                        if (mounted)
-                          setState(() {
-                            _isLoading = false;
-                          });
-                      }
-                    }
-                  },
+                  onPressed: _isLoading ? null : _signIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.blue,

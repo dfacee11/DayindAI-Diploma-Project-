@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,7 +35,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DayindAI'),
+        title: Text('DayindAI',
+            style: GoogleFonts.montserrat(fontSize: 24, color: Colors.white)),
         backgroundColor: const Color(0xFF121423),
         actions: [
           IconButton(
@@ -59,7 +61,10 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 8),
               Text(
                 displayName,
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
@@ -80,11 +85,17 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       // TODO: заменить на переход в основную часть приложения
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Переход в основную часть приложения пока не реализован')), 
+                        const SnackBar(
+                            content: Text(
+                                'Переход в основную часть приложения пока не реализован')),
                       );
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text('Начать'),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child:  Text(
+                      'Начать',
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 18),
+                    ),
                   ),
                 ),
               ),

@@ -49,7 +49,8 @@ class AuthService {
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
     }).then((_) {
-      debugPrint('AuthService.registerUser: profile saved to firestore uid=${user.uid}');
+      debugPrint(
+          'AuthService.registerUser: profile saved to firestore uid=${user.uid}');
     }).catchError((e) {
       debugPrint('AuthService.registerUser: firestore set error: $e');
     });
