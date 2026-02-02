@@ -35,74 +35,183 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('DayindAI',
-            style: GoogleFonts.montserrat(fontSize: 24, color: Colors.white)),
+        title: RichText(
+          text: TextSpan(
+              text: "Dayind",
+              style: GoogleFonts.montserrat(
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(
+                  text: "AI",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 28,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold),
+                ),
+              ]),
+        ),
         backgroundColor: const Color(0xFF121423),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(
+              Icons.logout,
+            ),
             onPressed: _signOut,
             tooltip: 'Выйти',
+            style: IconButton.styleFrom(
+              foregroundColor: Colors.white,
+            ),
           )
         ],
       ),
       backgroundColor: const Color(0xFF121423),
       body: SafeArea(
-        child: Padding(
+  child: SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Добро пожаловать,',
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          displayName,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        const SizedBox(height: 30),
+
+        // 🔥 Главная кнопка
+        Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.redAccent, Colors.deepPurpleAccent],
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              Text(
-                'Добро пожаловать,',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+              const Text(
+                'AI Mock Interview',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              Text(
-                displayName,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                email,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              const SizedBox(height: 24),
-              const Divider(color: Colors.white12),
-              const SizedBox(height: 12),
               const Text(
-                'Здесь будет основной экран приложения — список тренировочных заданий, сессии интервью и т.д.',
+                'Пройди интервью с ИИ как в реальной компании',
                 style: TextStyle(color: Colors.white70),
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: заменить на переход в основную часть приложения
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Переход в основную часть приложения пока не реализован')),
-                      );
-                    },
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child:  Text(
-                      'Начать',
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/InterviewSelect');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
                 ),
+                child: const Text('Начать интервью'),
               ),
             ],
           ),
         ),
-      ),
+
+        const SizedBox(height: 30),
+
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.1,
+          children: [
+            _featureCard(
+              icon: Icons.description,
+              title: 'Анализ резюме',
+              subtitle: 'ИИ оценит твоё резюме',
+              onTap: () {
+                Navigator.pushNamed(context, '/ResumeAnalyzer');
+              },
+            ),
+            _featureCard(
+              icon: Icons.question_answer,
+              title: 'Вопросы',
+              subtitle: '10 популярных вопросов',
+              onTap: () {
+                Navigator.pushNamed(context, '/Questions');
+              },
+            ),
+            _featureCard(
+              icon: Icons.trending_up,
+              title: 'Прогресс',
+              subtitle: 'История интервью',
+              onTap: () {},
+            ),
+            _featureCard(
+              icon: Icons.settings,
+              title: 'Настройки',
+              subtitle: 'Профиль и язык',
+              onTap: () {},
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+),
     );
   }
+  Widget _featureCard({
+  required IconData icon,
+  required String title,
+  required String subtitle,
+  required VoidCallback onTap,
+  Color color = const Color(0xFF1E2038),
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.redAccent, size: 28),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.white60, fontSize: 13),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }
