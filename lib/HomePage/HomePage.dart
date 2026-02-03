@@ -68,150 +68,169 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: const Color(0xFF121423),
       body: SafeArea(
-  child: SingleChildScrollView(
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Добро пожаловать,',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          displayName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 30),
-
-        // 🔥 Главная кнопка
-        Container(
-          width: double.infinity,
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Colors.redAccent, Colors.deepPurpleAccent],
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'AI Mock Interview',
-                style: TextStyle(
+              Text(
+                'Добро пожаловать,',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                displayName,
+                style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Пройди интервью с ИИ как в реальной компании',
-                style: TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/InterviewSelect');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
+
+              const SizedBox(height: 30),
+
+              // 🔥 Главная кнопка
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/interviewPic.png'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Text('Начать интервью'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.8),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Resume analyzer AI',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        ' Анализ твоего резюме и подготовка к интервью с помощью ИИ',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/AnalyzerResume');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Начать анализ'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.1,
+                children: [
+                  _featureCard(
+                    icon: Icons.description,
+                    title: 'Анализ резюме',
+                    subtitle: 'ИИ оценит твоё резюме',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/ResumeAnalyzer');
+                    },
+                  ),
+                  _featureCard(
+                    icon: Icons.question_answer,
+                    title: 'Вопросы',
+                    subtitle: '10 популярных вопросов',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/Questions');
+                    },
+                  ),
+                  _featureCard(
+                    icon: Icons.trending_up,
+                    title: 'Прогресс',
+                    subtitle: 'История интервью',
+                    onTap: () {},
+                  ),
+                  _featureCard(
+                    icon: Icons.settings,
+                    title: 'Настройки',
+                    subtitle: 'Профиль и язык',
+                    onTap: () {},
+                  ),
+                ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
 
-        const SizedBox(height: 30),
-
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.1,
+  Widget _featureCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color color = const Color(0xFF1E2038),
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _featureCard(
-              icon: Icons.description,
-              title: 'Анализ резюме',
-              subtitle: 'ИИ оценит твоё резюме',
-              onTap: () {
-                Navigator.pushNamed(context, '/ResumeAnalyzer');
-              },
+            Icon(icon, color: Colors.redAccent, size: 28),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            _featureCard(
-              icon: Icons.question_answer,
-              title: 'Вопросы',
-              subtitle: '10 популярных вопросов',
-              onTap: () {
-                Navigator.pushNamed(context, '/Questions');
-              },
-            ),
-            _featureCard(
-              icon: Icons.trending_up,
-              title: 'Прогресс',
-              subtitle: 'История интервью',
-              onTap: () {},
-            ),
-            _featureCard(
-              icon: Icons.settings,
-              title: 'Настройки',
-              subtitle: 'Профиль и язык',
-              onTap: () {},
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(color: Colors.white60, fontSize: 13),
             ),
           ],
         ),
-      ],
-    ),
-  ),
-),
+      ),
     );
   }
-  Widget _featureCard({
-  required IconData icon,
-  required String title,
-  required String subtitle,
-  required VoidCallback onTap,
-  Color color = const Color(0xFF1E2038),
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Colors.redAccent, size: 28),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: const TextStyle(color: Colors.white60, fontSize: 13),
-          ),
-        ],
-      ),
-    ),
-  );
-}
 }

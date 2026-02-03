@@ -9,6 +9,7 @@ import 'package:dayindai/Login Page/ConfirmEmailPage.dart';
 import 'package:dayindai/Login Page/EmailVerifed.dart';
 import 'package:dayindai/AuthGate.dart';
 import 'package:dayindai/Login Page/ResetPassword.dart';
+import 'package:dayindai/AnalyzeResume/resume_analyzer_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -40,6 +41,7 @@ class MainApp extends StatelessWidget {
         '/confirmEmail': (context) => const ConfirmEmailPage(),
         '/verified': (context) => const EmailVerifiedPage(),
         '/resetPassword': (context) => const ResetPassword(),
+        '/AnalyzerResume': (context) => const ResumeAnalyzerPage(),
       },
     );
   }
