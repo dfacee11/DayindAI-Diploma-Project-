@@ -90,14 +90,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             // Upload resume (пока заглушка)
             GestureDetector(
-              onTap: () async {
-                final file = await _uploadService.pickResumeFile();
-                if (file != null) {
-                  setState(() {
-                    selectedResumeFile = file;
-                  });
-                }
-              },
+              onTap: showUploadOptions,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -112,8 +105,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                     const SizedBox(height: 10),
                     Text(
                       selectedResumeFile == null
-                          ? 'Загрузить резюме (PDF / TXT)'
-                          : 'Файл выбран: ${selectedResumeFile!.path.split('/').last}',
+                          ? 'Загрузить резюме'
+                          : 'Выбрано: ${selectedResumeFile!.path.split('/').last}',
                       style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
@@ -180,6 +173,59 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void showUploadOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E2038),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading:
+                    const Icon(Icons.insert_drive_file, color: Colors.white),
+                title: const Text(
+                  'Загрузить файл (PDF / TXT)',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final file = await _uploadService.pickResumeFile();
+                  if (file != null) {
+                    setState(() {
+                      selectedResumeFile = file;
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo, color: Colors.white),
+                title: const Text(
+                  'Загрузить из галереи',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final file = await _uploadService.pickResumeImage();
+                  if (file != null) {
+                    setState(() {
+                      selectedResumeFile = file;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
