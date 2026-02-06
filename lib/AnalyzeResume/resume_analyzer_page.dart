@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'resume_upload_service.dart';
+import 'resume_analysis_result.dart';
 
 class ResumeAnalyzerPage extends StatefulWidget {
   const ResumeAnalyzerPage({super.key});
@@ -13,22 +14,11 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
   String? selectedProfession;
   bool isAnalyzing = false;
   bool hasResult = false;
+
   final ResumeUploadService _uploadService = ResumeUploadService();
+
   File? selectedResumeFile;
-  // mock result
-  int score = 7;
-  List<String> strengths = [
-    'Опыт работы с Flutter',
-    'Знание REST API',
-  ];
-  List<String> weaknesses = [
-    'Нет тестирования',
-    'Слабое описание проектов',
-  ];
-  List<String> recommendations = [
-    'Добавить информацию о проектах',
-    'Указать достижения и метрики',
-  ];
+  ResumeAnalysisResult? result;
 
   final List<String> professions = [
     'Flutter Developer',
@@ -36,12 +26,6 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
     'Frontend Developer',
     'QA Engineer',
   ];
-
-  Map<String, int> levelMatch = {
-    'Junior': 80,
-    'Middle': 45,
-    'Senior': 10,
-  };
 
   Future<void> analyzeResume() async {
     if (selectedProfession == null) {
@@ -51,18 +35,72 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
       return;
     }
 
+    if (selectedResumeFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Загрузите резюме')),
+      );
+      return;
+    }
+
     setState(() {
       isAnalyzing = true;
       hasResult = false;
+      result = null;
     });
 
-    // ⏳ имитация AI-анализа
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // ✅ ПОКА mock (можешь оставить)
+      await Future.delayed(const Duration(seconds: 2));
 
-    setState(() {
-      isAnalyzing = false;
-      hasResult = true;
-    });
+      final mock = ResumeAnalysisResult(
+        score: 7,
+        strengths: [
+          'Опыт работы с Flutter',
+          'Знание REST API',
+        ],
+        weaknesses: [
+          'Нет тестирования',
+          'Слабое описание проектов',
+        ],
+        recommendations: [
+          'Добавить информацию о проектах',
+          'Указать достижения и метрики',
+        ],
+        levelMatch: {
+          'Junior': 80,
+          'Middle': 45,
+          'Senior': 10,
+        },
+      );
+
+      setState(() {
+        isAnalyzing = false;
+        hasResult = true;
+        result = mock;
+      });
+
+      // ✅ ВОТ ТУТ будет backend позже:
+      /*
+      final json = await _uploadService.analyzeResume(
+        file: selectedResumeFile!,
+        profession: selectedProfession!,
+      );
+
+      setState(() {
+        result = ResumeAnalysisResult.fromJson(json);
+        isAnalyzing = false;
+        hasResult = true;
+      });
+      */
+    } catch (e) {
+      setState(() {
+        isAnalyzing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Ошибка: $e")),
+      );
+    }
   }
 
   @override
@@ -85,12 +123,84 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
               'Загрузите резюме и получите AI-анализ',
               style: TextStyle(color: Colors.white70),
             ),
-
             const SizedBox(height: 20),
 
-            // Upload resume (пока заглушка)
+            // Upload resume
             GestureDetector(
+<<<<<<< HEAD
               onTap: showUploadOptions,
+=======
+              onTap: () async {
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: const Color(0xFF1E2038),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (_) {
+                    return SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.picture_as_pdf,
+                                  color: Colors.white),
+                              title: const Text(
+                                "Upload File (PDF/TXT)",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final file =
+                                    await _uploadService.pickResumeFile();
+                                if (file != null) {
+                                  setState(() => selectedResumeFile = file);
+                                }
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.photo_library,
+                                  color: Colors.white),
+                              title: const Text(
+                                "Choose Photo",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final file = await _uploadService
+                                    .pickResumeImageFromGallery();
+                                if (file != null) {
+                                  setState(() => selectedResumeFile = file);
+                                }
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.camera_alt,
+                                  color: Colors.white),
+                              title: const Text(
+                                "Take Photo",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final file =
+                                    await _uploadService.takeResumePhoto();
+                                if (file != null) {
+                                  setState(() => selectedResumeFile = file);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+>>>>>>> 7ba1829 (updated analyze page)
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -100,13 +210,17 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.upload_file,
-                        color: Colors.white, size: 40),
+                    const Icon(Icons.upload_file, color: Colors.white, size: 40),
                     const SizedBox(height: 10),
                     Text(
                       selectedResumeFile == null
+<<<<<<< HEAD
                           ? 'Загрузить резюме'
                           : 'Выбрано: ${selectedResumeFile!.path.split('/').last}',
+=======
+                          ? 'Загрузить резюме (PDF / TXT / PHOTO)'
+                          : 'Файл выбран: ${selectedResumeFile!.path.split('/').last}',
+>>>>>>> 7ba1829 (updated analyze page)
                       style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
@@ -169,7 +283,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             const SizedBox(height: 30),
 
-            if (hasResult) buildResult(),
+            if (hasResult && result != null) buildResult(),
           ],
         ),
       ),
@@ -230,6 +344,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
   }
 
   Widget buildResult() {
+    final data = result!;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -241,17 +357,14 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Score: $score / 10',
+            'Score: ${data.score} / 10',
             style: const TextStyle(
               color: Colors.greenAccent,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // 🔥 LEVEL MATCH SECTION
           const Text(
             'Уровень подготовки',
             style: TextStyle(
@@ -260,8 +373,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
             ),
           ),
           const SizedBox(height: 12),
-
-          ...levelMatch.entries.map((entry) {
+          ...data.levelMatch.entries.map((entry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Column(
@@ -282,12 +394,10 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
               ),
             );
           }),
-
           const SizedBox(height: 20),
-
-          buildList('Сильные стороны', strengths),
-          buildList('Слабые стороны', weaknesses),
-          buildList('Рекомендации', recommendations),
+          buildList('Сильные стороны', data.strengths),
+          buildList('Слабые стороны', data.weaknesses),
+          buildList('Рекомендации', data.recommendations),
         ],
       ),
     );

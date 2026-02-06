@@ -16,7 +16,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser;
-    // Listen for changes so page updates if user signs out/in elsewhere
     FirebaseAuth.instance.userChanges().listen((u) {
       if (mounted) setState(() => _user = u);
     });

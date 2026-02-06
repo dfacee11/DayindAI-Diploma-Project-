@@ -69,5 +69,12 @@
 
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Permissions for Resume Photo Upload -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to take a resume photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo library access to upload a resume photo.</string>
+
 </dict>
 </plist>
