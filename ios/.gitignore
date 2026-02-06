@@ -40,3 +40,6 @@ functions/node_modules/
 # iOS Pods
 ios/Pods/
 ios/Podfile.lock
+
+node_modules/
+functions/node_modules/

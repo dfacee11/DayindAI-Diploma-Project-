@@ -1,1 +1,44 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"dayindai","appId":"1:451170474146:android:904458a814b30d30889ffb","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"dayindai","appId":"1:451170474146:ios:499fa002428cf21c889ffb","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"dayindai","configurations":{"android":"1:451170474146:android:904458a814b30d30889ffb","ios":"1:451170474146:ios:499fa002428cf21c889ffb"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dayindai",
+          "appId": "1:451170474146:android:904458a814b30d30889ffb",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "dayindai",
+          "appId": "1:451170474146:ios:499fa002428cf21c889ffb",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dayindai",
+          "configurations": {
+            "android": "1:451170474146:android:904458a814b30d30889ffb",
+            "ios": "1:451170474146:ios:499fa002428cf21c889ffb"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

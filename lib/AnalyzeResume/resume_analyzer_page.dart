@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'resume_upload_service.dart';
 import 'resume_analysis_result.dart';
+import 'ocr_service.dart';
 
 class ResumeAnalyzerPage extends StatefulWidget {
   const ResumeAnalyzerPage({super.key});
@@ -14,7 +15,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
   String? selectedProfession;
   bool isAnalyzing = false;
   bool hasResult = false;
-
+  final OcrService _ocrService = OcrService();
   final ResumeUploadService _uploadService = ResumeUploadService();
 
   File? selectedResumeFile;
@@ -51,6 +52,20 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
     try {
       // ✅ ПОКА mock (можешь оставить)
       await Future.delayed(const Duration(seconds: 2));
+      final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
+
+      String text = "";
+
+      if (ext == "jpg" || ext == "jpeg" || ext == "png") {
+        text = await _ocrService.extractTextFromImage(selectedResumeFile!);
+      } else {
+        // пока просто заглушка
+        text = "Файл не является картинкой: $ext";
+      }
+
+      print("===== OCR TEXT START =====");
+      print(text);
+      print("===== OCR TEXT END =====");
 
       final mock = ResumeAnalysisResult(
         score: 7,
@@ -206,7 +221,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.upload_file, color: Colors.white, size: 40),
+                    const Icon(Icons.upload_file,
+                        color: Colors.white, size: 40),
                     const SizedBox(height: 10),
                     Text(
                       selectedResumeFile == null
@@ -319,7 +335,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
                 onTap: () async {
                   Navigator.pop(context);
-                  final file = await _uploadService.pickResumeImageFromGallery();
+                  final file =
+                      await _uploadService.pickResumeImageFromGallery();
                   if (file != null) {
                     setState(() {
                       selectedResumeFile = file;
