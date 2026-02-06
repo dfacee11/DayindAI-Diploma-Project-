@@ -3,6 +3,7 @@ import 'dart:io';
 import 'resume_upload_service.dart';
 import 'resume_analysis_result.dart';
 import 'ocr_service.dart';
+import 'resume_analysis_service.dart';
 
 class ResumeAnalyzerPage extends StatefulWidget {
   const ResumeAnalyzerPage({super.key});
@@ -17,15 +18,29 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
   bool hasResult = false;
   final OcrService _ocrService = OcrService();
   final ResumeUploadService _uploadService = ResumeUploadService();
+  final ResumeAnalysisService _analysisService = ResumeAnalysisService();
 
   File? selectedResumeFile;
   ResumeAnalysisResult? result;
 
   final List<String> professions = [
-    'Flutter Developer',
-    'Backend Developer',
-    'Frontend Developer',
-    'QA Engineer',
+    "Flutter Developer",
+    "Android Developer",
+    "iOS Developer",
+    "Frontend Developer",
+    "Backend Developer",
+    "Fullstack Developer",
+    "QA Engineer",
+    "Automation QA Engineer",
+    "DevOps Engineer",
+    "Data Analyst",
+    "Data Scientist",
+    "UI/UX Designer",
+    "Product Manager",
+    "Project Manager",
+    "Business Analyst",
+    "System Analyst",
+    "Cybersecurity Specialist",
   ];
 
   Future<void> analyzeResume() async {
@@ -63,50 +78,18 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
         text = "Файл не является картинкой: $ext";
       }
 
-      print("===== OCR TEXT START =====");
-      print(text);
-      print("===== OCR TEXT END =====");
-
-      final mock = ResumeAnalysisResult(
-        score: 7,
-        strengths: [
-          'Опыт работы с Flutter',
-          'Знание REST API',
-        ],
-        weaknesses: [
-          'Нет тестирования',
-          'Слабое описание проектов',
-        ],
-        recommendations: [
-          'Добавить информацию о проектах',
-          'Указать достижения и метрики',
-        ],
-        levelMatch: {
-          'Junior': 80,
-          'Middle': 45,
-          'Senior': 10,
-        },
-      );
-
-      setState(() {
-        isAnalyzing = false;
-        hasResult = true;
-        result = mock;
-      });
-
-      // ✅ ВОТ ТУТ будет backend позже:
-      /*
-      final json = await _uploadService.analyzeResume(
-        file: selectedResumeFile!,
+      final json = await _analysisService.analyzeWithDeepseek(
+        text: text,
         profession: selectedProfession!,
       );
 
+      final aiResult = ResumeAnalysisResult.fromJson(json);
+
       setState(() {
-        result = ResumeAnalysisResult.fromJson(json);
         isAnalyzing = false;
         hasResult = true;
+        result = aiResult;
       });
-      */
     } catch (e) {
       setState(() {
         isAnalyzing = false;
@@ -128,6 +111,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF121423),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -242,25 +226,28 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
             DropdownButtonFormField<String>(
               value: selectedProfession,
               dropdownColor: const Color(0xFF1E2038),
+              hint: const Text(
+                "Выберите профессию",
+                style: TextStyle(color: Colors.white54),
+              ),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: const Color(0xFF1E2038),
-                hintText: 'Выберите профессию',
-                hintStyle: const TextStyle(color: Colors.white54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
               ),
               style: const TextStyle(color: Colors.white),
-              items: professions
-                  .map(
-                    (p) => DropdownMenuItem(
-                      value: p,
-                      child: Text(p),
-                    ),
-                  )
-                  .toList(),
+              items: professions.map((p) {
+                return DropdownMenuItem(
+                  value: p,
+                  child: Text(
+                    p,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
+              }).toList(),
               onChanged: (value) {
                 setState(() {
                   selectedProfession = value;
@@ -284,7 +271,10 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
                 child: isAnalyzing
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Analyze Resume'),
+                    : const Text(
+                        'Analyze Resume',
+                        style: TextStyle(color: Colors.white),
+                      ),
               ),
             ),
 
