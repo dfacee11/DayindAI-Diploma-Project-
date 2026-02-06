@@ -127,9 +127,6 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             // Upload resume
             GestureDetector(
-<<<<<<< HEAD
-              onTap: showUploadOptions,
-=======
               onTap: () async {
                 showModalBottomSheet(
                   context: context,
@@ -200,7 +197,6 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                   },
                 );
               },
->>>>>>> 7ba1829 (updated analyze page)
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -214,13 +210,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                     const SizedBox(height: 10),
                     Text(
                       selectedResumeFile == null
-<<<<<<< HEAD
-                          ? 'Загрузить резюме'
-                          : 'Выбрано: ${selectedResumeFile!.path.split('/').last}',
-=======
                           ? 'Загрузить резюме (PDF / TXT / PHOTO)'
                           : 'Файл выбран: ${selectedResumeFile!.path.split('/').last}',
->>>>>>> 7ba1829 (updated analyze page)
                       style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
@@ -328,7 +319,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
                 onTap: () async {
                   Navigator.pop(context);
-                  final file = await _uploadService.pickResumeImage();
+                  final file = await _uploadService.pickResumeImageFromGallery();
                   if (file != null) {
                     setState(() {
                       selectedResumeFile = file;
