@@ -34,10 +34,10 @@ class _ResetPasswordState extends State<ResetPassword> {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Письмо отправлено'),
+          title: const Text('Letter Sent'),
           content: Text(
-            'Письмо для восстановления пароля отправлено на $email.\n'
-            'Проверьте почту и следуйте инструкциям в письме.',
+            'Password recovery email sent to $email.\n'
+            'Check your email and follow the instructions in the email.',
           ),
           actions: [
             TextButton(
@@ -52,7 +52,7 @@ class _ResetPasswordState extends State<ResetPassword> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      final message = e.message ?? 'Ошибка при отправке письма';
+      final message = e.message ?? 'Error sending email';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
@@ -60,7 +60,7 @@ class _ResetPasswordState extends State<ResetPassword> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: $e')),
+        SnackBar(content: Text('Issue: $e')),
       );
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -68,8 +68,8 @@ class _ResetPasswordState extends State<ResetPassword> {
   }
 
   String? _emailValidator(String? value) {
-    if (value == null || value.isEmpty) return 'Введите email';
-    if (!value.contains('@')) return 'Введите корректный email';
+    if (value == null || value.isEmpty) return 'Please enter email';
+    if (!value.contains('@')) return 'Please enter a valid email';
     return null;
   }
 
@@ -78,7 +78,7 @@ class _ResetPasswordState extends State<ResetPassword> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Восстановление пароля',
+          'Password Recovery',
           style: GoogleFonts.inter(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF121423),
@@ -97,12 +97,12 @@ class _ResetPasswordState extends State<ResetPassword> {
                   const Icon(Icons.lock_open, size: 80, color: Colors.white),
                   const SizedBox(height: 16),
                   const Text(
-                    'Восстановление пароля',
+                    'Password Recovery',
                     style: TextStyle(color: Colors.white, fontSize: 22),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Введите email, связанный с аккаунтом. Мы пришлём ссылку для восстановления пароля.',
+                    'Enter the email associated with your account. We will send a link to reset your password.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white70),
                   ),
@@ -147,7 +147,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('Отправить письмо для восстановления',
+                          : const Text('Send Password Recovery Email',
                               style: TextStyle(color: Colors.white)),
                     ),
                   ),
@@ -157,7 +157,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                       Navigator.pushReplacementNamed(context, '/FirstPage');
                     },
                     child: const Text(
-                      'Вернуться на вход',
+                      'Return to Login',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),

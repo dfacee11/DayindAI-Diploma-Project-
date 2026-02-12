@@ -151,13 +151,13 @@ class _FirstpageState extends State<Firstpage> {
                   ),
                 ),
                 const SizedBox(height: 0),
-                Text("Подготовка к интервью с помощью AI",
+                Text("Prepare to interview with AI",
                     style: GoogleFonts.montserrat(
                         fontSize: 16,
                         color: Colors.white,
                         fontWeight: FontWeight.w400)),
                 const SizedBox(height: 45),
-                Text("Войти",
+                Text("Login",
                     style: GoogleFonts.inter(
                         fontSize: 32,
                         color: Colors.white,
@@ -170,7 +170,7 @@ class _FirstpageState extends State<Firstpage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
-                          child: Text("Введите Email",
+                          child: Text("Enter your email",
                               style: GoogleFonts.inter(
                                   fontSize: 16, color: Colors.white)),
                         ),
@@ -179,10 +179,10 @@ class _FirstpageState extends State<Firstpage> {
                           //TextFormField for email input
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Пожалуйста введите Email";
+                              return "Please enter your email";
                             }
                             if (!value.contains("@")) {
-                              return "Пожалуйста введите корректный Email";
+                              return "Please enter a valid email";
                             }
                             return null;
                           },
@@ -233,7 +233,7 @@ class _FirstpageState extends State<Firstpage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
-                        child: Text("Введите пароль",
+                        child: Text("Enter your password",
                             style: GoogleFonts.inter(
                                 fontSize: 16, color: Colors.white)),
                       ),
@@ -242,10 +242,10 @@ class _FirstpageState extends State<Firstpage> {
                         //TextFormField for password input
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return "Пожалуйста введите пароль";
+                            return "Please enter your password";
                           }
                           if (value.length < 6) {
-                            return "Пароль должен быть не менее 6 символов";
+                            return "Password must be at least 6 characters";
                           }
                           return null;
                         },
@@ -254,7 +254,7 @@ class _FirstpageState extends State<Firstpage> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
-                          hintText: "Пароль",
+                          hintText: "Password",
                           hintStyle: GoogleFonts.inter(),
                           prefixIcon: const Icon(LucideIcons.lock),
                           suffixIcon: IconButton(
@@ -307,7 +307,7 @@ class _FirstpageState extends State<Firstpage> {
                             Navigator.pushNamed(context, '/resetPassword');
                           },
                           child: Text(
-                            "Забыли пароль",
+                            "Forgot password?",
                             style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.blue.withOpacity(0.8)),
@@ -339,7 +339,7 @@ class _FirstpageState extends State<Firstpage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text("Войти",
+                      : Text("Login",
                           style: GoogleFonts.inter(
                               fontSize: 22,
                               color: Colors.white,
@@ -349,7 +349,7 @@ class _FirstpageState extends State<Firstpage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Нет аккаунта?",
+                    Text("Don't have an account?",
                         style: GoogleFonts.inter(
                             fontSize: 16,
                             color: Colors.white,
@@ -363,7 +363,7 @@ class _FirstpageState extends State<Firstpage> {
                         );
                       },
                       child: Text(
-                        "Зарегистрироваться",
+                        "Register",
                         style: GoogleFonts.inter(
                             fontSize: 16,
                             color: Colors.blue,

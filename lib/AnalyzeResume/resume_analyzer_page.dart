@@ -46,14 +46,14 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
   Future<void> analyzeResume() async {
     if (selectedProfession == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Выберите профессию')),
+        const SnackBar(content: Text('Choose a profession')),
       );
       return;
     }
 
     if (selectedResumeFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Загрузите резюме')),
+        const SnackBar(content: Text('Upload a resume')),
       );
       return;
     }
@@ -75,7 +75,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
         text = await _ocrService.extractTextFromImage(selectedResumeFile!);
       } else {
         // пока просто заглушка
-        text = "Файл не является картинкой: $ext";
+        text = "File is not a picture: $ext";
       }
 
       final json = await _analysisService.analyzeWithDeepseek(
@@ -119,7 +119,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Загрузите резюме и получите AI-анализ',
+              'Upload your resume and get AI analysis',
               style: TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 20),
@@ -210,8 +210,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                     const SizedBox(height: 10),
                     Text(
                       selectedResumeFile == null
-                          ? 'Загрузить резюме (PDF / TXT / PHOTO)'
-                          : 'Файл выбран: ${selectedResumeFile!.path.split('/').last}',
+                          ? 'Upload resume (PDF / TXT / PHOTO)'
+                          : 'File selected: ${selectedResumeFile!.path.split('/').last}',
                       style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
@@ -227,7 +227,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
               value: selectedProfession,
               dropdownColor: const Color(0xFF1E2038),
               hint: const Text(
-                "Выберите профессию",
+                "Choose profession",
                 style: TextStyle(color: Colors.white54),
               ),
               decoration: InputDecoration(
@@ -304,7 +304,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 leading:
                     const Icon(Icons.insert_drive_file, color: Colors.white),
                 title: const Text(
-                  'Загрузить файл (PDF / TXT)',
+                  'Upload file (PDF / TXT)',
                   style: TextStyle(color: Colors.white),
                 ),
                 onTap: () async {
@@ -320,7 +320,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
               ListTile(
                 leading: const Icon(Icons.photo, color: Colors.white),
                 title: const Text(
-                  'Загрузить из галереи',
+                  'Upload from gallery',
                   style: TextStyle(color: Colors.white),
                 ),
                 onTap: () async {
@@ -364,7 +364,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
           ),
           const SizedBox(height: 20),
           const Text(
-            'Уровень подготовки',
+            'Level of preparation',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -393,9 +393,9 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
             );
           }),
           const SizedBox(height: 20),
-          buildList('Сильные стороны', data.strengths),
-          buildList('Слабые стороны', data.weaknesses),
-          buildList('Рекомендации', data.recommendations),
+          buildList('Strengths', data.strengths),
+          buildList('Weaknesses', data.weaknesses),
+          buildList('Recommendations', data.recommendations),
         ],
       ),
     );

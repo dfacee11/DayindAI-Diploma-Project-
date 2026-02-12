@@ -34,7 +34,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Зарегистрироваться",
+          "Register",
           style: GoogleFonts.inter(
               color: Colors.white, fontWeight: FontWeight.w600),
         ),
@@ -86,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: EdgeInsets.only(left: 8),
                           child: Text(
-                            "Введите ваше имя",
+                            "Enter your name",
                             style: GoogleFonts.inter(
                                 color: Colors.white, fontSize: 16),
                           ),
@@ -99,12 +99,12 @@ class _RegisterPageState extends State<RegisterPage> {
                           //Name TextFormField
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Пожалуйста, введите ваше имя";
+                              return "Please enter your name";
                             }
                             return null;
                           },
                           decoration: InputDecoration(
-                            hintText: "Введите ваше имя",
+                            hintText: "Enter your name",
                             prefixIcon: Icon(LucideIcons.user),
                             filled: true,
                             fillColor: Colors.white,
@@ -132,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: EdgeInsets.only(left: 8),
                           child: Text(
-                            "Введите вашу фамилию",
+                            "Enter your surname",
                             style: GoogleFonts.inter(
                                 color: Colors.white, fontSize: 16),
                           ),
@@ -145,12 +145,12 @@ class _RegisterPageState extends State<RegisterPage> {
                           //Surname TextFormField
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Пожалуйста, введите вашу фамилию";
+                              return "Please enter your surname";
                             }
                             return null;
                           },
                           decoration: InputDecoration(
-                            hintText: "Введите вашу фамилию",
+                            hintText: "Enter your surname",
                             prefixIcon: Icon(LucideIcons.user),
                             filled: true,
                             fillColor: Colors.white,
@@ -178,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: EdgeInsets.only(left: 8),
                           child: Text(
-                            "Введите ваш email",
+                            "Enter your email",
                             style: GoogleFonts.inter(
                                 color: Colors.white, fontSize: 16),
                           ),
@@ -191,15 +191,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           controller: _emailController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Пожалуйста, введите ваш email";
+                              return "Please enter your email";
                             } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
                                 .hasMatch(value)) {
-                              return "Пожалуйста, введите корректный email";
+                              return "Please enter a valid email";
                             }
                             return null;
                           },
                           decoration: InputDecoration(
-                            hintText: "Введите ваш email",
+                            hintText: "Enter your email",
                             prefixIcon: Icon(LucideIcons.mail),
                             filled: true,
                             fillColor: Colors.white,
@@ -227,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: EdgeInsets.only(left: 8),
                           child: Text(
-                            "Введите ваш пароль",
+                            "Enter your password",
                             style: GoogleFonts.inter(
                                 color: Colors.white, fontSize: 16),
                           ),
@@ -248,16 +248,16 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Пожалуйста, введите ваш пароль";
+                              return "Please enter your password";
                             } else if (!hasMinLength ||
                                 !hasUppercase ||
                                 !hasDigit) {
-                              return "Пароль не соответствует требованиям";
+                              return "Password does not meet requirements";
                             }
                             return null;
                           },
                           decoration: InputDecoration(
-                            hintText: "Введите ваш пароль",
+                            hintText: "Enter your password",
                             prefixIcon: Icon(LucideIcons.lock),
                             filled: true,
                             fillColor: Colors.white,
@@ -282,10 +282,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(
                           height: 8,
                         ),
-                        _buildRequirement("Минимум 6 символом", hasMinLength),
+                        _buildRequirement("Minimum 6 characters", hasMinLength),
                         _buildRequirement(
-                            "Минимум одна заглавная буква", hasUppercase),
-                        _buildRequirement("Минимум одна цифра", hasDigit),
+                            "Minimum one uppercase letter", hasUppercase),
+                        _buildRequirement("Minimum one digit", hasDigit),
                         SizedBox(
                           height: 30,
                         ),
@@ -327,7 +327,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                                 .showSnackBar(
                                               SnackBar(
                                                   content: Text(e.message ??
-                                                      'Ошибка регистрации')),
+                                                      'Registration error')),
                                             );
                                           }
                                         } catch (e) {
@@ -336,7 +336,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
-                                                  content: Text('Ошибка: $e')),
+                                                  content: Text('Error: $e')),
                                             );
                                           }
                                         }
@@ -369,7 +369,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         ),
                                       )
                                     : Text(
-                                        "Зарегистрироваться",
+                                        "Register",
                                         style: GoogleFonts.inter(
                                             color: Colors.white, fontSize: 18),
                                       ),
