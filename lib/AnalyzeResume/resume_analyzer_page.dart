@@ -1,108 +1,26 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'resume_upload_service.dart';
-import 'resume_analysis_result.dart';
-import 'ocr_service.dart';
-import 'resume_analysis_service.dart';
+import 'package:provider/provider.dart';
+import 'resume_analyzer_provider.dart';
 
-class ResumeAnalyzerPage extends StatefulWidget {
+class ResumeAnalyzerPage extends StatelessWidget {
   const ResumeAnalyzerPage({super.key});
 
   @override
-  State<ResumeAnalyzerPage> createState() => _ResumeAnalyzerPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => ResumeAnalyzerProvider(),
+      child: const _ResumeAnalyzerView(),
+    );
+  }
 }
 
-class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
-  String? selectedProfession;
-  bool isAnalyzing = false;
-  bool hasResult = false;
-  final OcrService _ocrService = OcrService();
-  final ResumeUploadService _uploadService = ResumeUploadService();
-  final ResumeAnalysisService _analysisService = ResumeAnalysisService();
-
-  File? selectedResumeFile;
-  ResumeAnalysisResult? result;
-
-  final List<String> professions = [
-    "Flutter Developer",
-    "Android Developer",
-    "iOS Developer",
-    "Frontend Developer",
-    "Backend Developer",
-    "Fullstack Developer",
-    "QA Engineer",
-    "Automation QA Engineer",
-    "DevOps Engineer",
-    "Data Analyst",
-    "Data Scientist",
-    "UI/UX Designer",
-    "Product Manager",
-    "Project Manager",
-    "Business Analyst",
-    "System Analyst",
-    "Cybersecurity Specialist",
-  ];
-
-  Future<void> analyzeResume() async {
-    if (selectedProfession == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Choose a profession')),
-      );
-      return;
-    }
-
-    if (selectedResumeFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Upload a resume')),
-      );
-      return;
-    }
-
-    setState(() {
-      isAnalyzing = true;
-      hasResult = false;
-      result = null;
-    });
-
-    try {
-      // ✅ ПОКА mock (можешь оставить)
-      await Future.delayed(const Duration(seconds: 2));
-      final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
-
-      String text = "";
-
-      if (ext == "jpg" || ext == "jpeg" || ext == "png") {
-        text = await _ocrService.extractTextFromImage(selectedResumeFile!);
-      } else {
-        // пока просто заглушка
-        text = "File is not a picture: $ext";
-      }
-
-      final json = await _analysisService.analyzeWithDeepseek(
-        text: text,
-        profession: selectedProfession!,
-      );
-
-      final aiResult = ResumeAnalysisResult.fromJson(json);
-
-      setState(() {
-        isAnalyzing = false;
-        hasResult = true;
-        result = aiResult;
-      });
-    } catch (e) {
-      setState(() {
-        isAnalyzing = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ошибка: $e")),
-      );
-    }
-  }
+class _ResumeAnalyzerView extends StatelessWidget {
+  const _ResumeAnalyzerView();
 
   @override
   Widget build(BuildContext context) {
+    final p = context.watch<ResumeAnalyzerProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFF121423),
       appBar: AppBar(
@@ -126,76 +44,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             // Upload resume
             GestureDetector(
-              onTap: () async {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: const Color(0xFF1E2038),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) {
-                    return SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.picture_as_pdf,
-                                  color: Colors.white),
-                              title: const Text(
-                                "Upload File (PDF/TXT)",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onTap: () async {
-                                Navigator.pop(context);
-                                final file =
-                                    await _uploadService.pickResumeFile();
-                                if (file != null) {
-                                  setState(() => selectedResumeFile = file);
-                                }
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.photo_library,
-                                  color: Colors.white),
-                              title: const Text(
-                                "Choose Photo",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onTap: () async {
-                                Navigator.pop(context);
-                                final file = await _uploadService
-                                    .pickResumeImageFromGallery();
-                                if (file != null) {
-                                  setState(() => selectedResumeFile = file);
-                                }
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.camera_alt,
-                                  color: Colors.white),
-                              title: const Text(
-                                "Take Photo",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onTap: () async {
-                                Navigator.pop(context);
-                                final file =
-                                    await _uploadService.takeResumePhoto();
-                                if (file != null) {
-                                  setState(() => selectedResumeFile = file);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+              onTap: () => _showUploadBottomSheet(context),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -209,9 +58,9 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                         color: Colors.white, size: 40),
                     const SizedBox(height: 10),
                     Text(
-                      selectedResumeFile == null
+                      p.selectedResumeFile == null
                           ? 'Upload resume (PDF / TXT / PHOTO)'
-                          : 'File selected: ${selectedResumeFile!.path.split('/').last}',
+                          : 'File selected: ${p.selectedResumeFile!.path.split('/').last}',
                       style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
@@ -224,7 +73,7 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             // Profession dropdown
             DropdownButtonFormField<String>(
-              value: selectedProfession,
+              value: p.selectedProfession,
               dropdownColor: const Color(0xFF1E2038),
               hint: const Text(
                 "Choose profession",
@@ -239,20 +88,16 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                 ),
               ),
               style: const TextStyle(color: Colors.white),
-              items: professions.map((p) {
+              items: p.professions.map((job) {
                 return DropdownMenuItem(
-                  value: p,
+                  value: job,
                   child: Text(
-                    p,
+                    job,
                     style: const TextStyle(color: Colors.white),
                   ),
                 );
               }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedProfession = value;
-                });
-              },
+              onChanged: p.setProfession,
             ),
 
             const SizedBox(height: 20),
@@ -262,14 +107,14 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: isAnalyzing ? null : analyzeResume,
+                onPressed: p.isAnalyzing ? null : () => p.analyze(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: isAnalyzing
+                child: p.isAnalyzing
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
                         'Analyze Resume',
@@ -280,69 +125,74 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
 
             const SizedBox(height: 30),
 
-            if (hasResult && result != null) buildResult(),
+            if (p.result != null) _buildResult(p),
           ],
         ),
       ),
     );
   }
 
-  void showUploadOptions() {
+  void _showUploadBottomSheet(BuildContext context) {
+    final p = context.read<ResumeAnalyzerProvider>();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E2038),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading:
-                    const Icon(Icons.insert_drive_file, color: Colors.white),
-                title: const Text(
-                  'Upload file (PDF / TXT)',
-                  style: TextStyle(color: Colors.white),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading:
+                      const Icon(Icons.picture_as_pdf, color: Colors.white),
+                  title: const Text(
+                    "Upload File (PDF/TXT)",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await p.pickResumeFile();
+                  },
                 ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final file = await _uploadService.pickResumeFile();
-                  if (file != null) {
-                    setState(() {
-                      selectedResumeFile = file;
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo, color: Colors.white),
-                title: const Text(
-                  'Upload from gallery',
-                  style: TextStyle(color: Colors.white),
+                ListTile(
+                  leading:
+                      const Icon(Icons.photo_library, color: Colors.white),
+                  title: const Text(
+                    "Choose Photo",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await p.pickFromGallery();
+                  },
                 ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final file =
-                      await _uploadService.pickResumeImageFromGallery();
-                  if (file != null) {
-                    setState(() {
-                      selectedResumeFile = file;
-                    });
-                  }
-                },
-              ),
-            ],
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: Colors.white),
+                  title: const Text(
+                    "Take Photo",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await p.takePhoto();
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget buildResult() {
-    final data = result!;
+  Widget _buildResult(ResumeAnalyzerProvider p) {
+    final data = p.result!;
 
     return Container(
       width: double.infinity,
@@ -385,7 +235,8 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
                   LinearProgressIndicator(
                     value: entry.value / 100,
                     backgroundColor: Colors.white12,
-                    valueColor: const AlwaysStoppedAnimation(Colors.redAccent),
+                    valueColor:
+                        const AlwaysStoppedAnimation(Colors.redAccent),
                     minHeight: 6,
                   ),
                 ],
@@ -393,15 +244,15 @@ class _ResumeAnalyzerPageState extends State<ResumeAnalyzerPage> {
             );
           }),
           const SizedBox(height: 20),
-          buildList('Strengths', data.strengths),
-          buildList('Weaknesses', data.weaknesses),
-          buildList('Recommendations', data.recommendations),
+          _buildList('Strengths', data.strengths),
+          _buildList('Weaknesses', data.weaknesses),
+          _buildList('Recommendations', data.recommendations),
         ],
       ),
     );
   }
 
-  Widget buildList(String title, List<String> items) {
+  Widget _buildList(String title, List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
