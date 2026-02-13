@@ -13,19 +13,55 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User? _user;
 
+  final PageController _toolController = PageController(viewportFraction: 0.88);
+  int _toolIndex = 0;
+
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser;
+
     FirebaseAuth.instance.userChanges().listen((u) {
       if (mounted) setState(() => _user = u);
     });
+
+    _toolController.addListener(() {
+      final page = _toolController.page ?? 0;
+      final newIndex = page.round();
+      if (newIndex != _toolIndex) {
+        setState(() => _toolIndex = newIndex);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _toolController.dispose();
+    super.dispose();
   }
 
   Future<void> _signOut() async {
     await FirebaseAuth.instance.signOut();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/FirstPage');
+  }
+
+  void _nextTool() {
+    if (_toolIndex < 2) {
+      _toolController.nextPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _prevTool() {
+    if (_toolIndex > 0) {
+      _toolController.previousPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -95,15 +131,11 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       const SizedBox(height: 14),
 
-                      // Верхняя часть (тёмная)
-
-                      const SizedBox(height: 18),
-
                       // Белая часть - полностью на весь экран
                       Container(
                         width: double.infinity,
                         constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 160,
+                          minHeight: constraints.maxHeight - 110,
                         ),
                         decoration: const BoxDecoration(
                           color: Color(0xFFF4F5FA),
@@ -113,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+                          padding: const EdgeInsets.fromLTRB(20, 22, 20, 30),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -127,22 +159,133 @@ class _HomePageState extends State<HomePage> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                "Here’s your AI career assistant.",
+                                "Choose an AI tool to continue",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: const Color(0xFF64748B),
                                 ),
                               ),
-                              const SizedBox(height: 18),
-                              _buildQuickActionsRow(),
+
                               const SizedBox(height: 22),
-                              _buildSectionTitle("AI Tools"),
+
+                              Text(
+                                "AI Tools",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              SizedBox(
+                                height: 185,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(26),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // We clip the PageView so the next card is NOT visible
+                                      ClipRect(
+                                        child: PageView(
+                                          controller: _toolController,
+                                          padEnds: true,
+                                          children: [
+                                            _AiToolCard(
+                                              title: "AI Interview",
+                                              description:
+                                                  "Practice interview with AI + get feedback.",
+                                              icon: Icons
+                                                  .record_voice_over_rounded,
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Color(0xFF7C5CFF),
+                                                  Color(0xFF2DD4FF),
+                                                ],
+                                              ),
+                                              buttonText: "Start Interview",
+                                              onTap: () => Navigator.pushNamed(
+                                                  context, "/AIInterview"),
+                                            ),
+                                            _AiToolCard(
+                                              title: "Resume Analyzer",
+                                              description:
+                                                  "Upload resume and get AI review + tips.",
+                                              icon: Icons.description_rounded,
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Color(0xFF4F46E5),
+                                                  Color(0xFF38BDF8),
+                                                ],
+                                              ),
+                                              buttonText: "Analyze Resume",
+                                              onTap: () => Navigator.pushNamed(
+                                                  context, "/ResumeAnalyzer"),
+                                            ),
+                                            _AiToolCard(
+                                              title: "Resume Matching",
+                                              description:
+                                                  "Check how well your resume matches a job.",
+                                              icon:
+                                                  Icons.compare_arrows_rounded,
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Color(0xFF9333EA),
+                                                  Color(0xFF60A5FA),
+                                                ],
+                                              ),
+                                              buttonText: "Match Now",
+                                              onTap: () => Navigator.pushNamed(
+                                                  context, "/ResumeMatching"),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Left arrow (more visible)
+                                      Positioned(
+                                        left: 10,
+                                        child: _ArrowOverlayButton(
+                                          icon: Icons.chevron_left_rounded,
+                                          onTap: _prevTool,
+                                          enabled: _toolIndex > 0,
+                                        ),
+                                      ),
+
+                                      // Right arrow (more visible)
+                                      Positioned(
+                                        right: 10,
+                                        child: _ArrowOverlayButton(
+                                          icon: Icons.chevron_right_rounded,
+                                          onTap: _nextTool,
+                                          enabled: _toolIndex < 2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 26),
+
+                              // Можно добавить позже: Progress / Recent
+                              Text(
+                                "Quick Features",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
                               const SizedBox(height: 12),
-                              _buildMainBanner(context),
-                              const SizedBox(height: 22),
-                              _buildSectionTitle("Quick Features"),
-                              const SizedBox(height: 12),
+
                               _buildFeatureGrid(context),
                               const SizedBox(height: 16),
                             ],
@@ -160,173 +303,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- Верхняя карточка с именем (на тёмном фоне)
-
-
-  Widget _buildQuickActionsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickActionCard(
-            title: "Resume",
-            subtitle: "Analyze",
-            icon: Icons.description_rounded,
-            onTap: () => Navigator.pushNamed(context, '/ResumeAnalyzer'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionCard(
-            title: "Interview",
-            subtitle: "Questions",
-            icon: Icons.question_answer_rounded,
-            onTap: () => Navigator.pushNamed(context, '/Questions'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionTitle(String text) {
-    return Row(
-      children: [
-        Text(
-          text,
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-            color: const Color(0xFF0F172A),
-          ),
-        ),
-        const Spacer(),
-        TextButton(
-          onPressed: () {},
-          child: Text(
-            "See all",
-            style: GoogleFonts.montserrat(
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF7C5CFF),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMainBanner(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(26),
-      child: Stack(
-        children: [
-          Container(
-            height: 190,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF7C5CFF),
-                  Color(0xFF2DD4FF),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: -60,
-            right: -50,
-            child: _BlurBlob(
-              size: 200,
-              color: Colors.white.withOpacity(0.25),
-            ),
-          ),
-          Positioned(
-            bottom: -70,
-            left: -70,
-            child: _BlurBlob(
-              size: 220,
-              color: Colors.white.withOpacity(0.18),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.20),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.18),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.auto_awesome_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Resume Analyzer",
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "Upload your resume and get instant AI feedback + interview tips.",
-                  style: GoogleFonts.montserrat(
-                    color: Colors.white.withOpacity(0.92),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  height: 46,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/AnalyzerResume');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0F172A),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Start Analysis",
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.arrow_forward_rounded, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFeatureGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 2,
@@ -334,30 +310,30 @@ class _HomePageState extends State<HomePage> {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 14,
       crossAxisSpacing: 14,
-      childAspectRatio: 1.10,
+      childAspectRatio: 1.05,
       children: [
         _FeatureTile(
           icon: Icons.description_outlined,
           title: 'Resume Analysis',
-          subtitle: 'AI feedbacks',
+          subtitle: 'AI feedback',
           onTap: () => Navigator.pushNamed(context, '/ResumeAnalyzer'),
         ),
         _FeatureTile(
           icon: Icons.question_answer_outlined,
           title: 'Questions',
-          subtitle: 'Popular interview Q&A',
+          subtitle: 'Interview Q&A',
           onTap: () => Navigator.pushNamed(context, '/Questions'),
         ),
         _FeatureTile(
           icon: Icons.trending_up_outlined,
           title: 'Progress',
-          subtitle: 'Interview history',
+          subtitle: 'History',
           onTap: () {},
         ),
         _FeatureTile(
           icon: Icons.settings_outlined,
           title: 'Settings',
-          subtitle: 'Profile and language',
+          subtitle: 'Profile',
           onTap: () {},
         ),
       ],
@@ -389,7 +365,7 @@ class _DarkTopBackground extends StatelessWidget {
             left: -90,
             child: _BlurBlob(
               size: 300,
-              color: Color(0xFF7C5CFF).withOpacity(0.22),
+              color: const Color(0xFF7C5CFF).withOpacity(0.22),
             ),
           ),
           Positioned(
@@ -397,7 +373,7 @@ class _DarkTopBackground extends StatelessWidget {
             right: -130,
             child: _BlurBlob(
               size: 340,
-              color: Color(0xFF2DD4FF).withOpacity(0.18),
+              color: const Color(0xFF2DD4FF).withOpacity(0.18),
             ),
           ),
         ],
@@ -434,115 +410,161 @@ class _BlurBlob extends StatelessWidget {
   }
 }
 
-class _DarkInfoPill extends StatelessWidget {
+class _ArrowOverlayButton extends StatelessWidget {
   final IconData icon;
-  final String text;
+  final VoidCallback onTap;
+  final bool enabled;
 
-  const _DarkInfoPill({
+  const _ArrowOverlayButton({
     required this.icon,
-    required this.text,
+    required this.onTap,
+    required this.enabled,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.14)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+    return IgnorePointer(
+      ignoring: !enabled,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: enabled ? 1 : 0.25,
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _QuickActionCard extends StatelessWidget {
+class _AiToolCard extends StatelessWidget {
   final String title;
-  final String subtitle;
+  final String description;
   final IconData icon;
+  final LinearGradient gradient;
+  final String buttonText;
   final VoidCallback onTap;
 
-  const _QuickActionCard({
+  const _AiToolCard({
     required this.title,
-    required this.subtitle,
+    required this.description,
     required this.icon,
+    required this.gradient,
+    required this.buttonText,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.black.withOpacity(0.05)),
-        ),
-        child: Row(
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: Stack(
           children: [
             Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF7C5CFF),
-                    Color(0xFF2DD4FF),
-                  ],
-                ),
-              ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              decoration: BoxDecoration(gradient: gradient),
             ),
-            const SizedBox(width: 12),
-            Expanded(
+            Positioned(
+              top: -60,
+              right: -50,
+              child: _BlurBlob(
+                size: 200,
+                color: Colors.white.withOpacity(0.22),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withOpacity(0.20)),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
-                      fontSize: 14,
+                      color: Colors.white,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 6),
                   Text(
-                    subtitle,
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
+                      color: Colors.white.withOpacity(0.92),
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: 38,
+                    child: ElevatedButton(
+                      onPressed: onTap,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF0F172A),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            buttonText,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, size: 16),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: Color(0xFF94A3B8),
             ),
           ],
         ),
@@ -597,7 +619,7 @@ class _FeatureTile extends StatelessWidget {
                   ),
                   child: Icon(icon, color: Colors.white, size: 22),
                 ),
-                const Spacer(),
+                const SizedBox(height: 12),
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: Color(0xFFCBD5E1),
@@ -608,6 +630,8 @@ class _FeatureTile extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w900,
@@ -617,6 +641,8 @@ class _FeatureTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
