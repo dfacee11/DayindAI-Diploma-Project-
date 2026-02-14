@@ -166,9 +166,7 @@ class _HomePageState extends State<HomePage> {
                                   color: const Color(0xFF64748B),
                                 ),
                               ),
-
                               const SizedBox(height: 22),
-
                               Text(
                                 "AI Tools",
                                 style: GoogleFonts.montserrat(
@@ -177,103 +175,134 @@ class _HomePageState extends State<HomePage> {
                                   color: const Color(0xFF0F172A),
                                 ),
                               ),
-
                               const SizedBox(height: 14),
-
                               SizedBox(
-  height: 185,
-  child: Stack(
-    clipBehavior: Clip.none,
-    alignment: Alignment.center,
-    children: [
-      // ⭐ card width limited
-      Center(
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(26),
-            child: PageView(
-              controller: _toolController,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _AiToolCard(
-                  title: "AI Interview",
-                  description: "Practice interview with AI + get feedback.",
-                  icon: Icons.record_voice_over_rounded,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF7C5CFF),
-                      Color(0xFF2DD4FF),
-                    ],
-                  ),
-                  buttonText: "Start Interview",
-                  onTap: () => Navigator.pushNamed(context, "/AIInterview"),
-                ),
-                _AiToolCard(
-                  title: "Resume Analyzer",
-                  description: "Upload resume and get AI review + tips.",
-                  icon: Icons.description_rounded,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF4F46E5),
-                      Color(0xFF38BDF8),
-                    ],
-                  ),
-                  buttonText: "Analyze Resume",
-                  onTap: () => Navigator.pushNamed(context, "/ResumeAnalyzer"),
-                ),
-                _AiToolCard(
-                  title: "Resume Matching",
-                  description: "Check how well your resume matches a job.",
-                  icon: Icons.compare_arrows_rounded,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF9333EA),
-                      Color(0xFF60A5FA),
-                    ],
-                  ),
-                  buttonText: "Match Now",
-                  onTap: () => Navigator.pushNamed(context, "/ResumeMatching"),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+                                height: 185,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // ⭐ card width limited
+                                    Center(
+                                      child: SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.8,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(26),
+                                          child: PageView(
+                                            controller: _toolController,
+                                            physics:
+                                                const BouncingScrollPhysics(),
+                                            children: [
+                                              _AiToolCard(
+                                                title: "AI Interview",
+                                                description:
+                                                    "Practice interview with AI + get feedback.",
+                                                icon: Icons
+                                                    .record_voice_over_rounded,
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFF7C5CFF),
+                                                    Color(0xFF2DD4FF),
+                                                  ],
+                                                ),
+                                                buttonText: "Start Interview",
+                                                onTap: () =>
+                                                    Navigator.pushNamed(context,
+                                                        "/AIInterview"),
+                                              ),
+                                              _AiToolCard(
+                                                title: "Resume Analyzer",
+                                                description:
+                                                    "Upload resume and get AI review + tips.",
+                                                icon: Icons.description_rounded,
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFF4F46E5),
+                                                    Color(0xFF38BDF8),
+                                                  ],
+                                                ),
+                                                buttonText: "Analyze Resume",
+                                                onTap: () =>
+                                                    Navigator.pushNamed(context,
+                                                        "/ResumeAnalyzer"),
+                                              ),
+                                              _AiToolCard(
+                                                title: "Resume Matching",
+                                                description:
+                                                    "Check how well your resume matches a job.",
+                                                icon: Icons
+                                                    .compare_arrows_rounded,
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFF9333EA),
+                                                    Color(0xFF60A5FA),
+                                                  ],
+                                                ),
+                                                buttonText: "Match Now",
+                                                onTap: () =>
+                                                    Navigator.pushNamed(context,
+                                                        "/ResumeMatching"),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
 
-      // ⬅️ arrow left
-      Positioned(
-        left: -18,
-        child: _ArrowOverlayButton(
-          icon: Icons.chevron_left_rounded,
-          onTap: _prevTool,
-          enabled: _toolIndex > 0,
-        ),
-      ),
+                                    // ⬅️ arrow left
+                                    Positioned(
+                                      left: -18,
+                                      child: _ArrowOverlayButton(
+                                        icon: Icons.chevron_left_rounded,
+                                        onTap: _prevTool,
+                                        enabled: _toolIndex > 0,
+                                      ),
+                                    ),
 
-      // ➡️ arrow right
-      Positioned(
-        right: -18,
-        child: _ArrowOverlayButton(
-          icon: Icons.chevron_right_rounded,
-          onTap: _nextTool,
-          enabled: _toolIndex < 2,
-        ),
-      ),
-    ],
-  ),
-),
+                                    // ➡️ arrow right
+                                    Positioned(
+                                      right: -18,
+                                      child: _ArrowOverlayButton(
+                                        icon: Icons.chevron_right_rounded,
+                                        onTap: _nextTool,
+                                        enabled: _toolIndex < 2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(3, (i) {
+                                  final active = i == _toolIndex;
+                                  return AnimatedContainer(
+                                    duration: const Duration(milliseconds: 250),
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4),
+                                    width: active ? 18 : 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      color: active
+                                          ? const Color(0xFF7C5CFF)
+                                          : const Color(0xFFCBD5E1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  );
+                                }),
+                              ),
                               const SizedBox(height: 26),
-
-                              // Можно добавить позже: Progress / Recent
                               Text(
-                                "Quick Features",
+                                "Your Progress",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
@@ -281,9 +310,18 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-
-                              _buildFeatureGrid(context),
-                              const SizedBox(height: 16),
+                              const _FakeProgressCard(),
+                              const SizedBox(height: 18),
+                              Text(
+                                "Tips for you",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const _RandomTipCard(),
                             ],
                           ),
                         ),
@@ -296,43 +334,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildFeatureGrid(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 14,
-      crossAxisSpacing: 14,
-      childAspectRatio: 1.05,
-      children: [
-        _FeatureTile(
-          icon: Icons.description_outlined,
-          title: 'Resume Analysis',
-          subtitle: 'AI feedback',
-          onTap: () => Navigator.pushNamed(context, '/ResumeAnalyzer'),
-        ),
-        _FeatureTile(
-          icon: Icons.question_answer_outlined,
-          title: 'Questions',
-          subtitle: 'Interview Q&A',
-          onTap: () => Navigator.pushNamed(context, '/Questions'),
-        ),
-        _FeatureTile(
-          icon: Icons.trending_up_outlined,
-          title: 'Progress',
-          subtitle: 'History',
-          onTap: () {},
-        ),
-        _FeatureTile(
-          icon: Icons.settings_outlined,
-          title: 'Settings',
-          subtitle: 'Profile',
-          onTap: () {},
-        ),
-      ],
     );
   }
 }
@@ -647,6 +648,290 @@ class _FeatureTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FakeProgressCard extends StatelessWidget {
+  const _FakeProgressCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const percent = 0.62;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 22,
+            offset: const Offset(0, 14),
+            color: Colors.black.withOpacity(0.06),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF7C5CFF),
+                      Color(0xFF2DD4FF),
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.insights_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Interview Readiness",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "You are almost ready to apply 🚀",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                "${(percent * 100).round()}%",
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: LinearProgressIndicator(
+              value: percent,
+              minHeight: 10,
+              backgroundColor: const Color(0xFFF1F5F9),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF7C5CFF)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: const [
+              _ProgressChip(
+                text: "Resume uploaded",
+                done: true,
+              ),
+              _ProgressChip(
+                text: "Resume analyzed",
+                done: false,
+              ),
+              _ProgressChip(
+                text: "Mock interview",
+                done: true,
+              ),
+              _ProgressChip(
+                text: "Cover letter",
+                done: false,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressChip extends StatelessWidget {
+  final String text;
+  final bool done;
+
+  const _ProgressChip({
+    required this.text,
+    required this.done,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: done ? const Color(0xFFECFDF5) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color:
+              done ? const Color(0xFF86EFAC) : Colors.black.withOpacity(0.05),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            size: 18,
+            color: done ? const Color(0xFF22C55E) : const Color(0xFF94A3B8),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: done ? const Color(0xFF14532D) : const Color(0xFF0F172A),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RandomTipCard extends StatefulWidget {
+  const _RandomTipCard();
+
+  @override
+  State<_RandomTipCard> createState() => _RandomTipCardState();
+}
+
+class _RandomTipCardState extends State<_RandomTipCard> {
+  late final Map<String, dynamic> _tip;
+
+  final List<Map<String, dynamic>> _tips = [
+    {
+      "title": "Interview tip",
+      "text":
+          "Before answering, pause 2 seconds. It makes you sound confident, not nervous.",
+      "icon": Icons.mic_rounded,
+    },
+    {
+      "title": "Job search tip",
+      "text":
+          "Apply through LinkedIn + also send a short message to the recruiter. It doubles your chances.",
+      "icon": Icons.work_outline_rounded,
+    },
+    {
+      "title": "Resume tip",
+      "text":
+          "Replace 'Responsible for' with strong verbs: Built, Improved, Delivered, Automated.",
+      "icon": Icons.description_outlined,
+    },
+    {
+      "title": "Portfolio tip",
+      "text":
+          "Put your best project first. Recruiters often look only at the first 20 seconds.",
+      "icon": Icons.folder_open_rounded,
+    },
+    {
+      "title": "Interview tip",
+      "text":
+          "Use the STAR method: Situation → Task → Action → Result. Keep it short and clear.",
+      "icon": Icons.psychology_alt_rounded,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tips.shuffle();
+    _tip = _tips.first;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.05),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF7C5CFF),
+                  Color(0xFF2DD4FF),
+                ],
+              ),
+            ),
+            child: Icon(
+              _tip["icon"],
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _tip["title"],
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _tip["text"],
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

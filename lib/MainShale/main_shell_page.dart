@@ -1,6 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../ToolsPage/ToolsPage.dart';
 
 import '../HomePage/HomePage.dart';
 
@@ -16,7 +16,7 @@ class _MainShellPageState extends State<MainShellPage> {
 
   final _pages = const [
     HomePage(),
-    _ToolsPage(),
+    ToolsPage(),
     _AiPage(),
     _ResumePage(),
     _ProfilePage(),
@@ -33,7 +33,7 @@ class _MainShellPageState extends State<MainShellPage> {
       body: _pages[_index],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Transform.translate(
-        offset: const Offset(0, 15), 
+        offset: const Offset(0, 15),
         child: _CenterAiButton(
           onTap: () => _setIndex(2),
           isActive: _index == 2,
@@ -41,10 +41,7 @@ class _MainShellPageState extends State<MainShellPage> {
       ),
       bottomNavigationBar: _BottomNavBar(
         index: _index,
-        onTap: (i) {
-          // i = 0,1,3,4
-          _setIndex(i);
-        },
+        onTap: _setIndex,
       ),
     );
   }
@@ -195,7 +192,7 @@ class _CenterAiButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Center(
+        child: const Center(
           child: Icon(
             Icons.auto_awesome_rounded,
             color: Colors.white,
@@ -209,17 +206,6 @@ class _CenterAiButton extends StatelessWidget {
 
 /* ====== PAGES (пока заглушки) ====== */
 
-class _ToolsPage extends StatelessWidget {
-  const _ToolsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF0B1220),
-      body: Center(child: Text("Tools", style: TextStyle(color: Colors.white))),
-    );
-  }
-}
 
 class _AiPage extends StatelessWidget {
   const _AiPage();
