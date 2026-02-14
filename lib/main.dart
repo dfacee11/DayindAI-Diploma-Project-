@@ -10,6 +10,7 @@ import 'package:dayindai/Login Page/EmailVerifed.dart';
 import 'package:dayindai/AuthGate.dart';
 import 'package:dayindai/Login Page/ResetPassword.dart';
 import 'package:dayindai/AnalyzeResume/resume_analyzer_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

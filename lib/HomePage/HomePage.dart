@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User? _user;
 
-  final PageController _toolController = PageController(viewportFraction: 0.88);
+  final PageController _toolController = PageController(viewportFraction: 1);
   int _toolIndex = 0;
 
   @override
@@ -181,98 +181,94 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 14),
 
                               SizedBox(
-                                height: 185,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(26),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // We clip the PageView so the next card is NOT visible
-                                      ClipRect(
-                                        child: PageView(
-                                          controller: _toolController,
-                                          padEnds: true,
-                                          children: [
-                                            _AiToolCard(
-                                              title: "AI Interview",
-                                              description:
-                                                  "Practice interview with AI + get feedback.",
-                                              icon: Icons
-                                                  .record_voice_over_rounded,
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Color(0xFF7C5CFF),
-                                                  Color(0xFF2DD4FF),
-                                                ],
-                                              ),
-                                              buttonText: "Start Interview",
-                                              onTap: () => Navigator.pushNamed(
-                                                  context, "/AIInterview"),
-                                            ),
-                                            _AiToolCard(
-                                              title: "Resume Analyzer",
-                                              description:
-                                                  "Upload resume and get AI review + tips.",
-                                              icon: Icons.description_rounded,
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Color(0xFF4F46E5),
-                                                  Color(0xFF38BDF8),
-                                                ],
-                                              ),
-                                              buttonText: "Analyze Resume",
-                                              onTap: () => Navigator.pushNamed(
-                                                  context, "/ResumeAnalyzer"),
-                                            ),
-                                            _AiToolCard(
-                                              title: "Resume Matching",
-                                              description:
-                                                  "Check how well your resume matches a job.",
-                                              icon:
-                                                  Icons.compare_arrows_rounded,
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Color(0xFF9333EA),
-                                                  Color(0xFF60A5FA),
-                                                ],
-                                              ),
-                                              buttonText: "Match Now",
-                                              onTap: () => Navigator.pushNamed(
-                                                  context, "/ResumeMatching"),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+  height: 185,
+  child: Stack(
+    clipBehavior: Clip.none,
+    alignment: Alignment.center,
+    children: [
+      // ⭐ card width limited
+      Center(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: PageView(
+              controller: _toolController,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                _AiToolCard(
+                  title: "AI Interview",
+                  description: "Practice interview with AI + get feedback.",
+                  icon: Icons.record_voice_over_rounded,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF7C5CFF),
+                      Color(0xFF2DD4FF),
+                    ],
+                  ),
+                  buttonText: "Start Interview",
+                  onTap: () => Navigator.pushNamed(context, "/AIInterview"),
+                ),
+                _AiToolCard(
+                  title: "Resume Analyzer",
+                  description: "Upload resume and get AI review + tips.",
+                  icon: Icons.description_rounded,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF4F46E5),
+                      Color(0xFF38BDF8),
+                    ],
+                  ),
+                  buttonText: "Analyze Resume",
+                  onTap: () => Navigator.pushNamed(context, "/ResumeAnalyzer"),
+                ),
+                _AiToolCard(
+                  title: "Resume Matching",
+                  description: "Check how well your resume matches a job.",
+                  icon: Icons.compare_arrows_rounded,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF9333EA),
+                      Color(0xFF60A5FA),
+                    ],
+                  ),
+                  buttonText: "Match Now",
+                  onTap: () => Navigator.pushNamed(context, "/ResumeMatching"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
 
-                                      // Left arrow (more visible)
-                                      Positioned(
-                                        left: 10,
-                                        child: _ArrowOverlayButton(
-                                          icon: Icons.chevron_left_rounded,
-                                          onTap: _prevTool,
-                                          enabled: _toolIndex > 0,
-                                        ),
-                                      ),
+      // ⬅️ arrow left
+      Positioned(
+        left: -18,
+        child: _ArrowOverlayButton(
+          icon: Icons.chevron_left_rounded,
+          onTap: _prevTool,
+          enabled: _toolIndex > 0,
+        ),
+      ),
 
-                                      // Right arrow (more visible)
-                                      Positioned(
-                                        right: 10,
-                                        child: _ArrowOverlayButton(
-                                          icon: Icons.chevron_right_rounded,
-                                          onTap: _nextTool,
-                                          enabled: _toolIndex < 2,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+      // ➡️ arrow right
+      Positioned(
+        right: -18,
+        child: _ArrowOverlayButton(
+          icon: Icons.chevron_right_rounded,
+          onTap: _nextTool,
+          enabled: _toolIndex < 2,
+        ),
+      ),
+    ],
+  ),
+),
                               const SizedBox(height: 26),
 
                               // Можно добавить позже: Progress / Recent
@@ -478,7 +474,7 @@ class _AiToolCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 12),
+      padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(26),
         child: Stack(
