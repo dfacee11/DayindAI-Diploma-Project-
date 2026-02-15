@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:dayindai/backend/auth_service.dart';
-import 'package:dayindai/AuthGate.dart';
-import 'ConfirmEmailPage.dart';
-import 'dart:async';
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

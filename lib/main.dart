@@ -13,6 +13,7 @@ import 'package:dayindai/AnalyzeResume/resume_analyzer_page.dart';
 import 'ToolsPage/ToolsPage.dart';
 import 'Profil/profil_page.dart';
 import 'MainShale/main_shell_page.dart';
+import 'ResumeMatching/resume_matching_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,7 @@ class MainApp extends StatelessWidget {
         '/ToolsPage': (context) => const ToolsPage(),
         '/ProfilPage': (context) => const ProfilePage(),
         '/MainShell': (context) => const MainShellPage(),
+        "/ResumeMatching": (_) => const ResumeMatchingPage(),
 
       },
     );
