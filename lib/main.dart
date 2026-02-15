@@ -11,6 +11,9 @@ import 'package:dayindai/AuthGate.dart';
 import 'package:dayindai/Login Page/ResetPassword.dart';
 import 'package:dayindai/AnalyzeResume/resume_analyzer_page.dart';
 import 'ToolsPage/ToolsPage.dart';
+import 'Profil/profil_page.dart';
+import 'MainShale/main_shell_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -44,6 +47,9 @@ class MainApp extends StatelessWidget {
         '/resetPassword': (context) => const ResetPassword(),
         '/AnalyzerResume': (context) => const ResumeAnalyzerPage(),
         '/ToolsPage': (context) => const ToolsPage(),
+        '/ProfilPage': (context) => const ProfilePage(),
+        '/MainShell': (context) => const MainShellPage(),
+
       },
     );
   }

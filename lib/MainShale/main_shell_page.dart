@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../ToolsPage/ToolsPage.dart';
-
+import 'dart:ui';
 import '../HomePage/HomePage.dart';
+import 'package:dayindai/Profil/profil_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -19,7 +20,7 @@ class _MainShellPageState extends State<MainShellPage> {
     ToolsPage(),
     _AiPage(),
     _ResumePage(),
-    _ProfilePage(),
+    ProfilePage(),
   ];
 
   void _setIndex(int i) {
@@ -172,40 +173,62 @@ class _CenterAiButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 72,
-        height: 72,
+        width: 86,
+        height: 86,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF7C5CFF),
-              Color(0xFF2DD4FF),
-            ],
+
+          // 🔥 белый ринг вокруг кнопки
+          border: Border.all(
+            color: Colors.white.withOpacity(0.95),
+            width: 3,
           ),
+
+          // 🔥 тень (мягкая)
           boxShadow: [
             BoxShadow(
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-              color: Colors.black.withOpacity(0.25),
+              blurRadius: 30,
+              offset: const Offset(0, 16),
+              color: Colors.black.withOpacity(0.22),
+            ),
+            BoxShadow(
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+              color: const Color(0xFF7C5CFF).withOpacity(0.20),
             ),
           ],
         ),
-        child: const Center(
-          child: Icon(
-            Icons.auto_awesome_rounded,
-            color: Colors.white,
-            size: 30,
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF7C5CFF),
+                    Color(0xFF2DD4FF),
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Image.asset(
+                  "assets/images/penguin.png",
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 }
-
 /* ====== PAGES (пока заглушки) ====== */
-
 
 class _AiPage extends StatelessWidget {
   const _AiPage();

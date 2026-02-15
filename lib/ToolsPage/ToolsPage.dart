@@ -48,34 +48,36 @@ class _ToolsPageState extends State<ToolsPage> {
         foregroundColor: Colors.white,
         title: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF7C5CFF),
-                    Color(0xFF2DD4FF),
-                  ],
+            Padding(
+              padding: const EdgeInsets.all(4), // чтобы не прилипало
+              child: SizedBox(
+                height: 73,
+                width: 73,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    "assets/images/DayindAI1.png",
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-              child: const Icon(
-                Icons.auto_awesome_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              "DayindAI",
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+            RichText(
+              text: TextSpan(
+                  text: "Dayind",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 27,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                  children: [
+                    TextSpan(
+                      text: "AI",
+                      style: GoogleFonts.montserrat(
+                          fontSize: 27,
+                          color: const Color(0xFF4C63FF),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ]),
             ),
           ],
         ),
@@ -210,7 +212,7 @@ class _ToolsPageState extends State<ToolsPage> {
         title: "Resume Analyzer",
         subtitle: "AI resume review",
         icon: Icons.description_rounded,
-        onTap: () => Navigator.pushNamed(context, "/ResumeAnalyzer"),
+        onTap: () => Navigator.pushNamed(context, "/AnalyzerResume"),
       ),
       _ToolItem(
         category: "AI Tools",

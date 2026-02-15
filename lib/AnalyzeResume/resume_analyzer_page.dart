@@ -1,5 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'resume_analyzer_provider.dart';
 
 class ResumeAnalyzerPage extends StatelessWidget {
@@ -22,112 +25,238 @@ class _ResumeAnalyzerView extends StatelessWidget {
     final p = context.watch<ResumeAnalyzerProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121423),
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Resume Analyzer',
-          style: TextStyle(color: Colors.white),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        title: Text(
+          "Resume Analyzer",
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: const Color(0xFF121423),
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: Stack(
+        children: [
+          const _DarkTopBackground(),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+  child: ConstrainedBox(
+    constraints: BoxConstraints(
+      minHeight: constraints.maxHeight,
+    ),
+    child: Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF4F5FA),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(34),
+          topRight: Radius.circular(34),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Upload your resume and get AI analysis',
-              style: TextStyle(color: Colors.white70),
+            Text(
+              "Upload your resume",
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A),
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 6),
+            Text(
+              "Get AI analysis, strengths, weaknesses and tips.",
+              style: GoogleFonts.montserrat(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 18),
 
-            // Upload resume
-            GestureDetector(
-              onTap: () => _showUploadBottomSheet(context),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E2038),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.upload_file,
-                        color: Colors.white, size: 40),
-                    const SizedBox(height: 10),
-                    Text(
-                      p.selectedResumeFile == null
-                          ? 'Upload resume (PDF / TXT / PHOTO)'
-                          : 'File selected: ${p.selectedResumeFile!.path.split('/').last}',
-                      style: const TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+            // Upload card
+            _WhiteCard(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: () => _showUploadBottomSheet(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF7C5CFF),
+                              Color(0xFF2DD4FF),
+                            ],
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.upload_file_rounded,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p.selectedResumeFile == null
+                                  ? "Upload resume"
+                                  : "File selected",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              p.selectedResumeFile == null
+                                  ? "PDF / TXT / PHOTO"
+                                  : p.selectedResumeFile!.path.split('/').last,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Color(0xFFCBD5E1),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             // Profession dropdown
-            DropdownButtonFormField<String>(
-              value: p.selectedProfession,
-              dropdownColor: const Color(0xFF1E2038),
-              hint: const Text(
-                "Choose profession",
-                style: TextStyle(color: Colors.white54),
+            Text(
+              "Choose profession",
+              style: GoogleFonts.montserrat(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A),
               ),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF1E2038),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            ),
+            const SizedBox(height: 8),
+
+            _WhiteCard(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: p.selectedProfession,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                  ),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Color(0xFF64748B),
+                  ),
+                  style: GoogleFonts.montserrat(
+                    color: const Color(0xFF0F172A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  hint: Text(
+                    "Select profession",
+                    style: GoogleFonts.montserrat(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  items: p.professions.map((job) {
+                    return DropdownMenuItem(
+                      value: job,
+                      child: Text(job),
+                    );
+                  }).toList(),
+                  onChanged: p.setProfession,
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
-              items: p.professions.map((job) {
-                return DropdownMenuItem(
-                  value: job,
-                  child: Text(
-                    job,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                );
-              }).toList(),
-              onChanged: p.setProfession,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             // Analyze button
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 54,
               child: ElevatedButton(
                 onPressed: p.isAnalyzing ? null : () => p.analyze(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
+                  backgroundColor: const Color(0xFF7C5CFF),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
                 child: p.isAnalyzing
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Analyze Resume',
-                        style: TextStyle(color: Colors.white),
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        "Analyze Resume",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             if (p.result != null) _buildResult(p),
+
+            // This spacer forces the white container to fill the screen
+            const SizedBox(height: 14,)
           ],
         ),
+      ),
+    ),
+  ),
+);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -137,53 +266,56 @@ class _ResumeAnalyzerView extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E2038),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: false,
       builder: (_) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading:
-                      const Icon(Icons.picture_as_pdf, color: Colors.white),
-                  title: const Text(
-                    "Upload File (PDF/TXT)",
-                    style: TextStyle(color: Colors.white),
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF4F5FA),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
                   ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await p.pickResumeFile();
-                  },
-                ),
-                ListTile(
-                  leading:
-                      const Icon(Icons.photo_library, color: Colors.white),
-                  title: const Text(
-                    "Choose Photo",
-                    style: TextStyle(color: Colors.white),
+                  const SizedBox(height: 14),
+                  _BottomSheetTile(
+                    icon: Icons.picture_as_pdf_rounded,
+                    title: "Upload File (PDF/TXT)",
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await p.pickResumeFile();
+                    },
                   ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await p.pickFromGallery();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt, color: Colors.white),
-                  title: const Text(
-                    "Take Photo",
-                    style: TextStyle(color: Colors.white),
+                  _BottomSheetTile(
+                    icon: Icons.photo_library_rounded,
+                    title: "Choose Photo",
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await p.pickFromGallery();
+                    },
                   ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await p.takePhoto();
-                  },
-                ),
-              ],
+                  _BottomSheetTile(
+                    icon: Icons.camera_alt_rounded,
+                    title: "Take Photo",
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await p.takePhoto();
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -194,61 +326,130 @@ class _ResumeAnalyzerView extends StatelessWidget {
   Widget _buildResult(ResumeAnalyzerProvider p) {
     final data = p.result!;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E2038),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Score: ${data.score} / 10',
-            style: const TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Result",
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _WhiteCard(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF7C5CFF),
+                            Color(0xFF2DD4FF),
+                          ],
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.insights_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Resume score",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "AI evaluation",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      "${data.score} / 10",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Level of preparation",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...data.levelMatch.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${entry.key} — ${entry.value}%",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: LinearProgressIndicator(
+                            value: entry.value / 100,
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            valueColor: const AlwaysStoppedAnimation(
+                              Color(0xFF7C5CFF),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                _buildList("Strengths", data.strengths),
+                _buildList("Weaknesses", data.weaknesses),
+                _buildList("Recommendations", data.recommendations),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Level of preparation',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...data.levelMatch.entries.map((entry) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${entry.key} — ${entry.value}%',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: entry.value / 100,
-                    backgroundColor: Colors.white12,
-                    valueColor:
-                        const AlwaysStoppedAnimation(Colors.redAccent),
-                    minHeight: 6,
-                  ),
-                ],
-              ),
-            );
-          }),
-          const SizedBox(height: 20),
-          _buildList('Strengths', data.strengths),
-          _buildList('Weaknesses', data.weaknesses),
-          _buildList('Recommendations', data.recommendations),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -256,22 +457,195 @@ class _ResumeAnalyzerView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF0F172A),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         ...items.map(
-          (item) => Text(
-            '• $item',
-            style: const TextStyle(color: Colors.white70),
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              "• $item",
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF64748B),
+                height: 1.25,
+              ),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/* ================== UI HELPERS ================== */
+
+class _WhiteCard extends StatelessWidget {
+  final Widget child;
+
+  const _WhiteCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.05),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _BottomSheetTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _BottomSheetTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.black.withOpacity(0.05)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF7C5CFF),
+                      Color(0xFF2DD4FF),
+                    ],
+                  ),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFFCBD5E1),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/* ================== BACKGROUND ================== */
+
+class _DarkTopBackground extends StatelessWidget {
+  const _DarkTopBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0B1220),
+            Color(0xFF121A2B),
+            Color(0xFF1A2236),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -120,
+            left: -90,
+            child: _BlurBlob(
+              size: 300,
+              color: const Color(0xFF7C5CFF).withOpacity(0.22),
+            ),
+          ),
+          Positioned(
+            top: 120,
+            right: -130,
+            child: _BlurBlob(
+              size: 340,
+              color: const Color(0xFF2DD4FF).withOpacity(0.18),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlurBlob extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _BlurBlob({
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+          child: const SizedBox.expand(),
+        ),
+      ),
     );
   }
 }

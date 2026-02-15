@@ -50,7 +50,8 @@ class _FirstpageState extends State<Firstpage> {
       try {
         final doc = await _firestore.collection('users').doc(user.uid).get();
         if (!doc.exists) {
-          debugPrint('FirstPage: user profile not found in firestore uid=${user.uid}');
+          debugPrint(
+              'FirstPage: user profile not found in firestore uid=${user.uid}');
           // При необходимости можно создать профиль здесь
         } else {
           final data = doc.data();
@@ -59,7 +60,9 @@ class _FirstpageState extends State<Firstpage> {
             await _authService.signOut();
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Учётная запись заблокирована. Обратитесь к администратору.')),
+              const SnackBar(
+                  content: Text(
+                      'Учётная запись заблокирована. Обратитесь к администратору.')),
             );
             return;
           }
@@ -81,7 +84,10 @@ class _FirstpageState extends State<Firstpage> {
 
       // Всё хорошо — переходим в приложение
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        "/MainShell",
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
