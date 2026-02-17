@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -133,8 +133,6 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 14),
-
-                      // Белая часть - полностью на весь экран
                       Container(
                         width: double.infinity,
                         constraints: BoxConstraints(
@@ -169,7 +167,7 @@ class _HomePageState extends State<HomePage> {
                                         fontSize: 24,
                                         fontWeight: FontWeight.w900,
                                         color: const Color(
-                                            0xFF4C63FF), // цвет имени
+                                            0xFF4C63FF), 
                                       ),
                                     ),
                                   ],
@@ -229,7 +227,8 @@ class _HomePageState extends State<HomePage> {
                                                   ],
                                                 ),
                                                 buttonText: "Start Interview",
-                                                imagePath: "assets/images/pin1.png",
+                                                imagePath:
+                                                    "assets/images/pin1.png",
                                                 onTap: () =>
                                                     Navigator.pushNamed(context,
                                                         "/AIInterview"),
@@ -248,7 +247,8 @@ class _HomePageState extends State<HomePage> {
                                                   ],
                                                 ),
                                                 buttonText: "Analyze Resume",
-                                                imagePath: "assets/images/pin2.png",
+                                                imagePath:
+                                                    "assets/images/pin2.png",
                                                 onTap: () =>
                                                     Navigator.pushNamed(context,
                                                         "/AnalyzerResume"),
@@ -268,7 +268,8 @@ class _HomePageState extends State<HomePage> {
                                                   ],
                                                 ),
                                                 buttonText: "Match Now",
-                                                imagePath: "assets/images/pin3.png",
+                                                imagePath:
+                                                    "assets/images/pin3.png",
                                                 onTap: () =>
                                                     Navigator.pushNamed(context,
                                                         "/ResumeMatching"),
@@ -289,7 +290,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
 
-                                    // ➡️ arrow right
+                                    
                                     Positioned(
                                       right: -18,
                                       child: _ArrowOverlayButton(

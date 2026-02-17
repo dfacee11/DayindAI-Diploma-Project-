@@ -4,6 +4,7 @@ import '../ToolsPage/ToolsPage.dart';
 import 'dart:ui';
 import '../HomePage/HomePage.dart';
 import 'package:dayindai/Profil/profil_page.dart';
+import 'package:dayindai/AIInterview/ai_interview_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -18,7 +19,7 @@ class _MainShellPageState extends State<MainShellPage> {
   final _pages = const [
     HomePage(),
     ToolsPage(),
-    _AiPage(),
+    AiInterviewPage(),
     _ResumePage(),
     ProfilePage(),
   ];

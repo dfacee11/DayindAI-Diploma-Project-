@@ -6,9 +6,7 @@ const axios = require("axios");
 const DEEPSEEK_API_KEY = defineSecret("DEEPSEEK_API_KEY");
 const client = new vision.ImageAnnotatorClient();
 
-/**
- * 1) OCR FUNCTION
- */
+
 exports.extractTextFromImage = onCall(async (request) => {
   try {
     const base64 = request.data?.imageBase64;
@@ -34,9 +32,7 @@ exports.extractTextFromImage = onCall(async (request) => {
   }
 });
 
-/**
- * 2) RESUME ANALYSIS (DeepSeek)
- */
+
 exports.analyzeResumeDeepseek = onCall(
   { secrets: [DEEPSEEK_API_KEY] },
   async (request) => {

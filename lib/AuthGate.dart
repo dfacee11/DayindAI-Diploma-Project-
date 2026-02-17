@@ -11,8 +11,7 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      // 🔥 Используем authStateChanges() вместо userChanges()
-      // authStateChanges() быстрее реагирует на смену состояния
+    
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -27,7 +26,7 @@ class AuthGate extends StatelessWidget {
           return const Firstpage();
         }
 
-        // 🔥 Дополнительная проверка при каждом построении
+
         if (!user.emailVerified) {
           return const ConfirmEmailPage();
         }

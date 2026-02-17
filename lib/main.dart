@@ -14,6 +14,7 @@ import 'ToolsPage/ToolsPage.dart';
 import 'Profil/profil_page.dart';
 import 'MainShale/main_shell_page.dart';
 import 'ResumeMatching/resume_matching_page.dart';
+import 'AIInterview/ai_interview_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,7 +52,7 @@ class MainApp extends StatelessWidget {
         '/ProfilPage': (context) => const ProfilePage(),
         '/MainShell': (context) => const MainShellPage(),
         "/ResumeMatching": (_) => const ResumeMatchingPage(),
-
+        "/AIInterview": (context) => const AiInterviewPage(),
       },
     );
   }
