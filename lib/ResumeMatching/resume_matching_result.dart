@@ -1,5 +1,5 @@
 class ResumeMatchingResult {
-  final int score; // 0..100
+  final int score;
   final List<String> matched;
   final List<String> missing;
   final List<String> tips;
@@ -13,10 +13,10 @@ class ResumeMatchingResult {
 
   factory ResumeMatchingResult.fromJson(Map<String, dynamic> json) {
     return ResumeMatchingResult(
-      score: (json["score"] ?? 0) as int,
+      score:   (json["score"] ?? 0) as int,
       matched: List<String>.from(json["matched"] ?? []),
       missing: List<String>.from(json["missing"] ?? []),
-      tips: List<String>.from(json["tips"] ?? []),
+      tips:    List<String>.from(json["tips"] ?? []),
     );
   }
 }

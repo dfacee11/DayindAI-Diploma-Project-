@@ -15,11 +15,11 @@ class ResumeAnalysisResult {
 
   factory ResumeAnalysisResult.fromJson(Map<String, dynamic> json) {
     return ResumeAnalysisResult(
-      score: json['score'] ?? 0,
-      strengths: List<String>.from(json['strengths'] ?? []),
-      weaknesses: List<String>.from(json['weaknesses'] ?? []),
+      score:           json['score'] ?? 0,
+      strengths:       List<String>.from(json['strengths'] ?? []),
+      weaknesses:      List<String>.from(json['weaknesses'] ?? []),
       recommendations: List<String>.from(json['recommendations'] ?? []),
-      levelMatch: Map<String, int>.from(json['levelMatch'] ?? {}),
+      levelMatch:      Map<String, int>.from(json['levelMatch'] ?? {}),
     );
   }
 }

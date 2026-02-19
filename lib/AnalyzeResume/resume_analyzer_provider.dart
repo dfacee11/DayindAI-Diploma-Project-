@@ -61,25 +61,21 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
   }
 
   Future<void> analyze(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
     if (selectedProfession == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Choose a profession")),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text("Choose a profession")));
       return;
     }
 
     if (selectedResumeFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Upload a resume")),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
       return;
     }
 
     isAnalyzing = true;
     result = null;
     notifyListeners();
-
-    final messenger = ScaffoldMessenger.of(context);
 
     try {
       final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
@@ -98,10 +94,7 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
 
       result = ResumeAnalysisResult.fromJson(json);
     } catch (e) {
-  
-      messenger.showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      messenger.showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       isAnalyzing = false;
       notifyListeners();

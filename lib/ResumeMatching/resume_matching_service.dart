@@ -8,12 +8,10 @@ class ResumeMatchingService {
     required String jobDescription,
   }) async {
     final callable = _functions.httpsCallable("matchResumeDeepseek");
-
     final res = await callable.call({
       "resumeText": resumeText,
-      "jobText": jobDescription, // 🔥 в Firebase мы отправляем jobText
+      "jobText":    jobDescription,
     });
-
     return Map<String, dynamic>.from(res.data);
   }
 }
