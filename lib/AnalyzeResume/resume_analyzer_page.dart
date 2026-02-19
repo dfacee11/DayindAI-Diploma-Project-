@@ -28,7 +28,7 @@ class _ResumeAnalyzerView extends StatelessWidget {
     final p = context.watch<ResumeAnalyzerProvider>();
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFFF4F5FA),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -42,6 +42,14 @@ class _ResumeAnalyzerView extends StatelessWidget {
       body: Stack(
         children: [
           const DarkTopBackground(),
+          // ✅ белый фон заполняет весь низ
+          Positioned(
+            top: 200,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(color: const Color(0xFFF4F5FA)),
+          ),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
@@ -175,7 +183,6 @@ class _ResumeAnalyzerView extends StatelessWidget {
 
   void _showUploadBottomSheet(BuildContext context) {
     final p = context.read<ResumeAnalyzerProvider>();
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

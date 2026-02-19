@@ -6,7 +6,7 @@ import 'package:dayindai/HomePage/widgets/dark_background.dart';
 import 'package:dayindai/AnalyzeResume/widgets/white_card.dart';
 import 'package:dayindai/AnalyzeResume/widgets/bottom_sheet_tile.dart';
 import 'resume_matching_provider.dart';
-import ' widgets/result_section.dart';
+import 'widgets/result_section.dart';
 
 class ResumeMatchingPage extends StatelessWidget {
   const ResumeMatchingPage({super.key});
@@ -28,7 +28,7 @@ class _ResumeMatchingView extends StatelessWidget {
     final p = context.watch<ResumeMatchingProvider>();
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFFF4F5FA),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -42,6 +42,13 @@ class _ResumeMatchingView extends StatelessWidget {
       body: Stack(
         children: [
           const DarkTopBackground(),
+          Positioned(
+            top: 200,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(color: const Color(0xFFF4F5FA)),
+          ),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
@@ -180,7 +187,6 @@ class _ResumeMatchingView extends StatelessWidget {
 
   void _showUploadBottomSheet(BuildContext context) {
     final p = context.read<ResumeMatchingProvider>();
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
