@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:dayindai/Login Page/FirstPage.dart';
+import 'package:dayindai/auth/FirstPage.dart';
 import 'package:dayindai/HomePage/HomePage.dart';
-import 'package:dayindai/Login Page/RegisterPage.dart';
-import 'package:dayindai/Login Page/ConfirmReg.dart';
-import 'package:dayindai/Login Page/ConfirmEmailPage.dart';
-import 'package:dayindai/Login Page/EmailVerifed.dart';
-import 'package:dayindai/AuthGate.dart';
-import 'package:dayindai/Login Page/ResetPassword.dart';
+import 'package:dayindai/auth/RegisterPage.dart';
+import 'package:dayindai/auth/ConfirmReg.dart';
+import 'package:dayindai/auth/ConfirmEmailPage.dart';
+import 'package:dayindai/auth/EmailVerifed.dart';
+import 'package:dayindai/authGate.dart';
+import 'package:dayindai/auth/ResetPassword.dart';
 import 'package:dayindai/AnalyzeResume/resume_analyzer_page.dart';
 import 'ToolsPage/ToolsPage.dart';
 import 'Profil/profil_page.dart';
@@ -40,7 +40,7 @@ class MainApp extends StatelessWidget {
       ),
       home: const AuthGate(),
       routes: {
-        '/FirstPage': (context) => const Firstpage(),
+        '/FirstPage': (context) => const FirstPage(),
         '/home': (context) => const HomePage(),
         '/register': (context) => RegisterPage(),
         '/confirm': (context) => const ConfirmReg(),

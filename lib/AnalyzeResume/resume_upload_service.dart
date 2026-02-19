@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 
 class ResumeUploadService {
   // PDF/TXT
@@ -18,7 +19,7 @@ class ResumeUploadService {
 
       return File(path);
     } catch (e) {
-      print("File picker error: $e");
+      debugPrint("File picker error: $e");
       return null;
     }
   }
@@ -35,7 +36,7 @@ class ResumeUploadService {
       if (image == null) return null;
       return File(image.path);
     } catch (e) {
-      print("Gallery picker error: $e");
+      debugPrint("Gallery picker error: $e");
       return null;
     }
   }
@@ -52,7 +53,7 @@ class ResumeUploadService {
       if (image == null) return null;
       return File(image.path);
     } catch (e) {
-      print("Camera picker error: $e");
+      debugPrint("Camera picker error: $e");
       return null;
     }
   }

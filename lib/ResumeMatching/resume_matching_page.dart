@@ -503,8 +503,6 @@ class _KeywordBlock extends StatelessWidget {
   }
 }
 
-/* ================== UI HELPERS ================== */
-
 class _WhiteCard extends StatelessWidget {
   final Widget child;
 
@@ -516,12 +514,12 @@ class _WhiteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
           ),
         ],
       ),
@@ -553,7 +551,7 @@ class _BottomSheetTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.black.withOpacity(0.05)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
           ),
           child: Row(
             children: [
@@ -596,8 +594,6 @@ class _BottomSheetTile extends StatelessWidget {
   }
 }
 
-/* ================== BACKGROUND ================== */
-
 class _DarkTopBackground extends StatelessWidget {
   const _DarkTopBackground();
 
@@ -622,7 +618,7 @@ class _DarkTopBackground extends StatelessWidget {
             left: -90,
             child: _BlurBlob(
               size: 300,
-              color: const Color(0xFF7C5CFF).withOpacity(0.22),
+              color: const Color(0xFF7C5CFF).withValues(alpha: 0.22),
             ),
           ),
           Positioned(
@@ -630,7 +626,7 @@ class _DarkTopBackground extends StatelessWidget {
             right: -130,
             child: _BlurBlob(
               size: 340,
-              color: const Color(0xFF2DD4FF).withOpacity(0.18),
+              color: const Color(0xFF2DD4FF).withValues(alpha: 0.18),
             ),
           ),
         ],

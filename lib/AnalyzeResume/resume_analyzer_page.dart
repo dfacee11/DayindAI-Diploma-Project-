@@ -47,212 +47,220 @@ class _ResumeAnalyzerView extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-  child: ConstrainedBox(
-    constraints: BoxConstraints(
-      minHeight: constraints.maxHeight,
-    ),
-    child: Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF4F5FA),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(34),
-          topRight: Radius.circular(34),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Upload your resume",
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              "Get AI analysis, strengths, weaknesses and tips.",
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // Upload card
-            _WhiteCard(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(22),
-                onTap: () => _showUploadBottomSheet(context),
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF7C5CFF),
-                              Color(0xFF2DD4FF),
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.upload_file_rounded,
-                          color: Colors.white,
-                          size: 26,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF4F5FA),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(34),
+                          topRight: Radius.circular(34),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 30),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              p.selectedResumeFile == null
-                                  ? "Upload resume"
-                                  : "File selected",
+                              "Upload your resume",
                               style: GoogleFonts.montserrat(
-                                fontSize: 14,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 color: const Color(0xFF0F172A),
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
-                              p.selectedResumeFile == null
-                                  ? "PDF / TXT / PHOTO"
-                                  : p.selectedResumeFile!.path.split('/').last,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              "Get AI analysis, strengths, weaknesses and tips.",
                               style: GoogleFonts.montserrat(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF64748B),
                               ),
                             ),
+                            const SizedBox(height: 18),
+
+                            // Upload card
+                            _WhiteCard(
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(22),
+                                onTap: () => _showUploadBottomSheet(context),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(18),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(18),
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFF7C5CFF),
+                                              Color(0xFF2DD4FF),
+                                            ],
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.upload_file_rounded,
+                                          color: Colors.white,
+                                          size: 26,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              p.selectedResumeFile == null
+                                                  ? "Upload resume"
+                                                  : "File selected",
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w900,
+                                                color: const Color(0xFF0F172A),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              p.selectedResumeFile == null
+                                                  ? "PDF / TXT / PHOTO"
+                                                  : p.selectedResumeFile!.path
+                                                      .split('/')
+                                                      .last,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF64748B),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.chevron_right_rounded,
+                                        color: Color(0xFFCBD5E1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            // Profession dropdown
+                            Text(
+                              "Choose profession",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            _WhiteCard(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 6,
+                                ),
+                                child: DropdownButtonFormField<String>(
+                                  value: p.selectedProfession,
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  style: GoogleFonts.montserrat(
+                                    color: const Color(0xFF0F172A),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  hint: Text(
+                                    "Select profession",
+                                    style: GoogleFonts.montserrat(
+                                      color: const Color(0xFF94A3B8),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  items: p.professions.map((job) {
+                                    return DropdownMenuItem(
+                                      value: job,
+                                      child: Text(job),
+                                    );
+                                  }).toList(),
+                                  onChanged: p.setProfession,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            // Analyze button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 54,
+                              child: ElevatedButton(
+                                onPressed: p.isAnalyzing
+                                    ? null
+                                    : () => p.analyze(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF7C5CFF),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: p.isAnalyzing
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Text(
+                                        "Analyze Resume",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            if (p.result != null) _buildResult(p),
+
+                            // This spacer forces the white container to fill the screen
+                            const SizedBox(
+                              height: 14,
+                            )
                           ],
                         ),
                       ),
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        color: Color(0xFFCBD5E1),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 14),
-
-            // Profession dropdown
-            Text(
-              "Choose profession",
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            _WhiteCard(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                child: DropdownButtonFormField<String>(
-                  value: p.selectedProfession,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                  ),
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF64748B),
-                  ),
-                  style: GoogleFonts.montserrat(
-                    color: const Color(0xFF0F172A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  hint: Text(
-                    "Select profession",
-                    style: GoogleFonts.montserrat(
-                      color: const Color(0xFF94A3B8),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  items: p.professions.map((job) {
-                    return DropdownMenuItem(
-                      value: job,
-                      child: Text(job),
-                    );
-                  }).toList(),
-                  onChanged: p.setProfession,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // Analyze button
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: p.isAnalyzing ? null : () => p.analyze(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C5CFF),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                child: p.isAnalyzing
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        "Analyze Resume",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            if (p.result != null) _buildResult(p),
-
-            // This spacer forces the white container to fill the screen
-            const SizedBox(height: 14,)
-          ],
-        ),
-      ),
-    ),
-  ),
-);
+                );
               },
             ),
           ),
@@ -499,12 +507,12 @@ class _WhiteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
           ),
         ],
       ),
@@ -536,7 +544,7 @@ class _BottomSheetTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.black.withOpacity(0.05)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
           ),
           child: Row(
             children: [
@@ -605,7 +613,7 @@ class _DarkTopBackground extends StatelessWidget {
             left: -90,
             child: _BlurBlob(
               size: 300,
-              color: const Color(0xFF7C5CFF).withOpacity(0.22),
+              color: const Color(0xFF7C5CFF).withValues(alpha: 0.22),
             ),
           ),
           Positioned(
@@ -613,7 +621,7 @@ class _DarkTopBackground extends StatelessWidget {
             right: -130,
             child: _BlurBlob(
               size: 340,
-              color: const Color(0xFF2DD4FF).withOpacity(0.18),
+              color: const Color(0xFF2DD4FF).withValues(alpha: 0.18),
             ),
           ),
         ],

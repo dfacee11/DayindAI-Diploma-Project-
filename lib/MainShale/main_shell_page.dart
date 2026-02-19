@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../ToolsPage/ToolsPage.dart';
-import 'dart:ui';
+
+
 import '../HomePage/HomePage.dart';
+import '../ToolsPage/ToolsPage.dart';
 import 'package:dayindai/Profil/profil_page.dart';
 import 'package:dayindai/AIInterview/ai_interview_page.dart';
+import 'widgets/bottom_nav_bar.dart';
+import 'widgets/center_ai_button.dart';
+import 'pages/ resume_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -20,13 +23,11 @@ class _MainShellPageState extends State<MainShellPage> {
     HomePage(),
     ToolsPage(),
     AiInterviewPage(),
-    _ResumePage(),
+    ResumePage(),
     ProfilePage(),
   ];
 
-  void _setIndex(int i) {
-    setState(() => _index = i);
-  }
+  void _setIndex(int i) => setState(() => _index = i);
 
   @override
   Widget build(BuildContext context) {
@@ -36,235 +37,15 @@ class _MainShellPageState extends State<MainShellPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Transform.translate(
         offset: const Offset(0, 15),
-        child: _CenterAiButton(
+        child: CenterAiButton(
           onTap: () => _setIndex(2),
           isActive: _index == 2,
         ),
       ),
-      bottomNavigationBar: _BottomNavBar(
+      bottomNavigationBar: BottomNavBar(
         index: _index,
         onTap: _setIndex,
       ),
-    );
-  }
-}
-
-class _BottomNavBar extends StatelessWidget {
-  final int index;
-  final Function(int) onTap;
-
-  const _BottomNavBar({
-    required this.index,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(26),
-            topRight: Radius.circular(26),
-          ),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 25,
-              offset: const Offset(0, -10),
-              color: Colors.black.withOpacity(0.08),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            _NavItem(
-              label: "Home",
-              icon: Icons.home_rounded,
-              isActive: index == 0,
-              onTap: () => onTap(0),
-            ),
-            _NavItem(
-              label: "Tools",
-              icon: Icons.grid_view_rounded,
-              isActive: index == 1,
-              onTap: () => onTap(1),
-            ),
-
-            // место под FAB
-            const SizedBox(width: 70),
-
-            _NavItem(
-              label: "Resume",
-              icon: Icons.description_rounded,
-              isActive: index == 3,
-              onTap: () => onTap(3),
-            ),
-            _NavItem(
-              label: "Profile",
-              icon: Icons.person_rounded,
-              isActive: index == 4,
-              onTap: () => onTap(4),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.label,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = const Color(0xFF7C5CFF);
-    final inactiveColor = const Color(0xFF64748B);
-
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon,
-                  size: 24, color: isActive ? activeColor : inactiveColor),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: GoogleFonts.montserrat(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: isActive ? activeColor : inactiveColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CenterAiButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final bool isActive;
-
-  const _CenterAiButton({
-    required this.onTap,
-    required this.isActive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 86,
-        height: 86,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-
-          // 🔥 белый ринг вокруг кнопки
-          border: Border.all(
-            color: Colors.white.withOpacity(0.95),
-            width: 3,
-          ),
-
-          // 🔥 тень (мягкая)
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 30,
-              offset: const Offset(0, 16),
-              color: Colors.black.withOpacity(0.22),
-            ),
-            BoxShadow(
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-              color: const Color(0xFF7C5CFF).withOpacity(0.20),
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF7C5CFF),
-                    Color(0xFF2DD4FF),
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Image.asset(
-                  "assets/images/penguin.png",
-                  width: 52,
-                  height: 52,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-/* ====== PAGES (пока заглушки) ====== */
-
-class _AiPage extends StatelessWidget {
-  const _AiPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF0B1220),
-      body: Center(child: Text("AI", style: TextStyle(color: Colors.white))),
-    );
-  }
-}
-
-class _ResumePage extends StatelessWidget {
-  const _ResumePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF0B1220),
-      body:
-          Center(child: Text("Resume", style: TextStyle(color: Colors.white))),
-    );
-  }
-}
-
-class _ProfilePage extends StatelessWidget {
-  const _ProfilePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF0B1220),
-      body:
-          Center(child: Text("Profile", style: TextStyle(color: Colors.white))),
     );
   }
 }

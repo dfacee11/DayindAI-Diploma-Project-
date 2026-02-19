@@ -335,7 +335,7 @@ class _SearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: TextField(
         controller: controller,
@@ -388,7 +388,7 @@ class _DarkTopBackground extends StatelessWidget {
             left: -90,
             child: _BlurBlob(
               size: 300,
-              color: const Color(0xFF7C5CFF).withOpacity(0.22),
+              color: const Color(0xFF7C5CFF).withValues(alpha: 0.22),
             ),
           ),
           Positioned(
@@ -396,7 +396,7 @@ class _DarkTopBackground extends StatelessWidget {
             right: -130,
             child: _BlurBlob(
               size: 340,
-              color: const Color(0xFF2DD4FF).withOpacity(0.18),
+              color: const Color(0xFF2DD4FF).withValues(alpha: 0.18),
             ),
           ),
         ],
@@ -456,7 +456,7 @@ class _FeatureTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.black.withOpacity(0.05)),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

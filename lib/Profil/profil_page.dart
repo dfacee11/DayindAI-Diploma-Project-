@@ -99,7 +99,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                         BoxShadow(
                                           blurRadius: 18,
                                           offset: const Offset(0, 10),
-                                          color: Colors.black.withOpacity(0.12),
+                                          color: Colors.black
+                                              .withValues(alpha: 0.12),
                                         ),
                                       ],
                                     ),
@@ -264,12 +265,12 @@ class _ProfileTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.black.withOpacity(0.05)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
             boxShadow: [
               BoxShadow(
                 blurRadius: 18,
                 offset: const Offset(0, 10),
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
               ),
             ],
           ),
@@ -354,7 +355,7 @@ class _DarkTopBackground extends StatelessWidget {
             left: -90,
             child: _BlurBlob(
               size: 300,
-              color: const Color(0xFF7C5CFF).withOpacity(0.22),
+              color: const Color(0xFF7C5CFF).withValues(alpha: 0.22),
             ),
           ),
           Positioned(
@@ -362,7 +363,7 @@ class _DarkTopBackground extends StatelessWidget {
             right: -130,
             child: _BlurBlob(
               size: 340,
-              color: const Color(0xFF2DD4FF).withOpacity(0.18),
+              color: const Color(0xFF2DD4FF).withValues(alpha: 0.18),
             ),
           ),
         ],

@@ -12,7 +12,6 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
 
   String? selectedProfession;
   File? selectedResumeFile;
-
   bool isAnalyzing = false;
   ResumeAnalysisResult? result;
 
@@ -80,9 +79,10 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
     result = null;
     notifyListeners();
 
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
-
       String text = "";
 
       if (ext == "jpg" || ext == "jpeg" || ext == "png") {
@@ -98,7 +98,8 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
 
       result = ResumeAnalysisResult.fromJson(json);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+  
+      messenger.showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
     } finally {

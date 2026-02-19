@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:dayindai/Login Page/FirstPage.dart';
-import 'package:dayindai/Login Page/ConfirmEmailPage.dart';
+import 'package:dayindai/auth/FirstPage.dart';
+import 'auth/ConfirmEmailPage.dart';
 
 import 'MainShale/main_shell_page.dart';
 
@@ -11,7 +11,6 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-    
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -23,9 +22,8 @@ class AuthGate extends StatelessWidget {
         final user = snapshot.data;
 
         if (user == null) {
-          return const Firstpage();
+          return const FirstPage();
         }
-
 
         if (!user.emailVerified) {
           return const ConfirmEmailPage();

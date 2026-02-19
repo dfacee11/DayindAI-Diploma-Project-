@@ -67,16 +67,13 @@ class ResumeMatchingProvider extends ChangeNotifier {
 
       String resumeText = "";
 
-      // OCR если фото
       if (ext == "jpg" || ext == "jpeg" || ext == "png") {
         resumeText =
             await _ocrService.extractTextFromImage(selectedResumeFile!);
       } else {
-        // пока что заглушка, потом добавим PDF/TXT extraction
         resumeText = "Resume file is not a picture: $ext";
       }
 
-      // ✅ FIX: jobText вместо jobDescription
       final json = await _matchingService.matchWithDeepseek(
         resumeText: resumeText,
         jobDescription: jobDescription,
