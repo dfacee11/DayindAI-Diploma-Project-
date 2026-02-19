@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:dayindai/backend/auth_service.dart';
-import 'RegisterPage.dart';
+import 'register_page.dart';
 
 class FirstPage extends StatefulWidget {
   const FirstPage({super.key});

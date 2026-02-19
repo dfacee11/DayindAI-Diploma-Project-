@@ -25,19 +25,21 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
     _startResendCooldown();
   }
 
-  /// Проверяем каждые 3 секунды, подтверждён ли email.
-  /// Если подтверждён — переходим на /verified.
+  @override
+  void dispose() {
+    _checkTimer?.cancel();
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+
   void _startEmailVerificationCheck() {
     _checkTimer?.cancel();
     _checkTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      // защита от одновременных проверок
       if (_checking) return;
       _checking = true;
       try {
         await FirebaseAuth.instance.currentUser?.reload();
         final user = FirebaseAuth.instance.currentUser;
-        debugPrint(
-            'ConfirmEmailPage: after reload user=${user?.uid}, email=${user?.email}, emailVerified=${user?.emailVerified}');
         if (user != null && user.emailVerified) {
           timer.cancel();
           if (!mounted) return;
@@ -51,111 +53,78 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
     });
   }
 
-  /// Таймер ожидания перед повторной отправкой письма
   void _startResendCooldown() {
     _resendTimer?.cancel();
-
     setState(() {
       _canResend = false;
       _secondsLeft = 30;
     });
-
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       if (_secondsLeft == 0) {
         timer.cancel();
-        if (!mounted) return;
-        setState(() {
-          _canResend = true;
-        });
+        setState(() => _canResend = true);
       } else {
-        if (!mounted) return;
-        setState(() {
-          _secondsLeft--;
-        });
+        setState(() => _secondsLeft--);
       }
     });
   }
 
   Future<void> _resendEmail() async {
     if (_isSending) return;
+    setState(() => _isSending = true);
 
-    setState(() {
-      _isSending = true;
-    });
+    final messenger = ScaffoldMessenger.of(context);
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('Пользователь не найден');
-
+      if (user == null) throw Exception('User not found');
       await user.sendEmailVerification();
-
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Письмо отправлено ещё раз')),
-      );
-
+      messenger.showSnackBar(const SnackBar(content: Text('Email sent again')));
       _startResendCooldown();
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Ошибка отп��авки письма')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(e.message ?? 'Error sending email')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSending = false;
-        });
-      }
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
-  /// Ручная проверка статуса (кнопка "Проверить сейчас")
   Future<void> _checkNow() async {
     if (_checking) return;
-    _checking = true; // блокируем параллельные проверки
+    _checking = true;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
-      debugPrint(
-          'ConfirmEmailPage manual check: user=${user?.uid}, emailVerified=${user?.emailVerified}');
       if (user != null && user.emailVerified) {
-        // Остановим периодическую проверку и перейдём на экран подтверждения
         _checkTimer?.cancel();
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/verified');
+        navigator.pushReplacementNamed('/verified');
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email ещё не подтверждён')),
-        );
+        messenger.showSnackBar(const SnackBar(content: Text('Email not verified yet')));
       }
     } catch (e) {
-      debugPrint('ConfirmEmailPage manual check error: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при проверке: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('Check error: $e')));
     } finally {
       _checking = false;
-      if (mounted) setState(() {}); // обновим UI, если нужно
+      if (mounted) setState(() {});
     }
-  }
-
-  @override
-  void dispose() {
-    _checkTimer?.cancel();
-    _resendTimer?.cancel();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
+
     return Scaffold(
       backgroundColor: const Color(0xFF121423),
       body: Center(
@@ -166,15 +135,12 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
             children: [
               const Icon(Icons.email, size: 80, color: Colors.white),
               const SizedBox(height: 20),
-              const Text(
-                'Проверьте почту',
-                style: TextStyle(color: Colors.white, fontSize: 22),
-              ),
+              const Text('Check your email', style: TextStyle(color: Colors.white, fontSize: 22)),
               const SizedBox(height: 10),
               Text(
                 email.isNotEmpty
-                    ? 'Мы отправили письмо на $email для подтверждения.\nПосле подтверждения вы перейдёте дальше автоматически.'
-                    : 'Мы отправили письмо для подтверждения email.\nПосле подтверждения вы перейдёте дальше автоматически.',
+                    ? 'We sent a letter to $email.\nAfter confirmation you will proceed automatically.'
+                    : 'We sent a confirmation email.\nAfter confirmation you will proceed automatically.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70),
               ),
@@ -186,34 +152,28 @@ class _ConfirmEmailPageState extends State<ConfirmEmailPage> {
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Отправить письмо ещё раз'),
+                          : const Text('Resend email'),
                     )
                   : Text(
-                      'Повторная отправка через $_secondsLeft сек',
+                      'Resend available in $_secondsLeft sec',
                       style: const TextStyle(color: Colors.white70),
                     ),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _checkNow,
-                child: const Text('Проверить сейчас'),
+                child: const Text('Check now'),
               ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () async {
-                  // Опционально: позволяем выйти из аккаунта, если пользователь хочет
+                  final navigator = Navigator.of(context);
                   await FirebaseAuth.instance.signOut();
                   if (!mounted) return;
-                  Navigator.pushReplacementNamed(context, '/FirstPage');
+                  navigator.pushReplacementNamed('/FirstPage');
                 },
-                child: const Text(
-                  'Выйти',
-                  style: TextStyle(color: Colors.white70),
-                ),
+                child: const Text('Sign out', style: TextStyle(color: Colors.white70)),
               ),
             ],
           ),

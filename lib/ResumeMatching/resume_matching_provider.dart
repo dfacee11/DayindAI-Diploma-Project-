@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-
 import 'package:dayindai/AnalyzeResume/ocr_service.dart';
 import 'package:dayindai/AnalyzeResume/resume_upload_service.dart';
-
 import 'resume_matching_result.dart';
 import 'resume_matching_service.dart';
 
@@ -14,7 +12,6 @@ class ResumeMatchingProvider extends ChangeNotifier {
 
   File? selectedResumeFile;
   String jobDescription = "";
-
   bool isMatching = false;
   ResumeMatchingResult? result;
 
@@ -44,17 +41,15 @@ class ResumeMatchingProvider extends ChangeNotifier {
   }
 
   Future<void> match(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
     if (selectedResumeFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Upload a resume")),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
       return;
     }
 
     if (jobDescription.trim().length < 20) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Paste job description")),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text("Paste job description")));
       return;
     }
 
@@ -64,12 +59,10 @@ class ResumeMatchingProvider extends ChangeNotifier {
 
     try {
       final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
-
       String resumeText = "";
 
       if (ext == "jpg" || ext == "jpeg" || ext == "png") {
-        resumeText =
-            await _ocrService.extractTextFromImage(selectedResumeFile!);
+        resumeText = await _ocrService.extractTextFromImage(selectedResumeFile!);
       } else {
         resumeText = "Resume file is not a picture: $ext";
       }
@@ -81,9 +74,7 @@ class ResumeMatchingProvider extends ChangeNotifier {
 
       result = ResumeMatchingResult.fromJson(json);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      messenger.showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       isMatching = false;
       notifyListeners();

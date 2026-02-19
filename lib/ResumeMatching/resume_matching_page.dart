@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import ' resume_matching_provider.dart';
+import 'resume_matching_provider.dart';
 import 'resume_matching_result.dart';
 
 class ResumeMatchingPage extends StatelessWidget {

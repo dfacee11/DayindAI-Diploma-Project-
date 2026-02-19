@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:dayindai/auth/FirstPage.dart';
-import 'auth/ConfirmEmailPage.dart';
-
+import 'auth/first_page.dart';
+import 'auth/confirm_email_page.dart';
 import 'MainShale/main_shell_page.dart';
 
 class AuthGate extends StatelessWidget {
