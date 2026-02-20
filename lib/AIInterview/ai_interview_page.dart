@@ -1,180 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../HomePage/widgets/dark_background.dart';
-import 'models/chat_message.dart';
+import 'voice_interview_provider.dart';
+import 'feedback_page.dart';
 import 'widgets/intro_ui.dart';
 import 'widgets/interview_ui.dart';
 
-class AiInterviewPage extends StatefulWidget {
+class AiInterviewPage extends StatelessWidget {
   const AiInterviewPage({super.key});
 
   @override
-  State<AiInterviewPage> createState() => _AiInterviewPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => VoiceInterviewProvider(),
+      child: const _AiInterviewView(),
+    );
+  }
 }
 
-class _AiInterviewPageState extends State<AiInterviewPage> {
-  bool started = false;
-  bool isThinking = false;
-  bool aiIsSpeaking = false;
-  bool isRecording = false;
-  bool voiceMode = true;
-  bool showTranscript = false;
-
-  final TextEditingController _textController = TextEditingController();
-  final List<ChatMessage> _messages = [];
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _speakAi(String text) async {
-    setState(() => aiIsSpeaking = true);
-    await Future.delayed(Duration(milliseconds: 900 + (text.length * 10)));
-    if (!mounted) return;
-    setState(() => aiIsSpeaking = false);
-  }
-
-  Future<void> _startInterview() async {
-    setState(() {
-      started = true;
-      _messages.clear();
-      isThinking = false;
-      isRecording = false;
-      showTranscript = false;
-    });
-
-    const firstQuestion =
-        "Hello! Welcome to the interview. Let's start with an easy question: Can you tell me about yourself?";
-
-    setState(
-        () => _messages.add(ChatMessage(isUser: false, text: firstQuestion)));
-    await _speakAi(firstQuestion);
-  }
-
-  Future<void> _sendVoiceTranscript(String transcript) async {
-    final text = transcript.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add(ChatMessage(isUser: true, text: text));
-      isThinking = true;
-    });
-    _scrollToBottom();
-
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    const aiText =
-        "Great. Now tell me: why do you want this position and what makes you a strong candidate?";
-    if (!mounted) return;
-
-    setState(() {
-      _messages.add(ChatMessage(isUser: false, text: aiText));
-      isThinking = false;
-    });
-    _scrollToBottom();
-    await _speakAi(aiText);
-  }
-
-  Future<void> _sendMessage() async {
-    if (aiIsSpeaking || isThinking) return;
-
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add(ChatMessage(isUser: true, text: text));
-      _textController.clear();
-      isThinking = true;
-    });
-    _scrollToBottom();
-
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    const aiText =
-        "Thank you for sharing. Next question: What are your greatest strengths?";
-    if (!mounted) return;
-
-    setState(() {
-      _messages.add(ChatMessage(isUser: false, text: aiText));
-      isThinking = false;
-    });
-    _scrollToBottom();
-    await _speakAi(aiText);
-  }
-
-  void _toggleMode() => setState(() => voiceMode = !voiceMode);
-
-  void _toggleTranscript() {
-    setState(() => showTranscript = !showTranscript);
-    if (showTranscript) _scrollToBottom();
-  }
-
-  Future<void> _toggleRecording() async {
-    if (aiIsSpeaking || isThinking) return;
-
-    if (!isRecording) {
-      setState(() => isRecording = true);
-      HapticFeedback.lightImpact();
-      return;
-    }
-
-    setState(() => isRecording = false);
-    HapticFeedback.lightImpact();
-    _sendVoiceTranscript("I'm ready. Let's continue the interview.");
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  String get _statusText {
-    if (aiIsSpeaking) return "AI is speaking...";
-    if (isThinking) return "AI is thinking...";
-    if (isRecording) return "Listening...";
-    return "Your turn";
-  }
+class _AiInterviewView extends StatelessWidget {
+  const _AiInterviewView();
 
   @override
   Widget build(BuildContext context) {
+    final p = context.watch<VoiceInterviewProvider>();
+
+    // Показываем feedback страницу когда интервью закончено
+    if (p.isFinished && p.feedback != null) {
+      return FeedbackPage(
+        feedback: p.feedback!,
+        jobRole: p.jobRole,
+        onRestart: p.restart,
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context, p),
       body: Stack(
         children: [
           const DarkTopBackground(),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-              child: started
+              child: p.started
                   ? InterviewUI(
-                      statusText: _statusText,
-                      showTranscript: showTranscript,
-                      voiceMode: voiceMode,
-                      aiIsSpeaking: aiIsSpeaking,
-                      isThinking: isThinking,
-                      isRecording: isRecording,
-                      messages: _messages,
-                      scrollController: _scrollController,
-                      textController: _textController,
-                      onSendMessage: _sendMessage,
-                      onToggleRecording: _toggleRecording,
+                      statusText:      p.statusText,
+                      showTranscript:  p.showTranscript,
+                      voiceMode:       p.voiceMode,
+                      aiIsSpeaking:    p.isAiSpeaking,
+                      isThinking:      p.isThinking,
+                      isRecording:     p.isRecording,
+                      messages:        p.messages,
+                      scrollController: ScrollController(),
+                      textController:  TextEditingController(),
+                      onSendMessage:   () {},
+                      onToggleRecording: p.toggleRecording,
+                      // прогресс
+                      questionIndex:   p.questionIndex,
+                      totalQuestions:  VoiceInterviewProvider.totalQuestions,
                     )
-                  : IntroUI(onStart: _startInterview),
+                  : IntroUI(onStart: p.startInterview),
             ),
           ),
         ],
@@ -182,38 +71,69 @@ class _AiInterviewPageState extends State<AiInterviewPage> {
     );
   }
 
-  AppBar _buildAppBar() {
+  AppBar _buildAppBar(BuildContext context, VoiceInterviewProvider p) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
-      title: Text(
-        "AI Interview",
-        style: GoogleFonts.montserrat(
-            fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-      ),
-      actions: started
+      title: p.started
+          ? _ProgressTitle(current: p.questionIndex, total: VoiceInterviewProvider.totalQuestions)
+          : Text("AI Interview", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+      actions: p.started
           ? [
               IconButton(
-                icon: Icon(showTranscript
-                    ? Icons.visibility_off_rounded
-                    : Icons.chat_bubble_rounded),
-                onPressed: _toggleTranscript,
-                tooltip: showTranscript ? "Hide transcript" : "Show transcript",
+                icon: Icon(p.showTranscript ? Icons.visibility_off_rounded : Icons.chat_bubble_rounded),
+                onPressed: p.toggleTranscript,
               ),
               IconButton(
-                icon: Icon(
-                    voiceMode ? Icons.keyboard_rounded : Icons.mic_rounded),
-                onPressed: _toggleMode,
-                tooltip: voiceMode ? "Switch to typing" : "Switch to voice",
+                icon: Icon(p.voiceMode ? Icons.keyboard_rounded : Icons.mic_rounded),
+                onPressed: p.toggleMode,
               ),
               IconButton(
-                icon: const Icon(Icons.call_end_rounded),
+                icon: const Icon(Icons.call_end_rounded, color: Colors.redAccent),
                 onPressed: () => Navigator.pop(context),
-                tooltip: "End Interview",
               ),
             ]
           : null,
+    );
+  }
+}
+
+class _ProgressTitle extends StatelessWidget {
+  final int current;
+  final int total;
+
+  const _ProgressTitle({required this.current, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("AI Interview", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            SizedBox(
+              width: 120,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: current / total,
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF)),
+                  minHeight: 5,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "$current/$total",
+              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

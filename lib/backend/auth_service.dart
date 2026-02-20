@@ -14,7 +14,7 @@ class AuthService {
   }) async {
     debugPrint('AuthService.registerUser: start email=$email');
 
-    // Создаём пользователя и возвращаем UserCredential как можно быстрее
+
     final userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -28,15 +28,14 @@ class AuthService {
       );
     }
 
-    // Обновляем displayName (await, короткая операция)
+  
     try {
       await user.updateDisplayName('$name $surname');
     } catch (e) {
       debugPrint('AuthService.registerUser: updateDisplayName error: $e');
     }
 
-    // Fire-and-forget: отправим письмо подтверждения и запишем профиль в фоне,
-    // не блокируя возвращение управления вызывающему коду.
+  
     user.sendEmailVerification().then((_) {
       debugPrint('AuthService.registerUser: email verification sent');
     }).catchError((e) {

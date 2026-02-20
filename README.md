@@ -4,7 +4,6 @@ DayindAI is a mobile application built with Flutter that helps users improve the
 
 The project focuses on integrating modern AI services into a real-world mobile product using scalable backend architecture.
 
-⸻
 
 📱 Implemented Features
 
@@ -21,15 +20,12 @@ The project focuses on integrating modern AI services into a real-world mobile p
 	•	Missing skills detection
 	•	Actionable improvement tips
 
-⸻
 
 🚧 In Progress
 	•	AI Mock Interview (voice + transcript mode)
 	•	Interview performance analysis
 	•	Realtime voice interview (premium feature)
 	•	Subscription model integration
-
-⸻
 
 🏗 Architecture
 
@@ -41,8 +37,6 @@ The application follows a structured architecture:
 	•	Secure AI API integration via server-side functions
 	•	Separation of UI and business logic
 
-⸻
-
 🛠 Technology Stack
 	•	Flutter & Dart
 	•	Firebase (Cloud Functions v2)
@@ -50,9 +44,8 @@ The application follows a structured architecture:
 	•	DeepSeek AI API
 	•	Google Vision OCR
 	•	Provider (State Management)
-	•	Git & GitHub
+	
 
-⸻
 
 🎯 Project Goal
 
@@ -62,7 +55,6 @@ To build an AI-powered mobile assistant that:
 	•	Simulates realistic interview experience
 	•	Provides structured AI-based feedback
 
-⸻
 
 📌 Current Status
 
@@ -74,7 +66,6 @@ Fully implemented and working:
 
 AI Interview module is currently being developed.
 
-⸻
 
 👨‍💻 Author
 

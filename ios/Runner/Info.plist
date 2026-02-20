@@ -76,5 +76,8 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need photo library access to upload a resume photo.</string>
 
+	<key>NSMicrophoneUsageDescription</key>
+    <string>Microphone is needed for voice interview</string>
+
 </dict>
 </plist>
