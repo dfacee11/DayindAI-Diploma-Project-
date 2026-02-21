@@ -5,14 +5,11 @@ const axios = require("axios");
 const FormData = require("form-data");
 
 const DEEPSEEK_API_KEY = defineSecret("DEEPSEEK_API_KEY");
-const OPENAI_API_KEY   = defineSecret("OPENAI_API_KEY");
+const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 const ELEVENLABS_API_KEY = defineSecret("ELEVENLABS_API_KEY");
 
 const client = new vision.ImageAnnotatorClient();
 
-// ─────────────────────────────────────────────
-// 1) OCR
-// ─────────────────────────────────────────────
 exports.extractTextFromImage = onCall(async (request) => {
   try {
     const base64 = request.data?.imageBase64;
@@ -93,18 +90,16 @@ ${text}
   }
 );
 
-// ─────────────────────────────────────────────
-// 3) RESUME MATCHING (DeepSeek)
-// ─────────────────────────────────────────────
+
 exports.matchResumeDeepseek = onCall(
   { secrets: [DEEPSEEK_API_KEY] },
   async (request) => {
     try {
       const resumeText = request.data?.resumeText;
-      const jobText    = request.data?.jobText;
+      const jobText = request.data?.jobText;
 
       if (!resumeText || resumeText.trim().length < 30) throw new HttpsError("invalid-argument", "Resume text is too short");
-      if (!jobText    || jobText.trim().length    < 30) throw new HttpsError("invalid-argument", "Job text is too short");
+      if (!jobText || jobText.trim().length < 30) throw new HttpsError("invalid-argument", "Job text is too short");
 
       const apiKey = DEEPSEEK_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing DEEPSEEK_API_KEY secret");
@@ -156,17 +151,12 @@ JOB DESCRIPTION: ${jobText}
   }
 );
 
-// ─────────────────────────────────────────────
-// 4) STT — Whisper (OpenAI)
-//    Принимает: { audioBase64: string, mimeType: string }
-//    Возвращает: { transcript: string }
-// ─────────────────────────────────────────────
 exports.transcribeAudio = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
       const audioBase64 = request.data?.audioBase64;
-      const mimeType    = request.data?.mimeType || "audio/m4a";
+      const mimeType = request.data?.mimeType || "audio/m4a";
 
       if (!audioBase64) throw new HttpsError("invalid-argument", "audioBase64 is required");
 
@@ -200,18 +190,15 @@ exports.transcribeAudio = onCall(
   }
 );
 
-// ─────────────────────────────────────────────
-// 5) AI INTERVIEW — GPT-4o
-//    Принимает: { messages: [{role, content}], jobRole: string, questionIndex: int, totalQuestions: int }
-//    Возвращает: { reply: string, isFinished: bool, feedback: string|null }
-// ─────────────────────────────────────────────
+
 exports.interviewChat = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
-      const messages       = request.data?.messages || [];
-      const jobRole        = request.data?.jobRole || "Software Engineer";
-      const questionIndex  = request.data?.questionIndex || 0;
+      const messages = request.data?.messages || [];
+      const jobRole = request.data?.jobRole || "Software Engineer";
+      const interviewTypeHint = request.data?.interviewTypeHint || "";
+      const questionIndex = request.data?.questionIndex || 0;
       const totalQuestions = request.data?.totalQuestions || 7;
 
       const apiKey = OPENAI_API_KEY.value();
@@ -221,17 +208,18 @@ exports.interviewChat = onCall(
 
       const systemPrompt = `You are a professional interviewer conducting a job interview for the role: ${jobRole}.
 
+Interview focus: ${interviewTypeHint}
+
 Rules:
 - Ask ONE question at a time
 - Keep responses concise (2-4 sentences max)
 - Be professional but friendly
-- Question ${questionIndex + 1} of ${totalQuestions}
+- This is question ${questionIndex + 1} of ${totalQuestions}
 ${isLastQuestion
-  ? `- This is the LAST question. After the candidate answers, provide a brief encouraging closing statement and say the interview is complete.`
-  : `- After the candidate answers, acknowledge briefly and ask the next interview question.`
-}
-- Do NOT number your questions out loud
-- Focus on behavioral and technical questions relevant to ${jobRole}`;
+          ? `- This is the LAST question. After the candidate answers, give a brief encouraging closing statement and say the interview is complete.`
+          : `- After the candidate answers, acknowledge briefly and ask the next relevant question.`
+        }
+- Do NOT number your questions out loud`;
 
       const response = await axios.post(
         "https://api.openai.com/v1/chat/completions",
@@ -248,9 +236,7 @@ ${isLastQuestion
       );
 
       const reply = response.data?.choices?.[0]?.message?.content || "";
-      const isFinished = isLastQuestion && messages.length > totalQuestions * 2;
-
-      return { reply, isFinished };
+      return { reply };
     } catch (e) {
       console.log("Interview chat error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Interview failed");
@@ -258,17 +244,13 @@ ${isLastQuestion
   }
 );
 
-// ─────────────────────────────────────────────
-// 6) INTERVIEW FEEDBACK — GPT-4o
-//    Принимает: { messages: [{role, content}], jobRole: string }
-//    Возвращает: { overallScore, strengths, improvements, verdict }
-// ─────────────────────────────────────────────
+
 exports.interviewFeedback = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
       const messages = request.data?.messages || [];
-      const jobRole  = request.data?.jobRole || "Software Engineer";
+      const jobRole = request.data?.jobRole || "Software Engineer";
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
@@ -322,46 +304,48 @@ Return ONLY valid JSON:
   }
 );
 
-// ─────────────────────────────────────────────
-// 7) TTS — ElevenLabs
-//    Принимает: { text: string, voiceId?: string }
-//    Возвращает: { audioBase64: string }
-// ─────────────────────────────────────────────
+
 exports.textToSpeech = onCall(
-  { secrets: [ELEVENLABS_API_KEY], timeoutSeconds: 60 },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
-      const text    = request.data?.text;
-      // Rachel — профессиональный женский голос ElevenLabs
-      const voiceId = request.data?.voiceId || "21m00Tcm4TlvDq8ikWAM";
-
+      const text = request.data?.text;
       if (!text) throw new HttpsError("invalid-argument", "text is required");
 
-      const apiKey = ELEVENLABS_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing ELEVENLABS_API_KEY secret");
+      const apiKey = OPENAI_API_KEY.value();
+      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
+
+      console.log("TTS OpenAI request, textLength:", text.length);
 
       const response = await axios.post(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        "https://api.openai.com/v1/audio/speech",
         {
-          text,
-          model_id: "eleven_flash_v2_5",
-          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+          model: "tts-1",
+          input: text,
+          voice: "nova",      // nova — женский голос, приятный для интервью
+          response_format: "mp3",
+          speed: 1.0,
         },
         {
           headers: {
-            "xi-api-key": apiKey,
+            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
-            Accept: "audio/mpeg",
           },
           responseType: "arraybuffer",
         }
       );
 
+      console.log("TTS status:", response.status);
       const audioBase64 = Buffer.from(response.data).toString("base64");
+      console.log("TTS success, length:", audioBase64.length);
       return { audioBase64 };
+
     } catch (e) {
-      console.log("TTS error:", e?.response?.data || e.message);
-      throw new HttpsError("internal", e.message || "TTS failed");
+      const errBody = e?.response?.data
+        ? Buffer.from(e.response.data).toString("utf8")
+        : e.message;
+      console.log("TTS error:", e?.response?.status, errBody);
+      throw new HttpsError("internal", errBody || "TTS failed");
     }
   }
 );

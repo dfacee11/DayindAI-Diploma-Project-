@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'models/chat_message.dart';
 import 'interview_service.dart';
+import 'widgets/intro_ui.dart';
 
 enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, finished }
 
@@ -22,34 +23,36 @@ class VoiceInterviewProvider extends ChangeNotifier {
   bool voiceMode = true;
 
   final List<ChatMessage> messages = [];
-  // для GPT-4o — история в формате {role, content}
   final List<Map<String, String>> _history = [];
 
   String jobRole = "Software Engineer";
+  InterviewType interviewType = InterviewType.mixed;
   int questionIndex = 0;
-  static const int totalQuestions = 7;
+  int totalQuestions = 7;
 
   Map<String, dynamic>? feedback;
   String? recordingPath;
 
-  bool get isAiSpeaking  => state == InterviewState.aiSpeaking;
-  bool get isThinking    => state == InterviewState.thinking;
-  bool get isRecording   => state == InterviewState.recording;
-  bool get isFinished    => state == InterviewState.finished;
+  bool get isAiSpeaking => state == InterviewState.aiSpeaking;
+  bool get isThinking   => state == InterviewState.thinking;
+  bool get isRecording  => state == InterviewState.recording;
+  bool get isFinished   => state == InterviewState.finished;
 
   String get statusText {
     switch (state) {
-      case InterviewState.aiSpeaking:  return "AI is speaking...";
-      case InterviewState.thinking:    return "AI is thinking...";
-      case InterviewState.recording:   return "Listening...";
-      case InterviewState.finished:    return "Interview complete!";
-      default:                         return "Your turn — tap mic to speak";
+      case InterviewState.aiSpeaking: return "AI is speaking...";
+      case InterviewState.thinking:   return "AI is thinking...";
+      case InterviewState.recording:  return "Listening...";
+      case InterviewState.finished:   return "Interview complete!";
+      default:                        return "Your turn — tap mic to speak";
     }
   }
 
-  // ───────────── START ─────────────
-  Future<void> startInterview(String role) async {
+  // ─── START ───
+  Future<void> startInterview(String role, InterviewType type, int count) async {
     jobRole = role;
+    interviewType = type;
+    totalQuestions = count;
     started = true;
     questionIndex = 0;
     messages.clear();
@@ -61,7 +64,28 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _aiSpeak(opening);
   }
 
-  // ───────────── AI говорит ─────────────
+  // ─── FINISH EARLY (пользователь нажал завершить) ───
+  Future<void> finishEarly() async {
+    if (state == InterviewState.recording) {
+      await _recorder.stop();
+    }
+    await _player.stop();
+
+    if (_history.isEmpty) {
+      state = InterviewState.idle;
+      started = false;
+      notifyListeners();
+      return;
+    }
+
+    state = InterviewState.thinking;
+    notifyListeners();
+    await _loadFeedback();
+    state = InterviewState.finished;
+    notifyListeners();
+  }
+
+  // ─── AI ГОВОРИТ ───
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -73,15 +97,16 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
-      // fallback: просто подождём как раньше
-      await Future.delayed(Duration(milliseconds: 800 + text.length * 12));
+      await Future.delayed(Duration(milliseconds: 600 + text.length * 10));
     }
 
-    state = InterviewState.userTurn;
-    notifyListeners();
+    if (state != InterviewState.finished) {
+      state = InterviewState.userTurn;
+      notifyListeners();
+    }
   }
 
-  // ───────────── ВОСПРОИЗВЕДЕНИЕ ─────────────
+  // ─── ВОСПРОИЗВЕДЕНИЕ ───
   Future<void> _playAudio(String base64) async {
     try {
       final bytes = base64Decode(base64);
@@ -90,14 +115,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await file.writeAsBytes(bytes);
       await _player.setFilePath(file.path);
       await _player.play();
-      await _player.processingStateStream
-          .firstWhere((s) => s == ProcessingState.completed);
+      await _player.processingStateStream.firstWhere((s) => s == ProcessingState.completed);
     } catch (e) {
       debugPrint('Audio play error: $e');
     }
   }
 
-  // ───────────── ЗАПИСЬ ─────────────
+  // ─── ЗАПИСЬ ───
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -131,7 +155,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // STT
       final audioBytes = await File(recordingPath!).readAsBytes();
       final audioBase64 = base64Encode(audioBytes);
       final transcript = await _service.transcribeAudio(audioBase64);
@@ -154,7 +177,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ───────────── TEXT MODE ─────────────
+  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -167,23 +190,26 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _getAiReply();
   }
 
-  // ───────────── GPT-4o ОТВЕТ ─────────────
+  // ─── GPT ОТВЕТ ───
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
         messages: List.from(_history),
         jobRole: jobRole,
+        interviewTypeHint: interviewType.systemPromptHint,
         questionIndex: questionIndex,
         totalQuestions: totalQuestions,
       );
 
       final reply = result['reply'] as String? ?? '';
-      final isFinished = result['isFinished'] as bool? ?? false;
-
       questionIndex++;
 
-      if (isFinished || questionIndex >= totalQuestions) {
+      final isLastQuestion = questionIndex >= totalQuestions;
+
+      if (isLastQuestion) {
         await _aiSpeak(reply);
+        state = InterviewState.thinking;
+        notifyListeners();
         await _loadFeedback();
         state = InterviewState.finished;
         notifyListeners();
@@ -197,7 +223,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ───────────── FEEDBACK ─────────────
+  // ─── FEEDBACK ───
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(
@@ -207,10 +233,19 @@ class VoiceInterviewProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Feedback error: $e');
+      // fallback пустой фидбек
+      feedback = {
+        'overallScore': 0,
+        'strengths': [],
+        'improvements': [],
+        'verdict': 'Maybe',
+        'summary': 'Could not generate feedback.',
+      };
+      notifyListeners();
     }
   }
 
-  // ───────────── UI HELPERS ─────────────
+  // ─── UI HELPERS ───
   void toggleTranscript() {
     showTranscript = !showTranscript;
     notifyListeners();

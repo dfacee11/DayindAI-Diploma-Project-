@@ -14,12 +14,14 @@ class InterviewService {
   Future<Map<String, dynamic>> interviewChat({
     required List<Map<String, String>> messages,
     required String jobRole,
+    required String interviewTypeHint,
     required int questionIndex,
     required int totalQuestions,
   }) async {
     final result = await _functions.httpsCallable('interviewChat').call({
       'messages': messages,
       'jobRole': jobRole,
+      'interviewTypeHint': interviewTypeHint,
       'questionIndex': questionIndex,
       'totalQuestions': totalQuestions,
     });
