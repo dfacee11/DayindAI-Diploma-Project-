@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:record/record.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'models/chat_message.dart';
 import 'interview_service.dart';
 import 'widgets/intro_ui.dart';
@@ -27,6 +26,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
 
   String jobRole = "Software Engineer";
   InterviewType interviewType = InterviewType.mixed;
+  InterviewLanguage language = InterviewLanguage.english;
   int questionIndex = 0;
   int totalQuestions = 7;
 
@@ -39,20 +39,51 @@ class VoiceInterviewProvider extends ChangeNotifier {
   bool get isFinished   => state == InterviewState.finished;
 
   String get statusText {
-    switch (state) {
-      case InterviewState.aiSpeaking: return "AI is speaking...";
-      case InterviewState.thinking:   return "AI is thinking...";
-      case InterviewState.recording:  return "Listening...";
-      case InterviewState.finished:   return "Interview complete!";
-      default:                        return "Your turn — tap mic to speak";
+    switch (language) {
+      case InterviewLanguage.russian:
+        switch (state) {
+          case InterviewState.aiSpeaking: return "ИИ говорит...";
+          case InterviewState.thinking:   return "ИИ думает...";
+          case InterviewState.recording:  return "Слушаю...";
+          case InterviewState.finished:   return "Интервью завершено!";
+          default:                        return "Ваша очередь — нажмите микрофон";
+        }
+      case InterviewLanguage.kazakh:
+        switch (state) {
+          case InterviewState.aiSpeaking: return "ЖИ сөйлеп жатыр...";
+          case InterviewState.thinking:   return "ЖИ ойлап жатыр...";
+          case InterviewState.recording:  return "Тыңдап жатырмын...";
+          case InterviewState.finished:   return "Сұхбат аяқталды!";
+          default:                        return "Сіздің кезегіңіз — микрофонды басыңыз";
+        }
+      default:
+        switch (state) {
+          case InterviewState.aiSpeaking: return "AI is speaking...";
+          case InterviewState.thinking:   return "AI is thinking...";
+          case InterviewState.recording:  return "Listening...";
+          case InterviewState.finished:   return "Interview complete!";
+          default:                        return "Your turn — tap mic to speak";
+        }
+    }
+  }
+
+  String get _openingMessage {
+    switch (language) {
+      case InterviewLanguage.russian:
+        return "Привет! Добро пожаловать на интервью. Для начала расскажите немного о себе — кто вы и какой у вас опыт?";
+      case InterviewLanguage.kazakh:
+        return "Сәлем! Сұхбатқа қош келдіңіз. Басталайық — өзіңіз туралы аздап айтып беріңізші?";
+      default:
+        return "Hello! Welcome to your interview. Let's start — could you tell me a little about yourself?";
     }
   }
 
   // ─── START ───
-  Future<void> startInterview(String role, InterviewType type, int count) async {
+  Future<void> startInterview(String role, InterviewType type, int count, InterviewLanguage lang) async {
     jobRole = role;
     interviewType = type;
     totalQuestions = count;
+    language = lang;
     started = true;
     questionIndex = 0;
     messages.clear();
@@ -60,15 +91,12 @@ class VoiceInterviewProvider extends ChangeNotifier {
     feedback = null;
     notifyListeners();
 
-    const opening = "Hello! Welcome to your interview. Let's start — could you tell me a little about yourself?";
-    await _aiSpeak(opening);
+    await _aiSpeak(_openingMessage);
   }
 
-  // ─── FINISH EARLY (пользователь нажал завершить) ───
+  // ─── FINISH EARLY ───
   Future<void> finishEarly() async {
-    if (state == InterviewState.recording) {
-      await _recorder.stop();
-    }
+    if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
 
     if (_history.isEmpty) {
@@ -157,7 +185,10 @@ class VoiceInterviewProvider extends ChangeNotifier {
     try {
       final audioBytes = await File(recordingPath!).readAsBytes();
       final audioBase64 = base64Encode(audioBytes);
-      final transcript = await _service.transcribeAudio(audioBase64);
+      final transcript = await _service.transcribeAudio(
+        audioBase64,
+        languageCode: language.whisperCode,
+      );
 
       if (transcript.trim().isEmpty) {
         state = InterviewState.userTurn;
@@ -197,6 +228,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
         messages: List.from(_history),
         jobRole: jobRole,
         interviewTypeHint: interviewType.systemPromptHint,
+        languageInstruction: language.systemLanguageInstruction,
         questionIndex: questionIndex,
         totalQuestions: totalQuestions,
       );
@@ -204,9 +236,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       final reply = result['reply'] as String? ?? '';
       questionIndex++;
 
-      final isLastQuestion = questionIndex >= totalQuestions;
-
-      if (isLastQuestion) {
+      if (questionIndex >= totalQuestions) {
         await _aiSpeak(reply);
         state = InterviewState.thinking;
         notifyListeners();
@@ -229,11 +259,11 @@ class VoiceInterviewProvider extends ChangeNotifier {
       feedback = await _service.interviewFeedback(
         messages: List.from(_history),
         jobRole: jobRole,
+        languageInstruction: language.systemLanguageInstruction,
       );
       notifyListeners();
     } catch (e) {
       debugPrint('Feedback error: $e');
-      // fallback пустой фидбек
       feedback = {
         'overallScore': 0,
         'strengths': [],
@@ -245,16 +275,8 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── UI HELPERS ───
-  void toggleTranscript() {
-    showTranscript = !showTranscript;
-    notifyListeners();
-  }
-
-  void toggleMode() {
-    voiceMode = !voiceMode;
-    notifyListeners();
-  }
+  void toggleTranscript() { showTranscript = !showTranscript; notifyListeners(); }
+  void toggleMode()        { voiceMode = !voiceMode; notifyListeners(); }
 
   void restart() {
     state = InterviewState.idle;

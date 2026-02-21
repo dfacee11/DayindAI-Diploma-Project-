@@ -151,12 +151,14 @@ JOB DESCRIPTION: ${jobText}
   }
 );
 
+
 exports.transcribeAudio = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
       const audioBase64 = request.data?.audioBase64;
-      const mimeType = request.data?.mimeType || "audio/m4a";
+      const mimeType    = request.data?.mimeType || "audio/m4a";
+      const language    = request.data?.language || "en"; // en, ru, kk
 
       if (!audioBase64) throw new HttpsError("invalid-argument", "audioBase64 is required");
 
@@ -164,21 +166,15 @@ exports.transcribeAudio = onCall(
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
 
       const buffer = Buffer.from(audioBase64, "base64");
-
       const form = new FormData();
       form.append("file", buffer, { filename: "audio.m4a", contentType: mimeType });
       form.append("model", "whisper-1");
-      form.append("language", "en");
+      form.append("language", language); // ← передаём язык в Whisper
 
       const response = await axios.post(
         "https://api.openai.com/v1/audio/transcriptions",
         form,
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            ...form.getHeaders(),
-          },
-        }
+        { headers: { Authorization: `Bearer ${apiKey}`, ...form.getHeaders() } }
       );
 
       const transcript = response.data?.text || "";
@@ -195,11 +191,12 @@ exports.interviewChat = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
-      const messages = request.data?.messages || [];
-      const jobRole = request.data?.jobRole || "Software Engineer";
-      const interviewTypeHint = request.data?.interviewTypeHint || "";
-      const questionIndex = request.data?.questionIndex || 0;
-      const totalQuestions = request.data?.totalQuestions || 7;
+      const messages            = request.data?.messages || [];
+      const jobRole             = request.data?.jobRole || "Software Engineer";
+      const interviewTypeHint   = request.data?.interviewTypeHint || "";
+      const languageInstruction = request.data?.languageInstruction || "Conduct the entire interview in English.";
+      const questionIndex       = request.data?.questionIndex || 0;
+      const totalQuestions      = request.data?.totalQuestions || 7;
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
@@ -208,7 +205,8 @@ exports.interviewChat = onCall(
 
       const systemPrompt = `You are a professional interviewer conducting a job interview for the role: ${jobRole}.
 
-Interview focus: ${interviewTypeHint}
+LANGUAGE: ${languageInstruction}
+FOCUS: ${interviewTypeHint}
 
 Rules:
 - Ask ONE question at a time
@@ -216,21 +214,18 @@ Rules:
 - Be professional but friendly
 - This is question ${questionIndex + 1} of ${totalQuestions}
 ${isLastQuestion
-          ? `- This is the LAST question. After the candidate answers, give a brief encouraging closing statement and say the interview is complete.`
-          : `- After the candidate answers, acknowledge briefly and ask the next relevant question.`
-        }
+  ? `- This is the LAST question. After the candidate answers, give a brief encouraging closing statement.`
+  : `- After the candidate answers, acknowledge briefly and ask the next relevant question.`
+}
 - Do NOT number your questions out loud`;
 
       const response = await axios.post(
         "https://api.openai.com/v1/chat/completions",
         {
           model: "gpt-4o",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...messages,
-          ],
+          messages: [{ role: "system", content: systemPrompt }, ...messages],
           temperature: 0.7,
-          max_tokens: 200,
+          max_tokens: 250,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
@@ -244,13 +239,13 @@ ${isLastQuestion
   }
 );
 
-
 exports.interviewFeedback = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
-      const messages = request.data?.messages || [];
-      const jobRole = request.data?.jobRole || "Software Engineer";
+      const messages            = request.data?.messages || [];
+      const jobRole             = request.data?.jobRole || "Software Engineer";
+      const languageInstruction = request.data?.languageInstruction || "Respond in English.";
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
@@ -260,18 +255,20 @@ exports.interviewFeedback = onCall(
         .join("\n");
 
       const prompt = `
+LANGUAGE: ${languageInstruction}
+
 Analyze this job interview for the role: ${jobRole}
 
 Interview transcript:
 ${transcript}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON (keys always in English, values in the interview language):
 {
   "overallScore": 0-100,
   "strengths": ["strength1", "strength2", "strength3"],
   "improvements": ["area1", "area2", "area3"],
   "verdict": "Hire" | "Maybe" | "No Hire",
-  "summary": "2-3 sentence overall assessment"
+  "summary": "2-3 sentence overall assessment in the interview language"
 }
 `;
 
@@ -284,7 +281,7 @@ Return ONLY valid JSON:
             { role: "user", content: prompt },
           ],
           temperature: 0.3,
-          max_tokens: 500,
+          max_tokens: 600,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
