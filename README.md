@@ -1,71 +1,98 @@
 🚀 DayindAI — AI-Powered Career Preparation App
 
-DayindAI is a mobile application built with Flutter that helps users improve their resumes and prepare for job applications using AI-driven analysis.
+DayindAI is a Flutter-based mobile application designed to help users improve their resumes and prepare for job applications using AI-driven analysis.
 
-The project focuses on integrating modern AI services into a real-world mobile product using scalable backend architecture.
+The project demonstrates integration of modern AI services into a scalable mobile architecture with secure backend processing.
 
+<p align="center">
+  <img src="assets/images/screenshots/homepage.png" width="280"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/screenshots/analyzer.png" width="280"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/screenshots/feedback.png" width="280"/>
+  <img src="assets/images/screenshots/feedback2.png" width="280"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/screenshots/matching.png" width="280"/>
+  <img src="assets/images/screenshots/matching2.png" width="280"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/screenshots/interview.png" width="280"/>
+  <img src="assets/images/screenshots/interview2.png" width="280"/>
+</p>
 
 📱 Implemented Features
 
 ✅ Resume Analyzer
 	•	AI-powered resume evaluation
-	•	Score generation
-	•	Strengths and weaknesses detection
+	•	Resume scoring
+	•	Strengths & weaknesses detection
 	•	Personalized improvement recommendations
 
 ✅ Resume Matching
 	•	Resume-to-job description comparison
 	•	Match score (0–100%)
-	•	Matched keywords
-	•	Missing skills detection
-	•	Actionable improvement tips
+	•	Matched keywords detection
+	•	Missing skills analysis
+	•	Actionable improvement suggestions
 
+⸻
 
 🚧 In Progress
 	•	AI Mock Interview (voice + transcript mode)
-	•	Interview performance analysis
-	•	Realtime voice interview (premium feature)
+	•	Interview performance scoring
+	•	Realtime voice interview (Premium feature)
 	•	Subscription model integration
+
+⸻
 
 🏗 Architecture
 
-The application follows a structured architecture:
+The application follows a clean and scalable architecture:
 	•	Flutter (UI Layer)
-	•	Provider for state management
-	•	Service Layer abstraction for API & OCR handling
-	•	Firebase Cloud Functions (Node.js) for backend logic
+	•	Provider (State Management)
+	•	Service Layer abstraction
+	•	Firebase Cloud Functions v2 (Node.js backend)
 	•	Secure AI API integration via server-side functions
 	•	Separation of UI and business logic
 
+⸻
+
 🛠 Technology Stack
 	•	Flutter & Dart
-	•	Firebase (Cloud Functions v2)
+	•	Firebase (Cloud Functions)
 	•	REST API integration
 	•	DeepSeek AI API
 	•	Google Vision OCR
-	•	Provider (State Management)
-	
+	•	Provider
 
+⸻
 
 🎯 Project Goal
 
 To build an AI-powered mobile assistant that:
 	•	Improves resume quality
 	•	Increases job application success rate
-	•	Simulates realistic interview experience
+	•	Simulates realistic interview experiences
 	•	Provides structured AI-based feedback
 
+⸻
 
 📌 Current Status
-
-The project is under active development.
 
 Fully implemented and working:
 	•	Resume Analyzer
 	•	Resume Matching
 
-AI Interview module is currently being developed.
+AI Interview module is currently under development.
 
+⸻
 
 👨‍💻 Author
 

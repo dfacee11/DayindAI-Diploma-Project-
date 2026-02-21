@@ -26,9 +26,7 @@ exports.extractTextFromImage = onCall(async (request) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// 2) RESUME ANALYZE (DeepSeek)
-// ─────────────────────────────────────────────
+
 exports.analyzeResumeDeepseek = onCall(
   { secrets: [DEEPSEEK_API_KEY] },
   async (request) => {
@@ -157,8 +155,8 @@ exports.transcribeAudio = onCall(
   async (request) => {
     try {
       const audioBase64 = request.data?.audioBase64;
-      const mimeType    = request.data?.mimeType || "audio/m4a";
-      const language    = request.data?.language || "en"; // en, ru, kk
+      const mimeType = request.data?.mimeType || "audio/m4a";
+      const language = request.data?.language || "en"; // en, ru, kk
 
       if (!audioBase64) throw new HttpsError("invalid-argument", "audioBase64 is required");
 
@@ -191,12 +189,12 @@ exports.interviewChat = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
   async (request) => {
     try {
-      const messages            = request.data?.messages || [];
-      const jobRole             = request.data?.jobRole || "Software Engineer";
-      const interviewTypeHint   = request.data?.interviewTypeHint || "";
+      const messages = request.data?.messages || [];
+      const jobRole = request.data?.jobRole || "Software Engineer";
+      const interviewTypeHint = request.data?.interviewTypeHint || "";
       const languageInstruction = request.data?.languageInstruction || "Conduct the entire interview in English.";
-      const questionIndex       = request.data?.questionIndex || 0;
-      const totalQuestions      = request.data?.totalQuestions || 7;
+      const questionIndex = request.data?.questionIndex || 0;
+      const totalQuestions = request.data?.totalQuestions || 7;
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
@@ -214,9 +212,9 @@ Rules:
 - Be professional but friendly
 - This is question ${questionIndex + 1} of ${totalQuestions}
 ${isLastQuestion
-  ? `- This is the LAST question. After the candidate answers, give a brief encouraging closing statement.`
-  : `- After the candidate answers, acknowledge briefly and ask the next relevant question.`
-}
+          ? `- This is the LAST question. After the candidate answers, give a brief encouraging closing statement.`
+          : `- After the candidate answers, acknowledge briefly and ask the next relevant question.`
+        }
 - Do NOT number your questions out loud`;
 
       const response = await axios.post(
@@ -239,37 +237,66 @@ ${isLastQuestion
   }
 );
 
+
+
 exports.interviewFeedback = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60 },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90 },
   async (request) => {
     try {
-      const messages            = request.data?.messages || [];
-      const jobRole             = request.data?.jobRole || "Software Engineer";
+      const messages = request.data?.messages || [];
+      const jobRole = request.data?.jobRole || "Software Engineer";
       const languageInstruction = request.data?.languageInstruction || "Respond in English.";
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
+
+      const pairs = [];
+      for (let i = 0; i < messages.length - 1; i++) {
+        if (messages[i].role === "assistant" && messages[i + 1].role === "user") {
+          pairs.push({ question: messages[i].content, answer: messages[i + 1].content });
+        }
+      }
 
       const transcript = messages
         .map((m) => `${m.role === "user" ? "Candidate" : "Interviewer"}: ${m.content}`)
         .join("\n");
 
       const prompt = `
-LANGUAGE: ${languageInstruction}
+LANGUAGE INSTRUCTION: ${languageInstruction}
 
-Analyze this job interview for the role: ${jobRole}
+You are a senior HR expert analyzing a job interview for: ${jobRole}
 
 Interview transcript:
 ${transcript}
 
-Return ONLY valid JSON (keys always in English, values in the interview language):
+Return ONLY valid JSON (keys in English, text values in interview language):
 {
-  "overallScore": 0-100,
-  "strengths": ["strength1", "strength2", "strength3"],
-  "improvements": ["area1", "area2", "area3"],
+  "overallScore": <integer 0-100>,
   "verdict": "Hire" | "Maybe" | "No Hire",
-  "summary": "2-3 sentence overall assessment in the interview language"
+  "summary": "<2-3 sentence overall assessment>",
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "improvements": ["<area 1>", "<area 2>", "<area 3>"],
+  "tips": ["<concrete tip with example phrase: Instead of X, say Y>", "<tip 2>", "<tip 3>"],
+  "categories": {
+    "Communication": <integer 0-100>,
+    "Knowledge": <integer 0-100>,
+    "Confidence": <integer 0-100>,
+    "Structure": <integer 0-100>
+  },
+  "answerAnalysis": [
+    ${pairs.map((p) => `{
+      "question": ${JSON.stringify(p.question.slice(0, 120))},
+      "score": <integer 0-100>,
+      "feedback": "<2-3 sentence specific feedback referencing what candidate actually said>"
+    }`).join(",\n    ")}
+  ]
 }
+
+Rules:
+- Be honest and specific, not generic
+- Tips must include example phrases like "Instead of saying X, try: Y"
+- answerAnalysis must reference what candidate actually said
+- All text values in interview language
 `;
 
       const response = await axios.post(
@@ -277,11 +304,11 @@ Return ONLY valid JSON (keys always in English, values in the interview language
         {
           model: "gpt-4o",
           messages: [
-            { role: "system", content: "You are a strict JSON generator. Return only valid JSON." },
+            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
             { role: "user", content: prompt },
           ],
           temperature: 0.3,
-          max_tokens: 600,
+          max_tokens: 1800,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
@@ -290,8 +317,11 @@ Return ONLY valid JSON (keys always in English, values in the interview language
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
 
       try {
-        return JSON.parse(cleaned);
+        const parsed = JSON.parse(cleaned);
+        if (typeof parsed.overallScore === "number") parsed.overallScore = Math.round(parsed.overallScore);
+        return parsed;
       } catch {
+        console.log("RAW GPT RESPONSE:", content);
         throw new HttpsError("internal", "GPT returned invalid JSON");
       }
     } catch (e) {
@@ -319,7 +349,7 @@ exports.textToSpeech = onCall(
         {
           model: "tts-1",
           input: text,
-          voice: "nova",      // nova — женский голос, приятный для интервью
+          voice: "nova",      
           response_format: "mp3",
           speed: 1.0,
         },
