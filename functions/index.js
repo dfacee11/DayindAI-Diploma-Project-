@@ -349,7 +349,7 @@ exports.textToSpeech = onCall(
         {
           model: "tts-1",
           input: text,
-          voice: "nova",      
+          voice: "nova",
           response_format: "mp3",
           speed: 1.0,
         },
@@ -373,6 +373,92 @@ exports.textToSpeech = onCall(
         : e.message;
       console.log("TTS error:", e?.response?.status, errBody);
       throw new HttpsError("internal", errBody || "TTS failed");
+    }
+  }
+);
+
+// Добавь эту функцию в index.js:
+
+exports.visaInterviewFeedback = onCall(
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90 },
+  async (request) => {
+    try {
+      const messages = request.data?.messages || [];
+      const city = request.data?.city || "Астана";
+
+      const apiKey = OPENAI_API_KEY.value();
+      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
+
+      const pairs = [];
+      for (let i = 0; i < messages.length - 1; i++) {
+        if (messages[i].role === "assistant" && messages[i + 1].role === "user") {
+          pairs.push({ question: messages[i].content, answer: messages[i + 1].content });
+        }
+      }
+
+      const transcript = messages
+        .map((m) => `${m.role === "user" ? "Candidate" : "Consul"}: ${m.content}`)
+        .join("\n");
+
+      const prompt = `
+You are an experienced US visa officer analyst evaluating a Work & Travel (J-1) visa interview from ${city} consulate, Kazakhstan.
+
+Interview transcript:
+${transcript}
+
+Analyze how convincing, confident and appropriate the candidate's answers were for a visa interview.
+
+Return ONLY valid JSON (keys in English, text values in Russian):
+{
+  "overallScore": <integer 0-100>,
+  "verdict": "Виза одобрена" | "Возможно одобрят" | "Высокий риск отказа",
+  "summary": "<2-3 предложения общей оценки на русском>",
+  "strengths": ["<сильная сторона 1>", "<сильная сторона 2>", "<сильная сторона 3>"],
+  "improvements": ["<что улучшить 1>", "<что улучшить 2>", "<что улучшить 3>"],
+  "tips": ["<конкретный совет с примером фразы: Вместо X скажи Y>", "<совет 2>", "<совет 3>"],
+  "answerAnalysis": [
+    ${pairs.map((p, i) => `{
+      "question": ${JSON.stringify(p.question.slice(0, 120))},
+      "score": <integer 0-100>,
+      "feedback": "<2 предложения конкретного фидбека на русском>"
+    }`).join(",\n    ")}
+  ]
+}
+
+Rules:
+- Evaluate from perspective of a US consular officer
+- Flag any red flags (relatives in US, vague answers, lack of ties to home country)
+- Tips must be actionable with example phrases in Russian
+- Be honest — visa interviews require specific confident answers
+`;
+
+      const response = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
+            { role: "user", content: prompt },
+          ],
+          temperature: 0.3,
+          max_tokens: 2000,
+        },
+        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content || "";
+      const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
+
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (typeof parsed.overallScore === "number") parsed.overallScore = Math.round(parsed.overallScore);
+        return parsed;
+      } catch {
+        throw new HttpsError("internal", "GPT returned invalid JSON");
+      }
+    } catch (e) {
+      console.log("Visa feedback error:", e?.response?.data || e.message);
+      throw new HttpsError("internal", e.message || "Visa feedback failed");
     }
   }
 );

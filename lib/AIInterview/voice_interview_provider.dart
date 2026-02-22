@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:record/record.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'models/chat_message.dart';
 import 'interview_service.dart';
 import 'widgets/intro_ui.dart';
@@ -120,15 +121,18 @@ class VoiceInterviewProvider extends ChangeNotifier {
     _history.add({'role': 'assistant', 'content': text});
     notifyListeners();
 
+    // TTS запрос и воспроизведение
     try {
       final audioBase64 = await _service.textToSpeech(text);
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
-      await Future.delayed(Duration(milliseconds: 600 + text.length * 10));
+      // Fallback: ждём примерно столько сколько длился бы текст
+      final ms = (text.length * 50).clamp(1000, 8000);
+      await Future.delayed(Duration(milliseconds: ms));
     }
 
-    if (state != InterviewState.finished) {
+    if (state == InterviewState.aiSpeaking) {
       state = InterviewState.userTurn;
       notifyListeners();
     }
@@ -139,11 +143,18 @@ class VoiceInterviewProvider extends ChangeNotifier {
     try {
       final bytes = base64Decode(base64);
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/ai_speech.mp3');
+      final file = File('${dir.path}/ai_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
       await file.writeAsBytes(bytes);
+
+      await _player.stop();
       await _player.setFilePath(file.path);
+      await _player.seek(Duration.zero);
       await _player.play();
-      await _player.processingStateStream.firstWhere((s) => s == ProcessingState.completed);
+
+      // Ждём завершения через playerStateStream — надёжнее чем processingStateStream
+      await _player.playerStateStream.firstWhere(
+        (s) => s.processingState == ProcessingState.completed || !s.playing,
+      );
     } catch (e) {
       debugPrint('Audio play error: $e');
     }
@@ -169,7 +180,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     recordingPath = '${dir.path}/user_answer.m4a';
 
     await _recorder.start(
-      RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000, sampleRate: 44100),
+      RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
       path: recordingPath!,
     );
 

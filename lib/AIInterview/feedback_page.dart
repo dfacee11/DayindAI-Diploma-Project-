@@ -41,7 +41,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             : const Color(0xFFF59E0B);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5FA),
+      backgroundColor: const Color(0xFF0B1220),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -52,7 +52,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
       body: Stack(
         children: [
           const DarkTopBackground(),
-          Positioned(top: 200, left: 0, right: 0, bottom: 0, child: Container(color: const Color(0xFFF4F5FA))),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
@@ -121,7 +120,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(e.key, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A))),
+                                      Text(e.key, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
                                       Text('$val/100', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: _scoreColor(val))),
                                     ],
                                   ),
@@ -131,7 +130,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                     child: LinearProgressIndicator(
                                       value: val / 100,
                                       minHeight: 8,
-                                      backgroundColor: const Color(0xFFF1F5F9),
+                                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                                       valueColor: AlwaysStoppedAnimation<Color>(_scoreColor(val)),
                                     ),
                                   ),
@@ -187,7 +186,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                     child: Center(child: Text('${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF)))),
                                   ),
                                   const SizedBox(width: 10),
-                                  Expanded(child: Text(e.value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4))),
+                                  Expanded(child: Text(e.value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
                                 ],
                               ),
                             )),
@@ -217,21 +216,21 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                     child: Text('Q${i + 1}', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF))),
                                   ),
                                   const SizedBox(width: 8),
-                                  Expanded(child: Text(a['question'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)))),
+                                  Expanded(child: Text(a['question'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white))),
                                 ],
                               ),
                               if (a['score'] != null) ...[
                                 const SizedBox(height: 10),
                                 Row(
                                   children: [
-                                    Text('Score: ', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
+                                    Text('Score: ', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.55))),
                                     Text('${a['score']}/100', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: _scoreColor((a['score'] as num).toInt()))),
                                   ],
                                 ),
                               ],
                               if (a['feedback'] != null) ...[
                                 const SizedBox(height: 8),
-                                Text(a['feedback'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4)),
+                                Text(a['feedback'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.7), height: 1.4)),
                               ],
 
                             ],
@@ -269,7 +268,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget _buildTabSelector() {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black.withValues(alpha: 0.05))),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Row(
         children: [
           _tab("Overview", 0),
@@ -290,7 +293,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             color: selected ? const Color(0xFF7C5CFF) : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: selected ? Colors.white : const Color(0xFF94A3B8))),
+          child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.4))),
         ),
       ),
     );
@@ -299,9 +302,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
   Widget _buildCard({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(blurRadius: 12, color: Colors.black.withValues(alpha: 0.04), offset: const Offset(0, 4))],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.all(18),
       child: child,
@@ -309,7 +312,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   Widget _cardTitle(String title) {
-    return Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)));
+    return Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white));
   }
 
   Widget _buildBulletSection(String title, List<String> items, Color color) {
@@ -324,7 +327,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(width: 6, height: 6, margin: const EdgeInsets.only(top: 5, right: 10), decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-              Expanded(child: Text(item, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4))),
+              Expanded(child: Text(item, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
             ],
           ),
         )),

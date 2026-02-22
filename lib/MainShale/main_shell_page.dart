@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-
 import '../HomePage/homepage.dart';
 import '../ToolsPage/toolspage.dart';
 import 'package:dayindai/Profil/profil_page.dart';
 import 'package:dayindai/AIInterview/ai_interview_page.dart';
+import 'package:dayindai/VisaInterview/visa_page.dart';
 import 'widgets/bottom_nav_bar.dart';
 import 'widgets/center_ai_button.dart';
-import 'pages/resume_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -23,7 +22,7 @@ class _MainShellPageState extends State<MainShellPage> {
     HomePage(),
     ToolsPage(),
     AiInterviewPage(),
-    ResumePage(),
+    VisaPage(),
     ProfilePage(),
   ];
 

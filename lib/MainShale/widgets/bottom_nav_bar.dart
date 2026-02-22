@@ -29,11 +29,11 @@ class BottomNavBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _NavItem(label: "Home",   icon: Icons.home_rounded,        isActive: index == 0, onTap: () => onTap(0)),
-            _NavItem(label: "Tools",  icon: Icons.grid_view_rounded,   isActive: index == 1, onTap: () => onTap(1)),
-            const SizedBox(width: 70), // место под FAB
-            _NavItem(label: "Resume", icon: Icons.description_rounded, isActive: index == 3, onTap: () => onTap(3)),
-            _NavItem(label: "Profile",icon: Icons.person_rounded,      isActive: index == 4, onTap: () => onTap(4)),
+            _NavItem(label: "Home",    icon: Icons.home_rounded,       isActive: index == 0, onTap: () => onTap(0)),
+            _NavItem(label: "Tools",   icon: Icons.grid_view_rounded,  isActive: index == 1, onTap: () => onTap(1)),
+            const SizedBox(width: 70),
+            _NavItem(label: "Visa",    icon: Icons.flight_rounded,     isActive: index == 3, onTap: () => onTap(3)),
+            _NavItem(label: "Profile", icon: Icons.person_rounded,     isActive: index == 4, onTap: () => onTap(4)),
           ],
         ),
       ),

@@ -72,8 +72,6 @@ The application follows a clean and scalable architecture:
 	•	Google Vision OCR
 	•	Provider
 
-⸻
-
 🎯 Project Goal
 
 To build an AI-powered mobile assistant that:
@@ -82,7 +80,6 @@ To build an AI-powered mobile assistant that:
 	•	Simulates realistic interview experiences
 	•	Provides structured AI-based feedback
 
-⸻
 
 📌 Current Status
 
@@ -92,7 +89,6 @@ Fully implemented and working:
 
 AI Interview module is currently under development.
 
-⸻
 
 👨‍💻 Author
 
