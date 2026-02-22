@@ -5,7 +5,7 @@ import '../../AiInterview/widgets/call_like_center.dart';
 import '../../AiInterview/widgets/chat_bubble.dart';
 import '../../AiInterview/widgets/voice_input_bar.dart';
 import '../../AiInterview/widgets/text_input_bar.dart';
-import '../visa_page.dart';
+import '../visa_interview_provider.dart';
 
 class VisaChatUI extends StatefulWidget {
   final VisaInterviewProvider provider;
@@ -40,7 +40,8 @@ class _VisaChatUIState extends State<VisaChatUI> {
             Row(
               children: [
                 Container(
-                  width: 8, height: 8,
+                  width: 8,
+                  height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: p.isRecording
@@ -53,10 +54,18 @@ class _VisaChatUIState extends State<VisaChatUI> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(p.statusText, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.85))),
+                Text(p.statusText,
+                    style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.85))),
               ],
             ),
-            Text("Q ${p.questionIndex + 1}/${p.totalQ}", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.6))),
+            Text("Q ${p.questionIndex + 1}/${p.totalQ}",
+                style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.6))),
           ],
         ),
 

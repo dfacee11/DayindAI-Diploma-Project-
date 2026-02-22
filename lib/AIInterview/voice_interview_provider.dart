@@ -114,20 +114,20 @@ class VoiceInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── AI ГОВОРИТ ───
+
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
     _history.add({'role': 'assistant', 'content': text});
     notifyListeners();
 
-    // TTS запрос и воспроизведение
+ 
     try {
       final audioBase64 = await _service.textToSpeech(text);
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
-      // Fallback: ждём примерно столько сколько длился бы текст
+    
       final ms = (text.length * 50).clamp(1000, 8000);
       await Future.delayed(Duration(milliseconds: ms));
     }
@@ -138,7 +138,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── ВОСПРОИЗВЕДЕНИЕ ───
+
   Future<void> _playAudio(String base64) async {
     try {
       final bytes = base64Decode(base64);
@@ -160,7 +160,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── ЗАПИСЬ ───
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -219,7 +218,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -232,7 +230,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _getAiReply();
   }
 
-  // ─── GPT ОТВЕТ ───
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
@@ -264,7 +261,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── FEEDBACK ───
+
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(

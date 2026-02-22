@@ -2,7 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../visa_page.dart';
+import '../models/visa_city.dart';
+import '../visa_interview_provider.dart';
 
 class VisaCitySelector extends StatefulWidget {
   final void Function(VisaCity city) onStart;

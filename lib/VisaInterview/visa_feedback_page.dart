@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../HomePage/widgets/dark_background.dart';
-import 'visa_page.dart';
+import 'models/visa_city.dart';
 
 class VisaFeedbackPage extends StatefulWidget {
   final Map<String, dynamic> feedback;
@@ -31,29 +31,27 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
 
     final verdictColor = score >= 75
         ? const Color(0xFF22C55E)
-        : score >= 50
-            ? const Color(0xFFF59E0B)
-            : Colors.redAccent;
+        : score >= 50 ? const Color(0xFFF59E0B) : Colors.redAccent;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5FA),
+      backgroundColor: const Color(0xFF0B1220),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
-        title: Text("${widget.city.flag} Результаты", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+        title: Text("${widget.city.flag} Результаты",
+            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
       body: Stack(
         children: [
           const DarkTopBackground(),
-          Positioned(top: 200, left: 0, right: 0, bottom: 0, child: Container(color: const Color(0xFFF4F5FA))),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
               child: Column(
                 children: [
-                  // Score
+                  // ── SCORE ──
                   Center(
                     child: Column(
                       children: [
@@ -69,12 +67,10 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                                 valueColor: AlwaysStoppedAnimation<Color>(verdictColor),
                               ),
                             ),
-                            Column(
-                              children: [
-                                Text('$score', style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white)),
-                                Text('/100', style: GoogleFonts.montserrat(fontSize: 14, color: Colors.white.withValues(alpha: 0.7))),
-                              ],
-                            ),
+                            Column(children: [
+                              Text('$score', style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white)),
+                              Text('/100', style: GoogleFonts.montserrat(fontSize: 14, color: Colors.white.withValues(alpha: 0.7))),
+                            ]),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -85,7 +81,8 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                         ),
                         if (summary.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          Text(summary, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
+                          Text(summary, textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
                         ],
                       ],
                     ),
@@ -93,22 +90,12 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
 
                   const SizedBox(height: 20),
 
-                  // Tabs
-                  if (answers.isNotEmpty) ...[
-                    _buildTabs(),
-                    const SizedBox(height: 14),
-                  ],
+                  if (answers.isNotEmpty) ...[_buildTabs(), const SizedBox(height: 14)],
 
                   if (_tab == 0) ...[
-                    if (strengths.isNotEmpty) ...[
-                      _card(_bulletSection("✅ Сильные стороны", strengths, const Color(0xFF22C55E))),
-                      const SizedBox(height: 14),
-                    ],
-                    if (improvements.isNotEmpty) ...[
-                      _card(_bulletSection("📈 Что улучшить", improvements, const Color(0xFF7C5CFF))),
-                      const SizedBox(height: 14),
-                    ],
-                    if (tips.isNotEmpty) ...[
+                    if (strengths.isNotEmpty) ...[_card(_bulletSection("✅ Сильные стороны", strengths, const Color(0xFF22C55E))), const SizedBox(height: 14)],
+                    if (improvements.isNotEmpty) ...[_card(_bulletSection("📈 Что улучшить", improvements, const Color(0xFF7C5CFF))), const SizedBox(height: 14)],
+                    if (tips.isNotEmpty)
                       _card(Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -121,48 +108,44 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                               children: [
                                 Container(
                                   width: 24, height: 24,
-                                  decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                  decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                                   child: Center(child: Text('${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF)))),
                                 ),
                                 const SizedBox(width: 10),
-                                Expanded(child: Text(e.value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4))),
+                                Expanded(child: Text(e.value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
                               ],
                             ),
                           )),
                         ],
                       )),
-                    ],
                   ],
 
-                  if (_tab == 1) ...[
+                  if (_tab == 1)
                     ...answers.asMap().entries.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
                       child: _card(Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                                child: Text('Q${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF))),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(e.value['question'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)))),
-                            ],
-                          ),
+                          Row(children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+                              child: Text('Q${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF))),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(e.value['question'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white))),
+                          ]),
                           if (e.value['score'] != null) ...[
                             const SizedBox(height: 8),
                             Text('Оценка: ${e.value['score']}/100', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: _scoreColor((e.value['score'] as num).toInt()))),
                           ],
                           if (e.value['feedback'] != null) ...[
                             const SizedBox(height: 8),
-                            Text(e.value['feedback'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4)),
+                            Text(e.value['feedback'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.7), height: 1.4)),
                           ],
                         ],
                       )),
                     )),
-                  ],
 
                   const SizedBox(height: 10),
 
@@ -183,17 +166,10 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
     );
   }
 
-  Widget _buildTabs() {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black.withValues(alpha: 0.05))),
-      child: Row(
-        children: [
-          _tabBtn("Обзор", 0),
-          _tabBtn("По вопросам", 1),
-        ],
-      ),
-    );
-  }
+  Widget _buildTabs() => Container(
+    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
+    child: Row(children: [_tabBtn("Обзор", 0), _tabBtn("По вопросам", 1)]),
+  );
 
   Widget _tabBtn(String label, int index) {
     final sel = _tab == index;
@@ -203,19 +179,19 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(color: sel ? const Color(0xFF7C5CFF) : Colors.transparent, borderRadius: BorderRadius.circular(14)),
-          child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: sel ? Colors.white : const Color(0xFF94A3B8))),
+          child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: sel ? Colors.white : Colors.white.withValues(alpha: 0.4))),
         ),
       ),
     );
   }
 
   Widget _card(Widget child) => Container(
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(blurRadius: 12, color: Colors.black.withValues(alpha: 0.04), offset: const Offset(0, 4))]),
+    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
     padding: const EdgeInsets.all(18),
     child: child,
   );
 
-  Widget _title(String t) => Text(t, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)));
+  Widget _title(String t) => Text(t, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white));
 
   Widget _bulletSection(String title, List<String> items, Color color) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +204,7 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(width: 6, height: 6, margin: const EdgeInsets.only(top: 5, right: 10), decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-            Expanded(child: Text(item, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF475569), height: 1.4))),
+            Expanded(child: Text(item, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
           ],
         ),
       )),
