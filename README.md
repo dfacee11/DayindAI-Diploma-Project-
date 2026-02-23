@@ -42,7 +42,6 @@ The project demonstrates integration of modern AI services into a scalable mobil
 	•	Missing skills analysis
 	•	Actionable improvement suggestions
 
-⸻
 
 🚧 In Progress
 	•	AI Mock Interview (voice + transcript mode)
@@ -50,7 +49,6 @@ The project demonstrates integration of modern AI services into a scalable mobil
 	•	Realtime voice interview (Premium feature)
 	•	Subscription model integration
 
-⸻
 
 🏗 Architecture
 
@@ -61,8 +59,6 @@ The application follows a clean and scalable architecture:
 	•	Firebase Cloud Functions v2 (Node.js backend)
 	•	Secure AI API integration via server-side functions
 	•	Separation of UI and business logic
-
-⸻
 
 🛠 Technology Stack
 	•	Flutter & Dart
