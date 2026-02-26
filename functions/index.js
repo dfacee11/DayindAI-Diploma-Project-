@@ -377,12 +377,14 @@ exports.textToSpeech = onCall(
 );
 
 
+// Замени функцию visaInterviewFeedback в index.js:
+
 exports.visaInterviewFeedback = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90,region: "europe-west1" },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, region: "europe-west1" },
   async (request) => {
     try {
       const messages = request.data?.messages || [];
-      const city = request.data?.city || "Астана";
+      const city     = request.data?.city || "Астана";
 
       const apiKey = OPENAI_API_KEY.value();
       if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
@@ -399,35 +401,45 @@ exports.visaInterviewFeedback = onCall(
         .join("\n");
 
       const prompt = `
-You are an experienced US visa officer analyst evaluating a Work & Travel (J-1) visa interview from ${city} consulate, Kazakhstan.
+You are a US consular officer making a final visa decision for a Work & Travel (J-1) applicant from ${city}, Kazakhstan.
+
+HOW REAL VISA INTERVIEWS WORK:
+- Approval rate for Work & Travel from Kazakhstan is ~85-90%
+- English level does NOT matter — only intent and ties to home country matter
+- Short answers are fine. Nervousness is fine. Accent is fine.
+- Decision is binary: APPROVED or REJECTED — no "maybe"
+
+REJECT only if ONE OR MORE of these red flags exist:
+1. Candidate hinted at wanting to stay in the US / find work / immigrate
+2. Candidate has NO ties to home country (no family, no university, no job waiting)
+3. Candidate couldn't explain basic details about their employer or program
+4. Candidate contradicted themselves on key facts
+5. Candidate was completely unable to communicate
+
+If none of these red flags → APPROVE. Be realistic and generous.
 
 Interview transcript:
 ${transcript}
 
-Analyze how convincing, confident and appropriate the candidate's answers were for a visa interview.
-
 Return ONLY valid JSON (keys in English, text values in Russian):
 {
-  "overallScore": <integer 0-100>,
-  "verdict": "Виза одобрена" | "Возможно одобрят" | "Высокий риск отказа",
-  "summary": "<2-3 предложения общей оценки на русском>",
-  "strengths": ["<сильная сторона 1>", "<сильная сторона 2>", "<сильная сторона 3>"],
-  "improvements": ["<что улучшить 1>", "<что улучшить 2>", "<что улучшить 3>"],
-  "tips": ["<конкретный совет с примером фразы: Вместо X скажи Y>", "<совет 2>", "<совет 3>"],
+  "verdict": "Одобрено" | "Отказано",
+  "approvalScore": <integer 0-100>,
+  "summary": "<2-3 предложения — итоговое решение и почему>",
+  "redFlags": ["<красный флаг если есть, или пустой массив []>"],
+  "strengths": ["<что кандидат сделал хорошо 1>", "<хорошо 2>"],
+  "tips": ["<совет как улучшить ответы на следующий раз>", "<совет 2>"],
   "answerAnalysis": [
-    ${pairs.map((p, i) => `{
+    ${pairs.map((p) => `{
       "question": ${JSON.stringify(p.question.slice(0, 120))},
-      "score": <integer 0-100>,
-      "feedback": "<2 предложения конкретного фидбека на русском>"
+      "verdict": "OK" | "Слабый ответ" | "Красный флаг",
+      "feedback": "<1-2 предложения. Не критикуй английский. Только содержание>"
     }`).join(",\n    ")}
   ]
 }
 
-Rules:
-- Evaluate from perspective of a US consular officer
-- Flag any red flags (relatives in US, vague answers, lack of ties to home country)
-- Tips must be actionable with example phrases in Russian
-- Be honest — visa interviews require specific confident answers
+If verdict is "Одобрено": redFlags = [], approvalScore >= 70
+If verdict is "Отказано": redFlags must list specific reasons, approvalScore < 60
 `;
 
       const response = await axios.post(
@@ -449,7 +461,7 @@ Rules:
 
       try {
         const parsed = JSON.parse(cleaned);
-        if (typeof parsed.overallScore === "number") parsed.overallScore = Math.round(parsed.overallScore);
+        if (typeof parsed.approvalScore === "number") parsed.approvalScore = Math.round(parsed.approvalScore);
         return parsed;
       } catch {
         throw new HttpsError("internal", "GPT returned invalid JSON");

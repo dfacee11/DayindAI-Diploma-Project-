@@ -205,18 +205,18 @@ class VisaInterviewProvider extends ChangeNotifier {
   // ─── FEEDBACK ───
   Future<void> _loadFeedback() async {
     try {
-      final result = await FirebaseFunctions.instance
+      final result = await FirebaseFunctions.instanceFor(region: 'europe-west1')
           .httpsCallable('visaInterviewFeedback')
           .call({'messages': _history, 'city': city.displayName});
       feedback = Map<String, dynamic>.from(result.data);
     } catch (e) {
       debugPrint('Visa feedback error: $e');
       feedback = {
-        'overallScore': 0,
-        'verdict': 'Needs Practice',
-        'summary': 'Could not generate feedback.',
+        'verdict': 'Одобрено',
+        'approvalScore': 0,
+        'summary': 'Не удалось получить фидбек. Попробуйте снова.',
+        'redFlags': [],
         'strengths': [],
-        'improvements': [],
         'tips': [],
         'answerAnalysis': [],
       };

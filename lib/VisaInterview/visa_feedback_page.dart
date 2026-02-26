@@ -21,17 +21,17 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
   @override
   Widget build(BuildContext context) {
     final f = widget.feedback;
-    final score        = f['overallScore'] as int?   ?? 0;
-    final verdict      = f['verdict']     as String? ?? 'Needs Practice';
-    final summary      = f['summary']     as String? ?? '';
-    final strengths    = List<String>.from(f['strengths']    ?? []);
-    final improvements = List<String>.from(f['improvements'] ?? []);
-    final tips         = List<String>.from(f['tips']         ?? []);
-    final answers      = List<Map>.from(f['answerAnalysis']  ?? []);
+    final verdict   = f['verdict']       as String? ?? 'Одобрено';
+    final summary   = f['summary']       as String? ?? '';
+    final redFlags  = List<String>.from(f['redFlags']       ?? []);
+    final strengths = List<String>.from(f['strengths']      ?? []);
+    final tips      = List<String>.from(f['tips']           ?? []);
+    final answers   = List<Map>.from(f['answerAnalysis']    ?? []);
 
-    final verdictColor = score >= 75
-        ? const Color(0xFF22C55E)
-        : score >= 50 ? const Color(0xFFF59E0B) : Colors.redAccent;
+    final isApproved = verdict == 'Одобрено';
+    final verdictColor = isApproved ? const Color(0xFF22C55E) : Colors.redAccent;
+    final verdictIcon  = isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded;
+    final verdictLabel = isApproved ? '✅ VISA APPROVED' : '❌ VISA REJECTED';
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B1220),
@@ -51,55 +51,79 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
               child: Column(
                 children: [
-                  // ── SCORE ──
-                  Center(
+
+                  // ── VERDICT CARD ──
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: verdictColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: verdictColor.withValues(alpha: 0.5), width: 2),
+                    ),
                     child: Column(
                       children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 130, height: 130,
-                              child: CircularProgressIndicator(
-                                value: score / 100,
-                                strokeWidth: 10,
-                                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                valueColor: AlwaysStoppedAnimation<Color>(verdictColor),
-                              ),
-                            ),
-                            Column(children: [
-                              Text('$score', style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white)),
-                              Text('/100', style: GoogleFonts.montserrat(fontSize: 14, color: Colors.white.withValues(alpha: 0.7))),
-                            ]),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          decoration: BoxDecoration(color: verdictColor, borderRadius: BorderRadius.circular(20)),
-                          child: Text(verdict, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
-                        ),
+                        Icon(verdictIcon, color: verdictColor, size: 64),
+                        const SizedBox(height: 14),
+                        Text(verdictLabel,
+                            style: GoogleFonts.montserrat(
+                                fontSize: 22, fontWeight: FontWeight.w900, color: verdictColor)),
                         if (summary.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          Text(summary, textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
+                          Text(summary,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
                         ],
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  if (answers.isNotEmpty) ...[_buildTabs(), const SizedBox(height: 14)],
+                  // ── RED FLAGS (только если Rejected) ──
+                  if (!isApproved && redFlags.isNotEmpty) ...[
+                    _card(Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _title("🚨 Причины отказа"),
+                        const SizedBox(height: 12),
+                        ...redFlags.map((flag) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.warning_rounded, color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(child: Text(flag,
+                                  style: GoogleFonts.montserrat(
+                                      fontSize: 13, fontWeight: FontWeight.w600,
+                                      color: Colors.redAccent, height: 1.4))),
+                            ],
+                          ),
+                        )),
+                      ],
+                    )),
+                    const SizedBox(height: 14),
+                  ],
 
+                  // ── TABS ──
+                  if (answers.isNotEmpty) ...[
+                    _buildTabs(),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // ── TAB 0: ОБЗОР ──
                   if (_tab == 0) ...[
-                    if (strengths.isNotEmpty) ...[_card(_bulletSection("✅ Сильные стороны", strengths, const Color(0xFF22C55E))), const SizedBox(height: 14)],
-                    if (improvements.isNotEmpty) ...[_card(_bulletSection("📈 Что улучшить", improvements, const Color(0xFF7C5CFF))), const SizedBox(height: 14)],
-                    if (tips.isNotEmpty)
+                    if (strengths.isNotEmpty) ...[
+                      _card(_bulletSection("✅ Что хорошо", strengths, const Color(0xFF22C55E))),
+                      const SizedBox(height: 14),
+                    ],
+                    if (tips.isNotEmpty) ...[
                       _card(Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _title("💡 Конкретные советы"),
+                          _title("💡 Советы на следующий раз"),
                           const SizedBox(height: 12),
                           ...tips.asMap().entries.map((e) => Padding(
                             padding: const EdgeInsets.only(bottom: 10),
@@ -108,18 +132,26 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                               children: [
                                 Container(
                                   width: 24, height: 24,
-                                  decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                                  child: Center(child: Text('${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF)))),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(child: Text('${e.key + 1}',
+                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF)))),
                                 ),
                                 const SizedBox(width: 10),
-                                Expanded(child: Text(e.value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
+                                Expanded(child: Text(e.value,
+                                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500,
+                                        color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
                               ],
                             ),
                           )),
                         ],
                       )),
+                    ],
                   ],
 
+                  // ── TAB 1: ПО ВОПРОСАМ ──
                   if (_tab == 1)
                     ...answers.asMap().entries.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
@@ -129,32 +161,53 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                           Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: const Color(0xFF7C5CFF).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
-                              child: Text('Q${e.key + 1}', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF7C5CFF))),
+                              decoration: BoxDecoration(
+                                color: _answerVerdictColor(e.value['verdict']).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text('Q${e.key + 1}',
+                                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900,
+                                      color: _answerVerdictColor(e.value['verdict']))),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(child: Text(e.value['question'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white))),
+                            Expanded(child: Text(e.value['question'] ?? '',
+                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white))),
                           ]),
-                          if (e.value['score'] != null) ...[
-                            const SizedBox(height: 8),
-                            Text('Оценка: ${e.value['score']}/100', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: _scoreColor((e.value['score'] as num).toInt()))),
-                          ],
+                          const SizedBox(height: 8),
+                          // Verdict badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _answerVerdictColor(e.value['verdict']).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(e.value['verdict'] ?? 'OK',
+                                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800,
+                                    color: _answerVerdictColor(e.value['verdict']))),
+                          ),
                           if (e.value['feedback'] != null) ...[
                             const SizedBox(height: 8),
-                            Text(e.value['feedback'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.7), height: 1.4)),
+                            Text(e.value['feedback'],
+                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500,
+                                    color: Colors.white.withValues(alpha: 0.7), height: 1.4)),
                           ],
                         ],
                       )),
                     )),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
 
                   SizedBox(
                     width: double.infinity, height: 54,
                     child: ElevatedButton(
                       onPressed: widget.onRestart,
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C5CFF), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-                      child: Text("Попробовать снова", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C5CFF),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      child: Text("Попробовать снова",
+                          style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
                     ),
                   ),
                 ],
@@ -166,8 +219,18 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
     );
   }
 
+  Color _answerVerdictColor(String? v) {
+    if (v == 'Красный флаг') return Colors.redAccent;
+    if (v == 'Слабый ответ') return const Color(0xFFF59E0B);
+    return const Color(0xFF22C55E);
+  }
+
   Widget _buildTabs() => Container(
-    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+    ),
     child: Row(children: [_tabBtn("Обзор", 0), _tabBtn("По вопросам", 1)]),
   );
 
@@ -178,20 +241,30 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
         onTap: () => setState(() => _tab = index),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(color: sel ? const Color(0xFF7C5CFF) : Colors.transparent, borderRadius: BorderRadius.circular(14)),
-          child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: sel ? Colors.white : Colors.white.withValues(alpha: 0.4))),
+          decoration: BoxDecoration(
+            color: sel ? const Color(0xFF7C5CFF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(label, textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800,
+                  color: sel ? Colors.white : Colors.white.withValues(alpha: 0.4))),
         ),
       ),
     );
   }
 
   Widget _card(Widget child) => Container(
-    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+    ),
     padding: const EdgeInsets.all(18),
     child: child,
   );
 
-  Widget _title(String t) => Text(t, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white));
+  Widget _title(String t) => Text(t,
+      style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white));
 
   Widget _bulletSection(String title, List<String> items, Color color) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,13 +276,14 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: 6, height: 6, margin: const EdgeInsets.only(top: 5, right: 10), decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-            Expanded(child: Text(item, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
+            Container(width: 6, height: 6, margin: const EdgeInsets.only(top: 5, right: 10),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+            Expanded(child: Text(item,
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.75), height: 1.4))),
           ],
         ),
       )),
     ],
   );
-
-  Color _scoreColor(int s) => s >= 75 ? const Color(0xFF22C55E) : s >= 50 ? const Color(0xFFF59E0B) : Colors.redAccent;
 }
