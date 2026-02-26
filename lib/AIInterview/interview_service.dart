@@ -1,7 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
 class InterviewService {
-  final _functions = FirebaseFunctions.instance;
+  final _functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
 
   Future<String> transcribeAudio(String audioBase64, {String languageCode = 'en'}) async {
     final result = await _functions.httpsCallable('transcribeAudio').call({
@@ -17,6 +17,7 @@ class InterviewService {
     required String jobRole,
     required String interviewTypeHint,
     required String languageInstruction,
+    required String levelHint,
     required int questionIndex,
     required int totalQuestions,
   }) async {
@@ -25,6 +26,7 @@ class InterviewService {
       'jobRole': jobRole,
       'interviewTypeHint': interviewTypeHint,
       'languageInstruction': languageInstruction,
+      'levelHint': levelHint,
       'questionIndex': questionIndex,
       'totalQuestions': totalQuestions,
     });
@@ -42,11 +44,13 @@ class InterviewService {
     required List<Map<String, String>> messages,
     required String jobRole,
     required String languageInstruction,
+    required String level,
   }) async {
     final result = await _functions.httpsCallable('interviewFeedback').call({
       'messages': messages,
       'jobRole': jobRole,
       'languageInstruction': languageInstruction,
+      'level': level,
     });
     return Map<String, dynamic>.from(result.data);
   }

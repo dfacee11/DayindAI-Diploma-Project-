@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import 'models/chat_message.dart';
 import 'interview_service.dart';
 import 'widgets/intro_ui.dart';
+import 'dart:async'; 
+
 
 enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, finished }
 
@@ -28,6 +30,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
   String jobRole = "Software Engineer";
   InterviewType interviewType = InterviewType.mixed;
   InterviewLanguage language = InterviewLanguage.english;
+  ExperienceLevel level = ExperienceLevel.junior;
   int questionIndex = 0;
   int totalQuestions = 7;
 
@@ -71,20 +74,27 @@ class VoiceInterviewProvider extends ChangeNotifier {
   String get _openingMessage {
     switch (language) {
       case InterviewLanguage.russian:
-        return "Привет! Добро пожаловать на интервью. Для начала расскажите немного о себе — кто вы и какой у вас опыт?";
+        return "Привет! Добро пожаловать на интервью для ${level.label} ${jobRole}. Для начала расскажите немного о себе.";
       case InterviewLanguage.kazakh:
-        return "Сәлем! Сұхбатқа қош келдіңіз. Басталайық — өзіңіз туралы аздап айтып беріңізші?";
+        return "Сәлем! ${level.label} ${jobRole} лауазымына сұхбатқа қош келдіңіз. Өзіңіз туралы айтып беріңізші.";
       default:
-        return "Hello! Welcome to your interview. Let's start — could you tell me a little about yourself?";
+        return "Hello! Welcome to your ${level.label} ${jobRole} interview. Let's start — could you tell me a little about yourself?";
     }
   }
 
   // ─── START ───
-  Future<void> startInterview(String role, InterviewType type, int count, InterviewLanguage lang) async {
+  Future<void> startInterview(
+    String role,
+    InterviewType type,
+    int count,
+    InterviewLanguage lang,
+    ExperienceLevel lvl,
+  ) async {
     jobRole = role;
     interviewType = type;
     totalQuestions = count;
     language = lang;
+    level = lvl;
     started = true;
     questionIndex = 0;
     messages.clear();
@@ -114,20 +124,18 @@ class VoiceInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
+  // ─── AI SPEAK ───
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
     _history.add({'role': 'assistant', 'content': text});
     notifyListeners();
 
- 
     try {
       final audioBase64 = await _service.textToSpeech(text);
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
-    
       final ms = (text.length * 50).clamp(1000, 8000);
       await Future.delayed(Duration(milliseconds: ms));
     }
@@ -138,28 +146,36 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
+  // ─── AUDIO PLAYBACK ───
+  // ─── AUDIO PLAYBACK ───
+Future<void> _playAudio(String base64) async {
+  try {
+    final bytes = base64Decode(base64);
+    final dir = await getTemporaryDirectory();
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final file = File('${dir.path}/ai_speech_$ts.mp3');
+    await file.writeAsBytes(bytes);
 
-  Future<void> _playAudio(String base64) async {
-    try {
-      final bytes = base64Decode(base64);
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/ai_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
-      await file.writeAsBytes(bytes);
+    await _player.stop();
+    await _player.setFilePath(file.path);
+    await _player.seek(Duration.zero);
 
-      await _player.stop();
-      await _player.setFilePath(file.path);
-      await _player.seek(Duration.zero);
-      await _player.play();
+    final completer = Completer<void>();
+    final sub = _player.processingStateStream.listen((ps) {
+      if (ps == ProcessingState.completed) {
+        if (!completer.isCompleted) completer.complete();
+      }
+    });
 
-      // Ждём завершения через playerStateStream — надёжнее чем processingStateStream
-      await _player.playerStateStream.firstWhere(
-        (s) => s.processingState == ProcessingState.completed || !s.playing,
-      );
-    } catch (e) {
-      debugPrint('Audio play error: $e');
-    }
+    await _player.play();
+    await completer.future;
+    await sub.cancel();
+  } catch (e) {
+    debugPrint('Audio play error: $e');
   }
+}
 
+  // ─── RECORDING ───
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -182,7 +198,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
       RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
       path: recordingPath!,
     );
-
     state = InterviewState.recording;
     notifyListeners();
   }
@@ -218,6 +233,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
+  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -226,10 +242,10 @@ class VoiceInterviewProvider extends ChangeNotifier {
     _history.add({'role': 'user', 'content': text});
     state = InterviewState.thinking;
     notifyListeners();
-
     await _getAiReply();
   }
 
+  // ─── GPT REPLY ───
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
@@ -237,6 +253,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
         jobRole: jobRole,
         interviewTypeHint: interviewType.systemPromptHint,
         languageInstruction: language.systemLanguageInstruction,
+        levelHint: level.systemPromptHint,
         questionIndex: questionIndex,
         totalQuestions: totalQuestions,
       );
@@ -261,13 +278,14 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-
+  // ─── FEEDBACK ───
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(
         messages: List.from(_history),
         jobRole: jobRole,
         languageInstruction: language.systemLanguageInstruction,
+        level: level.label,
       );
       notifyListeners();
     } catch (e) {
