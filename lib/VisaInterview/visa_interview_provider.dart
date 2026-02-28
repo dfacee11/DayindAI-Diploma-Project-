@@ -16,46 +16,50 @@ export 'models/visa_city.dart';
 enum VisaState { idle, aiSpeaking, userTurn, recording, thinking, finished }
 
 class VisaInterviewProvider extends ChangeNotifier {
-  final InterviewService _service  = InterviewService();
-  final AudioRecorder    _recorder = AudioRecorder();
-  final AudioPlayer      _player   = AudioPlayer();
+  final InterviewService _service = InterviewService();
+  final AudioRecorder _recorder = AudioRecorder();
+  final AudioPlayer _player = AudioPlayer();
 
-  VisaState state     = VisaState.idle;
-  bool started        = false;
+  VisaState state = VisaState.idle;
+  bool started = false;
   bool showTranscript = false;
-  bool voiceMode      = true;
+  bool voiceMode = true;
 
-  VisaCity         city          = VisaCity.astana;
-  List<String>     questions     = [];
-  int              questionIndex = 0;
+  VisaCity city = VisaCity.astana;
+  List<String> questions = [];
+  int questionIndex = 0;
 
-  final List<ChatMessage>         messages = [];
+  final List<ChatMessage> messages = [];
   final List<Map<String, String>> _history = [];
-  Map<String, dynamic>?           feedback;
-  String?                         _recordingPath;
+  Map<String, dynamic>? feedback;
+  String? _recordingPath;
 
   bool get isAiSpeaking => state == VisaState.aiSpeaking;
-  bool get isThinking   => state == VisaState.thinking;
-  bool get isRecording  => state == VisaState.recording;
-  bool get isFinished   => state == VisaState.finished;
-  int  get totalQ       => questions.length;
+  bool get isThinking => state == VisaState.thinking;
+  bool get isRecording => state == VisaState.recording;
+  bool get isFinished => state == VisaState.finished;
+  int get totalQ => questions.length;
 
   String get statusText {
     switch (state) {
-      case VisaState.aiSpeaking: return "Консул говорит...";
-      case VisaState.thinking:   return "Обработка...";
-      case VisaState.recording:  return "Слушаю...";
-      case VisaState.finished:   return "Интервью завершено!";
-      default:                   return "Ваша очередь — нажмите микрофон";
+      case VisaState.aiSpeaking:
+        return "Консул говорит...";
+      case VisaState.thinking:
+        return "Обработка...";
+      case VisaState.recording:
+        return "Слушаю...";
+      case VisaState.finished:
+        return "Интервью завершено!";
+      default:
+        return "Ваша очередь — нажмите микрофон";
     }
   }
 
-  // ─── START ───
   Future<void> startInterview(VisaCity selectedCity) async {
-    city          = selectedCity;
-    questions     = city.getRandomQuestions();
+    city = selectedCity;
+    questions = city.getRandomQuestions();
     questionIndex = 0;
-    started       = true;
+    started = true;
     messages.clear();
     _history.clear();
     feedback = null;
@@ -66,7 +70,6 @@ class VisaInterviewProvider extends ChangeNotifier {
     );
   }
 
-  // ─── AI SPEAK ───
   Future<void> _aiSpeak(String text) async {
     state = VisaState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -88,12 +91,12 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── AUDIO PLAYBACK ───
   Future<void> _playAudio(String base64) async {
     try {
       final bytes = base64Decode(base64);
-      final dir   = await getTemporaryDirectory();
-      final file  = File('${dir.path}/visa_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/visa_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
       await file.writeAsBytes(bytes);
       await _player.stop();
       await _player.setFilePath(file.path);
@@ -107,7 +110,6 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── RECORDING ───
   Future<void> toggleRecording() async {
     if (state != VisaState.userTurn && state != VisaState.recording) return;
     HapticFeedback.lightImpact();
@@ -122,11 +124,12 @@ class VisaInterviewProvider extends ChangeNotifier {
     final hasPermission = await _recorder.hasPermission();
     if (!hasPermission) return;
 
-    final dir      = await getTemporaryDirectory();
+    final dir = await getTemporaryDirectory();
     _recordingPath = '${dir.path}/visa_answer.m4a';
 
     await _recorder.start(
-      RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
+      RecordConfig(
+          encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
       path: _recordingPath!,
     );
     state = VisaState.recording;
@@ -139,9 +142,10 @@ class VisaInterviewProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final audioBytes  = await File(_recordingPath!).readAsBytes();
+      final audioBytes = await File(_recordingPath!).readAsBytes();
       final audioBase64 = base64Encode(audioBytes);
-      final transcript  = await _service.transcribeAudio(audioBase64, languageCode: 'en');
+      final transcript =
+          await _service.transcribeAudio(audioBase64, languageCode: 'en');
 
       if (transcript.trim().isEmpty) {
         state = VisaState.userTurn;
@@ -161,7 +165,6 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == VisaState.aiSpeaking || state == VisaState.thinking) return;
@@ -173,11 +176,11 @@ class VisaInterviewProvider extends ChangeNotifier {
     await _nextQuestion();
   }
 
-  // ─── NEXT QUESTION ───
   Future<void> _nextQuestion() async {
     questionIndex++;
     if (questionIndex >= questions.length) {
-      await _aiSpeak("Thank you for your time. That concludes our interview today. Have a great day!");
+      await _aiSpeak(
+          "Thank you for your time. That concludes our interview today. Have a great day!");
       state = VisaState.thinking;
       notifyListeners();
       await _loadFeedback();
@@ -188,12 +191,14 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── FINISH EARLY ───
   Future<void> finishEarly() async {
     if (state == VisaState.recording) await _recorder.stop();
     await _player.stop();
 
-    if (_history.isEmpty) { restart(); return; }
+    if (_history.isEmpty) {
+      restart();
+      return;
+    }
 
     state = VisaState.thinking;
     notifyListeners();
@@ -202,7 +207,6 @@ class VisaInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── FEEDBACK ───
   Future<void> _loadFeedback() async {
     try {
       final result = await FirebaseFunctions.instanceFor(region: 'europe-west1')
@@ -224,12 +228,19 @@ class VisaInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleTranscript() { showTranscript = !showTranscript; notifyListeners(); }
-  void toggleMode()        { voiceMode = !voiceMode; notifyListeners(); }
+  void toggleTranscript() {
+    showTranscript = !showTranscript;
+    notifyListeners();
+  }
+
+  void toggleMode() {
+    voiceMode = !voiceMode;
+    notifyListeners();
+  }
 
   void restart() {
-    state         = VisaState.idle;
-    started       = false;
+    state = VisaState.idle;
+    started = false;
     questionIndex = 0;
     messages.clear();
     _history.clear();

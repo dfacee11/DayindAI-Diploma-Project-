@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -9,10 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'models/chat_message.dart';
 import 'interview_service.dart';
 import 'widgets/intro_ui.dart';
-import 'dart:async'; 
 
-
-enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, finished }
+enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, analyzing, finished }
 
 class VoiceInterviewProvider extends ChangeNotifier {
   final InterviewService _service = InterviewService();
@@ -41,6 +40,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
   bool get isThinking   => state == InterviewState.thinking;
   bool get isRecording  => state == InterviewState.recording;
   bool get isFinished   => state == InterviewState.finished;
+  bool get isAnalyzing  => state == InterviewState.analyzing;
 
   String get statusText {
     switch (language) {
@@ -117,7 +117,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       return;
     }
 
-    state = InterviewState.thinking;
+    state = InterviewState.analyzing;
     notifyListeners();
     await _loadFeedback();
     state = InterviewState.finished;
@@ -147,33 +147,34 @@ class VoiceInterviewProvider extends ChangeNotifier {
   }
 
   // ─── AUDIO PLAYBACK ───
-  // ─── AUDIO PLAYBACK ───
-Future<void> _playAudio(String base64) async {
-  try {
-    final bytes = base64Decode(base64);
-    final dir = await getTemporaryDirectory();
-    final ts = DateTime.now().millisecondsSinceEpoch;
-    final file = File('${dir.path}/ai_speech_$ts.mp3');
-    await file.writeAsBytes(bytes);
+  Future<void> _playAudio(String base64Audio) async {
+    try {
+      final bytes = base64Decode(base64Audio);
+      final dir = await getTemporaryDirectory();
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final file = File('${dir.path}/ai_speech_$ts.mp3');
+      await file.writeAsBytes(bytes);
 
-    await _player.stop();
-    await _player.setFilePath(file.path);
-    await _player.seek(Duration.zero);
+      await _player.stop();
+      await _player.setFilePath(file.path);
+      await _player.seek(Duration.zero);
 
-    final completer = Completer<void>();
-    final sub = _player.processingStateStream.listen((ps) {
-      if (ps == ProcessingState.completed) {
-        if (!completer.isCompleted) completer.complete();
-      }
-    });
+      // Completer — самый надёжный способ ждать конца воспроизведения.
+      // playerStateStream срабатывает раньше времени если плеер ещё не начал.
+      final completer = Completer<void>();
+      final sub = _player.processingStateStream.listen((ps) {
+        if (ps == ProcessingState.completed) {
+          if (!completer.isCompleted) completer.complete();
+        }
+      });
 
-    await _player.play();
-    await completer.future;
-    await sub.cancel();
-  } catch (e) {
-    debugPrint('Audio play error: $e');
+      await _player.play();
+      await completer.future;
+      await sub.cancel();
+    } catch (e) {
+      debugPrint('Audio play error: $e');
+    }
   }
-}
 
   // ─── RECORDING ───
   Future<void> toggleRecording() async {
@@ -233,7 +234,7 @@ Future<void> _playAudio(String base64) async {
     }
   }
 
-  // ─── TEXT MODE ───
+
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -263,7 +264,7 @@ Future<void> _playAudio(String base64) async {
 
       if (questionIndex >= totalQuestions) {
         await _aiSpeak(reply);
-        state = InterviewState.thinking;
+        state = InterviewState.analyzing;
         notifyListeners();
         await _loadFeedback();
         state = InterviewState.finished;

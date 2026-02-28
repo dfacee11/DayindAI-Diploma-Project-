@@ -7,6 +7,7 @@ import 'voice_interview_provider.dart';
 import 'feedback_page.dart';
 import 'widgets/intro_ui.dart';
 import 'widgets/interview_ui.dart';
+import 'widgets/interview_analyzing_screen.dart';
 
 class AiInterviewPage extends StatelessWidget {
   const AiInterviewPage({super.key});
@@ -27,6 +28,15 @@ class _AiInterviewView extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.watch<VoiceInterviewProvider>();
 
+    // ── Анализ идёт — красивый loading экран ──
+    if (p.isAnalyzing) {
+      return InterviewAnalyzingScreen(
+        jobRole: p.jobRole,
+        language: p.language.whisperCode,
+      );
+    }
+
+    // ── Анализ завершён ──
     if (p.isFinished && p.feedback != null) {
       return FeedbackPage(
         feedback: p.feedback!,
@@ -47,19 +57,19 @@ class _AiInterviewView extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
               child: p.started
                   ? InterviewUI(
-                      statusText:       p.statusText,
-                      showTranscript:   p.showTranscript,
-                      voiceMode:        p.voiceMode,
-                      aiIsSpeaking:     p.isAiSpeaking,
-                      isThinking:       p.isThinking,
-                      isRecording:      p.isRecording,
-                      messages:         p.messages,
-                      scrollController: ScrollController(),
-                      textController:   TextEditingController(),
-                      onSendMessage:    () {},
+                      statusText:        p.statusText,
+                      showTranscript:    p.showTranscript,
+                      voiceMode:         p.voiceMode,
+                      aiIsSpeaking:      p.isAiSpeaking,
+                      isThinking:        p.isThinking,
+                      isRecording:       p.isRecording,
+                      messages:          p.messages,
+                      scrollController:  ScrollController(),
+                      textController:    TextEditingController(),
+                      onSendMessage:     () {},
                       onToggleRecording: p.toggleRecording,
-                      questionIndex:    p.questionIndex,
-                      totalQuestions:   p.totalQuestions,
+                      questionIndex:     p.questionIndex,
+                      totalQuestions:    p.totalQuestions,
                     )
                   : IntroUI(onStart: p.startInterview),
             ),
@@ -76,24 +86,21 @@ class _AiInterviewView extends StatelessWidget {
       foregroundColor: Colors.white,
       title: p.started
           ? _ProgressTitle(current: p.questionIndex, total: p.totalQuestions)
-          : Text("AI Interview", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+          : Text("AI Interview",
+              style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
       actions: p.started
           ? [
               IconButton(
                 icon: Icon(p.showTranscript ? Icons.visibility_off_rounded : Icons.chat_bubble_rounded),
                 onPressed: p.toggleTranscript,
-                tooltip: "Transcript",
               ),
               IconButton(
                 icon: Icon(p.voiceMode ? Icons.keyboard_rounded : Icons.mic_rounded),
                 onPressed: p.toggleMode,
-                tooltip: "Switch mode",
               ),
-              // Кнопка завершить досрочно
               IconButton(
                 icon: const Icon(Icons.stop_circle_rounded, color: Colors.redAccent),
                 onPressed: () => _confirmFinish(context, p),
-                tooltip: "Finish & Get Feedback",
               ),
             ]
           : null,
@@ -105,7 +112,8 @@ class _AiInterviewView extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text("Finish Interview?", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900)),
+        title: Text("Finish Interview?",
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w900)),
         content: Text(
           "You've answered ${p.questionIndex} of ${p.totalQuestions} questions.\nYou'll still get an AI feedback report.",
           style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF64748B)),
@@ -113,15 +121,18 @@ class _AiInterviewView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text("Continue", style: GoogleFonts.montserrat(color: const Color(0xFF64748B), fontWeight: FontWeight.w700)),
+            child: Text("Continue",
+                style: GoogleFonts.montserrat(color: const Color(0xFF64748B), fontWeight: FontWeight.w700)),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              p.finishEarly();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C5CFF), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-            child: Text("Finish", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800)),
+            onPressed: () { Navigator.pop(ctx); p.finishEarly(); },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C5CFF),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            child: Text("Finish",
+                style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -140,7 +151,8 @@ class _ProgressTitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("AI Interview", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+        Text("AI Interview",
+            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
         const SizedBox(height: 4),
         Row(
           children: [
@@ -157,10 +169,10 @@ class _ProgressTitle extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              "$current/$total",
-              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.7)),
-            ),
+            Text("$current/$total",
+                style: GoogleFonts.montserrat(
+                    fontSize: 11, fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.7))),
           ],
         ),
       ],
