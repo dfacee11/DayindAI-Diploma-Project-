@@ -33,13 +33,9 @@ class FeatureTile extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
-                ),
+                color: tool.color.withValues(alpha: 0.12),
               ),
-              child: Icon(tool.icon, color: Colors.white, size: 22),
+              child: Icon(tool.icon, color: tool.color, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -66,7 +62,14 @@ class FeatureTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1), size: 22),
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: tool.color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.chevron_right_rounded, color: tool.color, size: 20),
+            ),
           ],
         ),
       ),

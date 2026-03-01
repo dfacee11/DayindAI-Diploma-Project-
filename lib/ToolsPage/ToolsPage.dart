@@ -23,53 +23,68 @@ class _ToolsPageState extends State<ToolsPage> {
     super.dispose();
   }
 
-  List<ToolItem> _allTools() {
-    return [
-      ToolItem(
-          category: "AI Tools",
-          title: "AI Interview",
-          subtitle: "Practice interviews & get feedback",
-          icon: Icons.record_voice_over_rounded,
-          onTap: () => Navigator.pushNamed(context, "/AIInterview")),
-      ToolItem(
-          category: "AI Tools",
-          title: "Resume Analyzer",
-          subtitle: "AI-powered resume review",
-          icon: Icons.description_rounded,
-          onTap: () => Navigator.pushNamed(context, "/AnalyzerResume")),
-      ToolItem(
-          category: "AI Tools",
-          title: "Resume Matching",
-          subtitle: "Match your resume to a job",
-          icon: Icons.compare_arrows_rounded,
-          onTap: () => Navigator.pushNamed(context, "/ResumeMatching")),
-      ToolItem(
-          category: "Career Docs",
-          title: "Resume Templates",
-          subtitle: "Ready-to-use CV designs",
-          icon: Icons.grid_view_rounded,
-          onTap: () {}),
-      ToolItem(
-          category: "Career Docs",
-          title: "Cover Letter",
-          subtitle: "AI cover letter builder",
-          icon: Icons.mail_outline_rounded,
-          onTap: () {}),
-      ToolItem(
-          category: "Interview Prep",
-          title: "Question Bank",
-          subtitle: "Common interview questions",
-          icon: Icons.question_answer_rounded,
-          onTap: () {}),
-      ToolItem(
-          category: "Interview Prep",
-          title: "Roadmaps",
-          subtitle: "Skills & learning paths",
-          icon: Icons.route_rounded,
-          onTap: () {}),
-    ];
-  }
+  
 
+List<ToolItem> _allTools() {
+  return [
+    ToolItem(
+      category: "AI Tools",
+      title: "AI Interview",
+      subtitle: "Practice interviews & get feedback",
+      icon: Icons.mic_rounded,
+      color: const Color(0xFF7C5CFF),
+      onTap: () => Navigator.pushNamed(context, "/AIInterview"),
+    ),
+    ToolItem(
+      category: "AI Tools",
+      title: "Resume Analyzer",
+      subtitle: "AI-powered resume review",
+      icon: Icons.document_scanner_rounded,
+      color: const Color(0xFF3B82F6),
+      onTap: () => Navigator.pushNamed(context, "/AnalyzerResume"),
+    ),
+    ToolItem(
+      category: "AI Tools",
+      title: "Resume Matching",
+      subtitle: "Match your resume to a job",
+      icon: Icons.center_focus_strong_rounded,
+      color: const Color(0xFF06B6D4),
+      onTap: () => Navigator.pushNamed(context, "/ResumeMatching"),
+    ),
+    ToolItem(
+      category: "Career Docs",
+      title: "Resume Templates",
+      subtitle: "Ready-to-use CV designs",
+      icon: Icons.auto_awesome_rounded,
+      color: const Color(0xFFF59E0B),
+      onTap: () {},
+    ),
+    ToolItem(
+      category: "Career Docs",
+      title: "Cover Letter",
+      subtitle: "AI cover letter builder",
+      icon: Icons.draw_rounded,
+      color: const Color(0xFFEC4899),
+      onTap: () {},
+    ),
+    ToolItem(
+      category: "Interview Prep",
+      title: "Question Bank",
+      subtitle: "Common interview questions",
+      icon: Icons.lightbulb_rounded,
+      color: const Color(0xFF10B981),
+      onTap: () {},
+    ),
+    ToolItem(
+      category: "Interview Prep",
+      title: "Roadmaps",
+      subtitle: "Skills & learning paths",
+      icon: Icons.explore_rounded,
+      color: const Color(0xFFF97316),
+      onTap: () {},
+    ),
+  ];
+}
   @override
   Widget build(BuildContext context) {
     final all = _allTools();

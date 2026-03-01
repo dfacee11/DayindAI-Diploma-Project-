@@ -20,7 +20,7 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
     with TickerProviderStateMixin {
 
   late AnimationController _pulseController;
-  late AnimationController _progressController;
+
   late Animation<double> _pulseAnimation;
 
   int _currentStep = 0;
@@ -209,7 +209,7 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
                   children: _steps.asMap().entries.map((e) {
                     final isDone    = e.key < _currentStep;
                     final isCurrent = e.key == _currentStep;
-                    final isPending = e.key > _currentStep;
+                    
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),

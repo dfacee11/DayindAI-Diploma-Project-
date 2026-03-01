@@ -42,14 +42,10 @@ class ProgressCard extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
-            ),
+            color: const Color(0xFF7C5CFF).withValues(alpha: 0.12),
           ),
-          child:
-              const Icon(Icons.insights_rounded, color: Colors.white, size: 22),
+          child: const Icon(Icons.insights_rounded,
+              color: Color(0xFF7C5CFF), size: 22),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -79,7 +75,7 @@ class ProgressCard extends StatelessWidget {
           style: GoogleFonts.montserrat(
               fontSize: 16,
               fontWeight: FontWeight.w900,
-              color: const Color(0xFF0F172A)),
+              color: const Color(0xFF7C5CFF)),
         ),
       ],
     );

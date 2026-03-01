@@ -13,6 +13,19 @@ class RandomTipCard extends StatefulWidget {
 class _RandomTipCardState extends State<RandomTipCard> {
   late final Map<String, dynamic> _tip;
 
+  // Цвета для разных иконок подсказок
+  Color _iconColor(IconData icon) {
+    if (icon == Icons.lightbulb_rounded)      return const Color(0xFFF59E0B);
+    if (icon == Icons.mic_rounded)            return const Color(0xFF7C5CFF);
+    if (icon == Icons.description_rounded)    return const Color(0xFF3B82F6);
+    if (icon == Icons.psychology_rounded)     return const Color(0xFF10B981);
+    if (icon == Icons.trending_up_rounded)    return const Color(0xFF06B6D4);
+    if (icon == Icons.star_rounded)           return const Color(0xFFF59E0B);
+    if (icon == Icons.handshake_rounded)      return const Color(0xFFEC4899);
+    if (icon == Icons.timer_rounded)          return const Color(0xFFF97316);
+    return const Color(0xFF7C5CFF); // default
+  }
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +35,9 @@ class _RandomTipCardState extends State<RandomTipCard> {
 
   @override
   Widget build(BuildContext context) {
+    final icon = _tip['icon'] as IconData;
+    final color = _iconColor(icon);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -42,14 +58,9 @@ class _RandomTipCardState extends State<RandomTipCard> {
             height: 46,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
-              ),
+              color: color.withValues(alpha: 0.12),
             ),
-            child:
-                Icon(_tip['icon'] as IconData, color: Colors.white, size: 22),
+            child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(

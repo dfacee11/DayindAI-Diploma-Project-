@@ -82,7 +82,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── START ───
+ 
   Future<void> startInterview(
     String role,
     InterviewType type,
@@ -105,7 +105,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _aiSpeak(_openingMessage);
   }
 
-  // ─── FINISH EARLY ───
+  
   Future<void> finishEarly() async {
     if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
@@ -124,7 +124,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── AI SPEAK ───
+  
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -146,7 +146,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── AUDIO PLAYBACK ───
   Future<void> _playAudio(String base64Audio) async {
     try {
       final bytes = base64Decode(base64Audio);
@@ -159,8 +158,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await _player.setFilePath(file.path);
       await _player.seek(Duration.zero);
 
-      // Completer — самый надёжный способ ждать конца воспроизведения.
-      // playerStateStream срабатывает раньше времени если плеер ещё не начал.
+    
       final completer = Completer<void>();
       final sub = _player.processingStateStream.listen((ps) {
         if (ps == ProcessingState.completed) {
@@ -176,7 +174,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── RECORDING ───
+  
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -246,7 +244,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _getAiReply();
   }
 
-  // ─── GPT REPLY ───
+  
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
