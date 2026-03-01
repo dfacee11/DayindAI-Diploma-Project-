@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'widgets/dark_background.dart';
 import 'widgets/ai_tool_card.dart';
 import 'widgets/arrow_overlay_button.dart';
-import 'widgets/progress_card.dart';
 import 'widgets/random_tip_card.dart';
+import 'widgets/last_interview_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -157,9 +157,12 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 12),
             _buildDots(),
             const SizedBox(height: 26),
-            _buildSectionTitle('Your Progress'),
-            const SizedBox(height: 12),
-            const ProgressCard(),
+          
+_buildSectionTitle('Last Interview'),
+const SizedBox(height: 12),
+LastInterviewCard(
+  onTap: () => Navigator.pushNamed(context, '/AIInterview'),
+),
             const SizedBox(height: 18),
             _buildSectionTitle('Tips for you'),
             const SizedBox(height: 12),

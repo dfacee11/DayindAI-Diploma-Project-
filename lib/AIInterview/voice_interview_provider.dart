@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:record/record.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'models/chat_message.dart';
 import 'interview_service.dart';
@@ -17,6 +19,8 @@ class VoiceInterviewProvider extends ChangeNotifier {
   final InterviewService _service = InterviewService();
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
+
+  bool _disposed = false;
 
   InterviewState state = InterviewState.idle;
   bool started = false;
@@ -82,7 +86,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
- 
+  // ─── START ───
   Future<void> startInterview(
     String role,
     InterviewType type,
@@ -100,12 +104,12 @@ class VoiceInterviewProvider extends ChangeNotifier {
     messages.clear();
     _history.clear();
     feedback = null;
-    notifyListeners();
+    _notify();
 
     await _aiSpeak(_openingMessage);
   }
 
-  
+  // ─── FINISH EARLY ───
   Future<void> finishEarly() async {
     if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
@@ -113,26 +117,29 @@ class VoiceInterviewProvider extends ChangeNotifier {
     if (_history.isEmpty) {
       state = InterviewState.idle;
       started = false;
-      notifyListeners();
+      _notify();
       return;
     }
 
     state = InterviewState.analyzing;
-    notifyListeners();
+    _notify();
     await _loadFeedback();
+    await _saveLastInterview();
     state = InterviewState.finished;
-    notifyListeners();
+    _notify();
   }
 
-  
+  // ─── AI SPEAK ───
   Future<void> _aiSpeak(String text) async {
+    if (_disposed) return;
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
     _history.add({'role': 'assistant', 'content': text});
-    notifyListeners();
+    _notify();
 
     try {
       final audioBase64 = await _service.textToSpeech(text);
+      if (_disposed) return;
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
@@ -140,12 +147,14 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await Future.delayed(Duration(milliseconds: ms));
     }
 
+    if (_disposed) return;
     if (state == InterviewState.aiSpeaking) {
       state = InterviewState.userTurn;
-      notifyListeners();
+      _notify();
     }
   }
 
+  // ─── AUDIO PLAYBACK ───
   Future<void> _playAudio(String base64Audio) async {
     try {
       final bytes = base64Decode(base64Audio);
@@ -158,7 +167,9 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await _player.setFilePath(file.path);
       await _player.seek(Duration.zero);
 
-    
+      // duration доступен после setFilePath
+      final duration = _player.duration;
+
       final completer = Completer<void>();
       final sub = _player.processingStateStream.listen((ps) {
         if (ps == ProcessingState.completed) {
@@ -167,14 +178,23 @@ class VoiceInterviewProvider extends ChangeNotifier {
       });
 
       await _player.play();
-      await completer.future;
+
+      // Таймаут = длина аудио + 500ms запас
+      final timeout = (duration != null && duration.inMilliseconds > 0)
+          ? duration + const Duration(milliseconds: 500)
+          : const Duration(seconds: 60);
+
+      await completer.future.timeout(timeout, onTimeout: () {
+        debugPrint('Audio timeout — continuing');
+      });
+
       await sub.cancel();
     } catch (e) {
       debugPrint('Audio play error: $e');
     }
   }
 
-  
+  // ─── RECORDING ───
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -198,13 +218,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
       path: recordingPath!,
     );
     state = InterviewState.recording;
-    notifyListeners();
+    _notify();
   }
 
   Future<void> _stopRecordingAndProcess() async {
     await _recorder.stop();
     state = InterviewState.thinking;
-    notifyListeners();
+    _notify();
 
     try {
       final audioBytes = await File(recordingPath!).readAsBytes();
@@ -216,23 +236,23 @@ class VoiceInterviewProvider extends ChangeNotifier {
 
       if (transcript.trim().isEmpty) {
         state = InterviewState.userTurn;
-        notifyListeners();
+        _notify();
         return;
       }
 
       messages.add(ChatMessage(isUser: true, text: transcript));
       _history.add({'role': 'user', 'content': transcript});
-      notifyListeners();
+      _notify();
 
       await _getAiReply();
     } catch (e) {
       debugPrint('STT error: $e');
       state = InterviewState.userTurn;
-      notifyListeners();
+      _notify();
     }
   }
 
-
+  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -240,11 +260,11 @@ class VoiceInterviewProvider extends ChangeNotifier {
     messages.add(ChatMessage(isUser: true, text: text));
     _history.add({'role': 'user', 'content': text});
     state = InterviewState.thinking;
-    notifyListeners();
+    _notify();
     await _getAiReply();
   }
 
-  
+  // ─── GPT REPLY ───
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
@@ -263,17 +283,18 @@ class VoiceInterviewProvider extends ChangeNotifier {
       if (questionIndex >= totalQuestions) {
         await _aiSpeak(reply);
         state = InterviewState.analyzing;
-        notifyListeners();
+        _notify();
         await _loadFeedback();
+        await _saveLastInterview();
         state = InterviewState.finished;
-        notifyListeners();
+        _notify();
       } else {
         await _aiSpeak(reply);
       }
     } catch (e) {
       debugPrint('GPT error: $e');
       state = InterviewState.userTurn;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -286,7 +307,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
         languageInstruction: language.systemLanguageInstruction,
         level: level.label,
       );
-      notifyListeners();
+      _notify();
     } catch (e) {
       debugPrint('Feedback error: $e');
       feedback = {
@@ -296,12 +317,45 @@ class VoiceInterviewProvider extends ChangeNotifier {
         'verdict': 'Maybe',
         'summary': 'Could not generate feedback.',
       };
-      notifyListeners();
+      _notify();
     }
   }
 
-  void toggleTranscript() { showTranscript = !showTranscript; notifyListeners(); }
-  void toggleMode()        { voiceMode = !voiceMode; notifyListeners(); }
+  // ─── SAVE LAST INTERVIEW TO FIRESTORE ───
+  Future<void> _saveLastInterview() async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null || feedback == null) return;
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('interviews')
+          .doc('last')
+          .set({
+        'jobRole':           jobRole,
+        'level':             level.label,
+        'score':             feedback!['overallScore'] ?? 0,
+        'verdict':           feedback!['verdict']      ?? '',
+        'summary':           feedback!['summary']      ?? '',
+        'strengths':         List<String>.from(feedback!['strengths']    ?? []),
+        'improvements':      List<String>.from(feedback!['improvements'] ?? []),
+        'tips':              List<String>.from(feedback!['tips']         ?? []),
+        'questionsAnswered': questionIndex,
+        'totalQuestions':    totalQuestions,
+        'date':              FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('✅ Interview saved to Firestore');
+    } catch (e) {
+      debugPrint('Firestore save error: $e');
+    }
+  }
+
+  void _notify() { if (!_disposed) notifyListeners(); }
+
+  void toggleTranscript() { showTranscript = !showTranscript; _notify(); }
+  void toggleMode()        { voiceMode = !voiceMode; _notify(); }
 
   void restart() {
     state = InterviewState.idle;
@@ -310,11 +364,12 @@ class VoiceInterviewProvider extends ChangeNotifier {
     _history.clear();
     feedback = null;
     questionIndex = 0;
-    notifyListeners();
+    _notify();
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _recorder.dispose();
     _player.dispose();
     super.dispose();
