@@ -20,6 +20,7 @@ class InterviewService {
     required String levelHint,
     required int questionIndex,
     required int totalQuestions,
+    String? jobDescription,
   }) async {
     final result = await _functions.httpsCallable('interviewChat').call({
       'messages': messages,
@@ -29,6 +30,7 @@ class InterviewService {
       'levelHint': levelHint,
       'questionIndex': questionIndex,
       'totalQuestions': totalQuestions,
+      if (jobDescription != null) 'jobDescription': jobDescription,
     });
     return Map<String, dynamic>.from(result.data);
   }
@@ -45,12 +47,14 @@ class InterviewService {
     required String jobRole,
     required String languageInstruction,
     required String level,
+    String? jobDescription,
   }) async {
     final result = await _functions.httpsCallable('interviewFeedback').call({
       'messages': messages,
       'jobRole': jobRole,
       'languageInstruction': languageInstruction,
       'level': level,
+      if (jobDescription != null) 'jobDescription': jobDescription,
     });
     return Map<String, dynamic>.from(result.data);
   }

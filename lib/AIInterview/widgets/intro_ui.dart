@@ -12,19 +12,19 @@ extension InterviewTypeExt on InterviewType {
     switch (lang) {
       case InterviewLanguage.russian:
         switch (this) {
-          case InterviewType.behavioral: return "О себе";
+          case InterviewType.behavioral: return "Behavioral";
           case InterviewType.technical:  return "Техническое";
           case InterviewType.mixed:      return "Смешанное";
         }
       case InterviewLanguage.kazakh:
         switch (this) {
-          case InterviewType.behavioral: return "Өзің туралы";
+          case InterviewType.behavioral: return "Behavioral";
           case InterviewType.technical:  return "Техникалық";
           case InterviewType.mixed:      return "Аралас";
         }
       default:
         switch (this) {
-          case InterviewType.behavioral: return "About Yourself";
+          case InterviewType.behavioral: return "Behavioral";
           case InterviewType.technical:  return "Technical";
           case InterviewType.mixed:      return "Mixed";
         }
@@ -147,6 +147,24 @@ extension InterviewLanguageExt on InterviewLanguage {
     InterviewLanguage.kazakh  => "Лауазым...",
   };
 
+  String get jdPlaceholder => switch (this) {
+    InterviewLanguage.english => "Paste job description here...",
+    InterviewLanguage.russian => "Вставьте описание вакансии сюда...",
+    InterviewLanguage.kazakh  => "Жұмыс сипаттамасын осюда қойыңыз...",
+  };
+
+  String get byRoleLabel => switch (this) {
+    InterviewLanguage.english => "By Role",
+    InterviewLanguage.russian => "По должности",
+    InterviewLanguage.kazakh  => "Лауазым бойынша",
+  };
+
+  String get byJdLabel => switch (this) {
+    InterviewLanguage.english => "By Job Description",
+    InterviewLanguage.russian => "По вакансии",
+    InterviewLanguage.kazakh  => "Вакансия бойынша",
+  };
+
   String get interviewTypeLabel => switch (this) {
     InterviewLanguage.english => "Interview Type",
     InterviewLanguage.russian => "Тип интервью",
@@ -186,6 +204,7 @@ class IntroUI extends StatefulWidget {
     int questionCount,
     InterviewLanguage language,
     ExperienceLevel level,
+    String? jobDescription,
   ) onStart;
 
   const IntroUI({super.key, required this.onStart});
@@ -196,10 +215,13 @@ class IntroUI extends StatefulWidget {
 
 class _IntroUIState extends State<IntroUI> {
   final _roleController = TextEditingController(text: 'Software Engineer');
+  final _jdController   = TextEditingController();
+
   InterviewType     _selectedType     = InterviewType.mixed;
   InterviewLanguage _selectedLanguage = InterviewLanguage.english;
   ExperienceLevel   _selectedLevel    = ExperienceLevel.junior;
-  int _questionCount = 7;
+  int  _questionCount = 7;
+  bool _useJd         = false; // false = By Role, true = By JD
 
   List<String> get _presets => switch (_selectedLanguage) {
     InterviewLanguage.russian => ['Разработчик ПО', 'Продакт-менеджер', 'Дата-сайентист', 'UX дизайнер', 'DevOps инженер'],
@@ -210,6 +232,7 @@ class _IntroUIState extends State<IntroUI> {
   @override
   void dispose() {
     _roleController.dispose();
+    _jdController.dispose();
     super.dispose();
   }
 
@@ -263,78 +286,138 @@ class _IntroUIState extends State<IntroUI> {
 
             const SizedBox(height: 18),
 
-            // ── JOB ROLE ──
-            Container(
+            // ── MODE SWITCHER: By Role / By JD (только для Technical и Mixed) ──
+            if (_selectedType != InterviewType.behavioral) Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                color: Colors.white.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: TextField(
-                controller: _roleController,
-                style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: lang.rolePlaceholder,
-                  hintStyle: GoogleFonts.montserrat(color: Colors.white.withValues(alpha: 0.4)),
-                  prefixIcon: Icon(Icons.work_outline_rounded, color: Colors.white.withValues(alpha: 0.6), size: 20),
-                ),
+              padding: const EdgeInsets.all(4),
+              child: Row(
+                children: [
+                  _modeTab(lang.byRoleLabel, Icons.work_outline_rounded, false),
+                  _modeTab(lang.byJdLabel, Icons.description_outlined, true),
+                ],
               ),
             ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8, runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: _presets.map((role) => GestureDetector(
-                onTap: () => setState(() => _roleController.text = role),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+
+            const SizedBox(height: 14),
+
+            // ── BY ROLE MODE ──
+            if (!_useJd) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: TextField(
+                  controller: _roleController,
+                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: lang.rolePlaceholder,
+                    hintStyle: GoogleFonts.montserrat(color: Colors.white.withValues(alpha: 0.4)),
+                    prefixIcon: Icon(Icons.work_outline_rounded, color: Colors.white.withValues(alpha: 0.6), size: 20),
                   ),
-                  child: Text(role, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.85))),
                 ),
-              )).toList(),
-            ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8, runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: _presets.map((role) => GestureDetector(
+                  onTap: () => setState(() => _roleController.text = role),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    ),
+                    child: Text(role, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.85))),
+                  ),
+                )).toList(),
+              ),
 
-            const SizedBox(height: 18),
+              const SizedBox(height: 18),
 
-            // ── EXPERIENCE LEVEL ──
-            _sectionLabel(lang.levelLabel),
-            const SizedBox(height: 10),
-            Row(
-              children: ExperienceLevel.values.map((level) {
-                final isSelected = _selectedLevel == level;
-                final isLast = level == ExperienceLevel.senior;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedLevel = level),
-                    child: Container(
-                      margin: EdgeInsets.only(right: isLast ? 0 : 8),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? level.color.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? level.color : Colors.white.withValues(alpha: 0.12),
-                          width: isSelected ? 2 : 1,
+              // ── EXPERIENCE LEVEL ──
+              _sectionLabel(lang.levelLabel),
+              const SizedBox(height: 10),
+              Row(
+                children: ExperienceLevel.values.map((level) {
+                  final isSelected = _selectedLevel == level;
+                  final isLast = level == ExperienceLevel.senior;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedLevel = level),
+                      child: Container(
+                        margin: EdgeInsets.only(right: isLast ? 0 : 8),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? level.color.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? level.color : Colors.white.withValues(alpha: 0.12),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(level.emoji, style: const TextStyle(fontSize: 18)),
+                            const SizedBox(height: 4),
+                            Text(level.label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: isSelected ? level.color : Colors.white.withValues(alpha: 0.7))),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(level.emoji, style: const TextStyle(fontSize: 18)),
-                          const SizedBox(height: 4),
-                          Text(level.label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: isSelected ? level.color : Colors.white.withValues(alpha: 0.7))),
-                        ],
-                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+
+            // ── BY JD MODE ──
+            if (_useJd) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: TextField(
+                  controller: _jdController,
+                  maxLines: 7,
+                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13, height: 1.5),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: lang.jdPlaceholder,
+                    hintStyle: GoogleFonts.montserrat(color: Colors.white.withValues(alpha: 0.35), fontSize: 13),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Подсказка
+              Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _selectedLanguage == InterviewLanguage.russian
+                          ? "AI проанализирует вакансию и задаст релевантные вопросы"
+                          : _selectedLanguage == InterviewLanguage.kazakh
+                              ? "AI вакансияны талдап, тиісті сұрақтар қояды"
+                              : "AI will analyze the job posting and ask relevant questions",
+                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.4)),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ],
+              ),
+            ], // end if (_selectedType != behavioral)
 
             const SizedBox(height: 18),
 
@@ -376,7 +459,7 @@ class _IntroUIState extends State<IntroUI> {
 
             const SizedBox(height: 16),
 
-            // ── QUESTION COUNT ──
+            // ── QUESTIONS COUNT ──
             _sectionLabel(lang.questionsLabel),
             const SizedBox(height: 10),
             Row(
@@ -416,9 +499,16 @@ class _IntroUIState extends State<IntroUI> {
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
-                  final role = _roleController.text.trim();
-                  if (role.isEmpty) return;
-                  widget.onStart(role, _selectedType, _questionCount, _selectedLanguage, _selectedLevel);
+                  if (_useJd) {
+                    final jd = _jdController.text.trim();
+                    if (jd.isEmpty) return;
+                    // Передаём JD как jobRole тоже (для отображения)
+                    widget.onStart('Custom Role', _selectedType, _questionCount, _selectedLanguage, _selectedLevel, jd);
+                  } else {
+                    final role = _roleController.text.trim();
+                    if (role.isEmpty) return;
+                    widget.onStart(role, _selectedType, _questionCount, _selectedLanguage, _selectedLevel, null);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C5CFF),
@@ -437,6 +527,30 @@ class _IntroUIState extends State<IntroUI> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _modeTab(String label, IconData icon, bool isJd) {
+    final selected = _useJd == isJd;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _useJd = isJd),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF7C5CFF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 15, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.45)),
+              const SizedBox(width: 6),
+              Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.45))),
+            ],
+          ),
         ),
       ),
     );

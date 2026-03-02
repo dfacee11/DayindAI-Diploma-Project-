@@ -28,7 +28,6 @@ class _AiInterviewView extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.watch<VoiceInterviewProvider>();
 
-    // ── Анализ идёт — красивый loading экран ──
     if (p.isAnalyzing) {
       return InterviewAnalyzingScreen(
         jobRole: p.jobRole,
@@ -36,7 +35,6 @@ class _AiInterviewView extends StatelessWidget {
       );
     }
 
-    // ── Анализ завершён ──
     if (p.isFinished && p.feedback != null) {
       return FeedbackPage(
         feedback: p.feedback!,

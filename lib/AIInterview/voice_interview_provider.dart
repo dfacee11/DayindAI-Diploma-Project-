@@ -31,6 +31,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
   final List<Map<String, String>> _history = [];
 
   String jobRole = "Software Engineer";
+  String? jobDescription; // null = режим по роли, String = режим по JD
   InterviewType interviewType = InterviewType.mixed;
   InterviewLanguage language = InterviewLanguage.english;
   ExperienceLevel level = ExperienceLevel.junior;
@@ -78,23 +79,31 @@ class VoiceInterviewProvider extends ChangeNotifier {
   String get _openingMessage {
     switch (language) {
       case InterviewLanguage.russian:
-        return "Привет! Добро пожаловать на интервью для ${level.label} ${jobRole}. Для начала расскажите немного о себе.";
+        return jobDescription != null
+            ? "Привет! Я изучил описание вакансии. Начнём интервью — расскажите немного о себе."
+            : "Привет! Добро пожаловать на интервью для ${level.label} ${jobRole}. Для начала расскажите немного о себе.";
       case InterviewLanguage.kazakh:
-        return "Сәлем! ${level.label} ${jobRole} лауазымына сұхбатқа қош келдіңіз. Өзіңіз туралы айтып беріңізші.";
+        return jobDescription != null
+            ? "Сәлем! Мен жұмыс сипаттамасын оқыдым. Сұхбатты бастайық — өзіңіз туралы айтып беріңіз."
+            : "Сәлем! ${level.label} ${jobRole} лауазымына сұхбатқа қош келдіңіз. Өзіңіз туралы айтып беріңізші.";
       default:
-        return "Hello! Welcome to your ${level.label} ${jobRole} interview. Let's start — could you tell me a little about yourself?";
+        return jobDescription != null
+            ? "Hello! I've reviewed the job description. Let's start — could you tell me a little about yourself?"
+            : "Hello! Welcome to your ${level.label} ${jobRole} interview. Let's start — could you tell me a little about yourself?";
     }
   }
 
-
+  // ─── START ───
   Future<void> startInterview(
     String role,
     InterviewType type,
     int count,
     InterviewLanguage lang,
     ExperienceLevel lvl,
+    String? jd,
   ) async {
     jobRole = role;
+    jobDescription = jd;
     interviewType = type;
     totalQuestions = count;
     language = lang;
@@ -109,7 +118,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _aiSpeak(_openingMessage);
   }
 
-  
+  // ─── FINISH EARLY ───
   Future<void> finishEarly() async {
     if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
@@ -124,12 +133,12 @@ class VoiceInterviewProvider extends ChangeNotifier {
     state = InterviewState.analyzing;
     _notify();
     await _loadFeedback();
-    _saveToFirestoreInBackground(); 
+    _saveToFirestoreInBackground();
     state = InterviewState.finished;
     _notify();
   }
 
-  
+  // ─── AI SPEAK ───
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -151,7 +160,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-
+  // ─── AUDIO PLAYBACK ───
   Future<void> _playAudio(String base64Audio) async {
     try {
       final bytes = base64Decode(base64Audio);
@@ -187,7 +196,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  
+  // ─── RECORDING ───
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -245,6 +254,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
+  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -262,9 +272,10 @@ class VoiceInterviewProvider extends ChangeNotifier {
       final result = await _service.interviewChat(
         messages: List.from(_history),
         jobRole: jobRole,
+        jobDescription: jobDescription,
         interviewTypeHint: interviewType.systemPromptHint,
         languageInstruction: language.systemLanguageInstruction,
-        levelHint: level.systemPromptHint,
+        levelHint: jobDescription != null ? '' : level.systemPromptHint,
         questionIndex: questionIndex,
         totalQuestions: totalQuestions,
       );
@@ -275,15 +286,11 @@ class VoiceInterviewProvider extends ChangeNotifier {
       debugPrint('>>> Q$questionIndex/$totalQuestions');
 
       if (questionIndex >= totalQuestions) {
-        debugPrint('>>> Final question, speaking...');
         await _aiSpeak(reply);
-        debugPrint('>>> Switching to analyzing...');
         state = InterviewState.analyzing;
         _notify();
-        debugPrint('>>> Loading feedback...');
         await _loadFeedback();
-        debugPrint('>>> Feedback done, switching to finished');
-        _saveToFirestoreInBackground(); // не await!
+        _saveToFirestoreInBackground();
         state = InterviewState.finished;
         _notify();
       } else {
@@ -296,12 +303,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
- 
+  // ─── FEEDBACK ───
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(
         messages: List.from(_history),
         jobRole: jobRole,
+        jobDescription: jobDescription,
         languageInstruction: language.systemLanguageInstruction,
         level: level.label,
       );
@@ -319,7 +327,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-
+  // ─── SAVE TO FIRESTORE В ФОНЕ ───
   void _saveToFirestoreInBackground() {
     _doSave().catchError((e) => debugPrint('Firestore bg error: $e'));
   }
@@ -344,6 +352,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       'tips':              List<String>.from(feedback!['tips']         ?? []),
       'questionsAnswered': questionIndex,
       'totalQuestions':    totalQuestions,
+      'usedJd':            jobDescription != null,
       'date':              FieldValue.serverTimestamp(),
     });
     debugPrint('✅ Saved to Firestore');
@@ -361,6 +370,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     _history.clear();
     feedback = null;
     questionIndex = 0;
+    jobDescription = null;
     _notify();
   }
 
