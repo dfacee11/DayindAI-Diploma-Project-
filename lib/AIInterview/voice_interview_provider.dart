@@ -86,7 +86,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── START ───
+
   Future<void> startInterview(
     String role,
     InterviewType type,
@@ -109,7 +109,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _aiSpeak(_openingMessage);
   }
 
-  // ─── FINISH EARLY ───
+  
   Future<void> finishEarly() async {
     if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
@@ -124,14 +124,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
     state = InterviewState.analyzing;
     _notify();
     await _loadFeedback();
-    await _saveLastInterview();
+    _saveToFirestoreInBackground(); 
     state = InterviewState.finished;
     _notify();
   }
 
-  // ─── AI SPEAK ───
+  
   Future<void> _aiSpeak(String text) async {
-    if (_disposed) return;
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
     _history.add({'role': 'assistant', 'content': text});
@@ -139,7 +138,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
 
     try {
       final audioBase64 = await _service.textToSpeech(text);
-      if (_disposed) return;
       await _playAudio(audioBase64);
     } catch (e) {
       debugPrint('TTS error: $e');
@@ -147,14 +145,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await Future.delayed(Duration(milliseconds: ms));
     }
 
-    if (_disposed) return;
     if (state == InterviewState.aiSpeaking) {
       state = InterviewState.userTurn;
       _notify();
     }
   }
 
-  // ─── AUDIO PLAYBACK ───
+
   Future<void> _playAudio(String base64Audio) async {
     try {
       final bytes = base64Decode(base64Audio);
@@ -164,11 +161,8 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await file.writeAsBytes(bytes);
 
       await _player.stop();
-      await _player.setFilePath(file.path);
+      final duration = await _player.setFilePath(file.path);
       await _player.seek(Duration.zero);
-
-      // duration доступен после setFilePath
-      final duration = _player.duration;
 
       final completer = Completer<void>();
       final sub = _player.processingStateStream.listen((ps) {
@@ -179,13 +173,12 @@ class VoiceInterviewProvider extends ChangeNotifier {
 
       await _player.play();
 
-      // Таймаут = длина аудио + 500ms запас
       final timeout = (duration != null && duration.inMilliseconds > 0)
           ? duration + const Duration(milliseconds: 500)
-          : const Duration(seconds: 60);
+          : const Duration(seconds: 30);
 
       await completer.future.timeout(timeout, onTimeout: () {
-        debugPrint('Audio timeout — continuing');
+        debugPrint('Audio timeout after ${timeout.inSeconds}s');
       });
 
       await sub.cancel();
@@ -194,7 +187,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── RECORDING ───
+  
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
@@ -252,7 +245,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── TEXT MODE ───
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -280,12 +272,18 @@ class VoiceInterviewProvider extends ChangeNotifier {
       final reply = result['reply'] as String? ?? '';
       questionIndex++;
 
+      debugPrint('>>> Q$questionIndex/$totalQuestions');
+
       if (questionIndex >= totalQuestions) {
+        debugPrint('>>> Final question, speaking...');
         await _aiSpeak(reply);
+        debugPrint('>>> Switching to analyzing...');
         state = InterviewState.analyzing;
         _notify();
+        debugPrint('>>> Loading feedback...');
         await _loadFeedback();
-        await _saveLastInterview();
+        debugPrint('>>> Feedback done, switching to finished');
+        _saveToFirestoreInBackground(); // не await!
         state = InterviewState.finished;
         _notify();
       } else {
@@ -298,7 +296,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── FEEDBACK ───
+ 
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(
@@ -321,35 +319,34 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── SAVE LAST INTERVIEW TO FIRESTORE ───
-  Future<void> _saveLastInterview() async {
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null || feedback == null) return;
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('interviews')
-          .doc('last')
-          .set({
-        'jobRole':           jobRole,
-        'level':             level.label,
-        'score':             feedback!['overallScore'] ?? 0,
-        'verdict':           feedback!['verdict']      ?? '',
-        'summary':           feedback!['summary']      ?? '',
-        'strengths':         List<String>.from(feedback!['strengths']    ?? []),
-        'improvements':      List<String>.from(feedback!['improvements'] ?? []),
-        'tips':              List<String>.from(feedback!['tips']         ?? []),
-        'questionsAnswered': questionIndex,
-        'totalQuestions':    totalQuestions,
-        'date':              FieldValue.serverTimestamp(),
-      });
+  void _saveToFirestoreInBackground() {
+    _doSave().catchError((e) => debugPrint('Firestore bg error: $e'));
+  }
 
-      debugPrint('✅ Interview saved to Firestore');
-    } catch (e) {
-      debugPrint('Firestore save error: $e');
-    }
+  Future<void> _doSave() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || feedback == null) return;
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('interviews')
+        .doc('last')
+        .set({
+      'jobRole':           jobRole,
+      'level':             level.label,
+      'score':             feedback!['overallScore'] ?? 0,
+      'verdict':           feedback!['verdict']      ?? '',
+      'summary':           feedback!['summary']      ?? '',
+      'strengths':         List<String>.from(feedback!['strengths']    ?? []),
+      'improvements':      List<String>.from(feedback!['improvements'] ?? []),
+      'tips':              List<String>.from(feedback!['tips']         ?? []),
+      'questionsAnswered': questionIndex,
+      'totalQuestions':    totalQuestions,
+      'date':              FieldValue.serverTimestamp(),
+    });
+    debugPrint('✅ Saved to Firestore');
   }
 
   void _notify() { if (!_disposed) notifyListeners(); }
