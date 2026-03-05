@@ -29,86 +29,92 @@ class AiToolCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(26),
       child: Stack(
         children: [
+          // ── Background gradient ──────────────────────────────────────────
           Positioned.fill(
-              child: Container(decoration: BoxDecoration(gradient: gradient))),
-          Positioned(
-            top: -60,
-            right: -50,
-            child: BlurBlob(
-                size: 200, color: Colors.white.withValues(alpha: 0.22)),
+            child: Container(decoration: BoxDecoration(gradient: gradient)),
           ),
+          // ── Blur blob ────────────────────────────────────────────────────
           Positioned(
-            bottom: -8,
-            right: -14,
+            top: -60, right: -50,
+            child: BlurBlob(size: 200, color: Colors.white.withValues(alpha: 0.22)),
+          ),
+          // ── Penguin image ────────────────────────────────────────────────
+          Positioned(
+            bottom: -8, right: -14,
             child: Opacity(
               opacity: 0.98,
-              child: Image.asset(imagePath,
-                  width: 160, height: 160, fit: BoxFit.contain),
+              child: Image.asset(imagePath, width: 160, height: 160, fit: BoxFit.contain),
             ),
           ),
+          // ── Content ──────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 130, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Icon box
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 42, height: 42,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.20)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
                   ),
                   child: Icon(icon, color: Colors.white, size: 22),
                 ),
                 const SizedBox(height: 10),
+                // Title
                 Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    color: Colors.white.withValues(alpha: 0.92),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
+                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900,
                   ),
                 ),
-                const Spacer(),
-                SizedBox(
-                  height: 38,
-                  child: ElevatedButton(
-                    onPressed: onTap,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0F172A),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                const SizedBox(height: 6),
+                // Description
+                Expanded(
+                  child: Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 12, fontWeight: FontWeight.w600, height: 1.2,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Button — оригинальный стиль, но без фиксированной высоты
+                ElevatedButton(
+                  onPressed: onTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF0F172A),
+                    elevation: 0,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
                           buttonText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.montserrat(
-                              fontSize: 12, fontWeight: FontWeight.w900),
+                            fontSize: 12, fontWeight: FontWeight.w900,
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, size: 16),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
                   ),
                 ),
               ],

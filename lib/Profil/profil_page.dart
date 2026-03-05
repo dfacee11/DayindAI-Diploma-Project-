@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:dayindai/HomePage/widgets/dark_background.dart';
+import 'package:dayindai/locale_notifier.dart';
 import 'widgets/profile_tile.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -33,8 +34,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = _user?.displayName ?? 'User';
-    final email = _user?.email ?? 'No email';
+    final langCode = Localizations.localeOf(context).languageCode;
+    final t = _ProfileL10n.of(langCode);
+    final displayName = _user?.displayName ?? t.userFallback;
+    final email = _user?.email ?? t.noEmail;
+
+    const langs = [
+      {'code': 'en', 'flag': '🇬🇧', 'label': 'EN'},
+      {'code': 'ru', 'flag': '🇷🇺', 'label': 'RU'},
+      {'code': 'kk', 'flag': '🇰🇿', 'label': 'KZ'},
+    ];
+    final current = langs.firstWhere(
+      (l) => l['code'] == langCode,
+      orElse: () => langs[0],
+    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -44,9 +57,60 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: Text(
-          'Profile',
-          style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+          t.pageTitle,
+          style: GoogleFonts.montserrat(
+              fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: '',
+            color: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            offset: const Offset(0, 50),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(current['flag']!, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 5),
+                  Text(current['label']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                ],
+              ),
+            ),
+            onSelected: (code) => LocaleNotifier.of(context)?.setLocale(Locale(code)),
+            itemBuilder: (_) => langs.map((lang) {
+              final isActive = lang['code'] == langCode;
+              return PopupMenuItem<String>(
+                value: lang['code'],
+                child: Row(
+                  children: [
+                    Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
+                    const SizedBox(width: 10),
+                    Text(lang['label']!, style: TextStyle(
+                      color: isActive ? const Color(0xFF4C63FF) : Colors.white,
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 15,
+                    )),
+                    if (isActive) ...[
+                      const Spacer(),
+                      const Icon(Icons.check_rounded, size: 16, color: Color(0xFF4C63FF)),
+                    ],
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(width: 6),
+        ],
       ),
       body: Stack(
         children: [
@@ -57,7 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 14),
-                    _buildMainContent(constraints, displayName, email),
+                    _buildMainContent(constraints, displayName, email, t),
                   ],
                 ),
               ),
@@ -68,7 +132,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMainContent(BoxConstraints constraints, String displayName, String email) {
+  Widget _buildMainContent(
+    BoxConstraints constraints,
+    String displayName,
+    String email,
+    _ProfileL10n t,
+  ) {
     return Container(
       width: double.infinity,
       constraints: BoxConstraints(minHeight: constraints.maxHeight - 110),
@@ -85,19 +154,51 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildAvatar(displayName, email),
-            const SizedBox(height: 22),
-            _buildSectionTitle('Account'),
+            const SizedBox(height: 28),
+
+            _buildSectionTitle(t.sectionAccount),
             const SizedBox(height: 12),
-            ProfileTile(icon: Icons.edit_rounded,                title: 'Edit Profile',     subtitle: 'Change your name and info', onTap: () {}),
-            ProfileTile(icon: Icons.notifications_none_rounded,  title: 'Notifications',    subtitle: 'Reminders and updates',     onTap: () {}),
-            ProfileTile(icon: Icons.workspace_premium_rounded,   title: 'Subscription',     subtitle: 'Upgrade to Pro',            onTap: () {}),
+            _buildCard([
+              ProfileTile(
+                icon: Icons.edit_rounded,
+                title: t.editProfile,
+                subtitle: t.editProfileSub,
+                onTap: () {},
+              ),
+              ProfileTile(
+                icon: Icons.notifications_none_rounded,
+                title: t.notifications,
+                subtitle: t.notificationsSub,
+                onTap: () {},
+              ),
+              ProfileTile(
+                icon: Icons.workspace_premium_rounded,
+                title: t.subscription,
+                subtitle: t.subscriptionSub,
+                onTap: () {},
+              ),
+            ]),
+
             const SizedBox(height: 22),
-            _buildSectionTitle('Support'),
+            _buildSectionTitle(t.sectionSupport),
             const SizedBox(height: 12),
-            ProfileTile(icon: Icons.help_outline_rounded,        title: 'Help Center',      subtitle: 'FAQ and support',           onTap: () {}),
-            ProfileTile(icon: Icons.info_outline_rounded,        title: 'About DayindAI',   subtitle: 'Version and details',       onTap: () {}),
-            const SizedBox(height: 26),
-            _buildSignOutButton(),
+            _buildCard([
+              ProfileTile(
+                icon: Icons.help_outline_rounded,
+                title: t.helpCenter,
+                subtitle: t.helpCenterSub,
+                onTap: () {},
+              ),
+              ProfileTile(
+                icon: Icons.info_outline_rounded,
+                title: t.aboutApp,
+                subtitle: t.aboutAppSub,
+                onTap: () {},
+              ),
+            ]),
+
+            const SizedBox(height: 32),
+            _buildSignOutButton(t),
           ],
         ),
       ),
@@ -105,62 +206,271 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildAvatar(String displayName, String email) {
-    return Row(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
+    final initials = displayName.isNotEmpty
+        ? displayName.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        : '?';
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.07),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.35),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: Colors.black.withValues(alpha: 0.12)),
-            ],
+            child: Center(
+              child: Text(
+                initials,
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
-          child: Center(
-            child: Image.asset('assets/images/penguin.png', width: 42, height: 42, fit: BoxFit.contain),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7C5CFF), Color(0xFF9F7AFF)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              'Free',
+              style: GoogleFonts.montserrat(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.06),
+          ),
+        ],
+      ),
+      child: Column(
+        children: children.asMap().entries.map((entry) {
+          final isLast = entry.key == children.length - 1;
+          return Column(
             children: [
-              Text(displayName, style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-              const SizedBox(height: 4),
-              Text(email, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
+              entry.value,
+              if (!isLast)
+                Divider(
+                  height: 1,
+                  indent: 56,
+                  endIndent: 16,
+                  color: Colors.black.withValues(alpha: 0.05),
+                ),
             ],
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      ),
     );
   }
 
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
+      style: GoogleFonts.montserrat(
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+        color: const Color(0xFF94A3B8),
+        letterSpacing: 0.5,
+      ),
     );
   }
 
-  Widget _buildSignOutButton() {
+  Widget _buildSignOutButton(_ProfileL10n t) {
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
         onPressed: _signOut,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEF4444),
-          foregroundColor: Colors.white,
+          backgroundColor: const Color(0xFFFEF2F2),
+          foregroundColor: const Color(0xFFEF4444),
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
         ),
-        child: Text('Sign Out', style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.logout_rounded, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              t.signOut,
+              style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _ProfileL10n {
+  final String pageTitle;
+  final String userFallback;
+  final String noEmail;
+  final String sectionAccount;
+  final String sectionSupport;
+  final String editProfile;
+  final String editProfileSub;
+  final String notifications;
+  final String notificationsSub;
+  final String subscription;
+  final String subscriptionSub;
+  final String helpCenter;
+  final String helpCenterSub;
+  final String aboutApp;
+  final String aboutAppSub;
+  final String signOut;
+
+  const _ProfileL10n({
+    required this.pageTitle,
+    required this.userFallback,
+    required this.noEmail,
+    required this.sectionAccount,
+    required this.sectionSupport,
+    required this.editProfile,
+    required this.editProfileSub,
+    required this.notifications,
+    required this.notificationsSub,
+    required this.subscription,
+    required this.subscriptionSub,
+    required this.helpCenter,
+    required this.helpCenterSub,
+    required this.aboutApp,
+    required this.aboutAppSub,
+    required this.signOut,
+  });
+
+  static _ProfileL10n of(String langCode) {
+    switch (langCode) {
+      case 'ru':
+        return const _ProfileL10n(
+          pageTitle: 'Профиль',
+          userFallback: 'Пользователь',
+          noEmail: 'Нет email',
+          sectionAccount: 'АККАУНТ',
+          sectionSupport: 'ПОДДЕРЖКА',
+          editProfile: 'Редактировать профиль',
+          editProfileSub: 'Изменить имя и данные',
+          notifications: 'Уведомления',
+          notificationsSub: 'Напоминания и обновления',
+          subscription: 'Подписка',
+          subscriptionSub: 'Перейти на Pro',
+          helpCenter: 'Центр помощи',
+          helpCenterSub: 'FAQ и поддержка',
+          aboutApp: 'О DayindAI',
+          aboutAppSub: 'Версия и детали',
+          signOut: 'Выйти',
+        );
+      case 'kk':
+        return const _ProfileL10n(
+          pageTitle: 'Профиль',
+          userFallback: 'Пайдаланушы',
+          noEmail: 'Email жоқ',
+          sectionAccount: 'АККАУНТ',
+          sectionSupport: 'ҚОЛДАУ',
+          editProfile: 'Профильді өңдеу',
+          editProfileSub: 'Атау мен деректерді өзгерту',
+          notifications: 'Хабарландырулар',
+          notificationsSub: 'Еске салулар мен жаңартулар',
+          subscription: 'Жазылым',
+          subscriptionSub: 'Pro-ға өту',
+          helpCenter: 'Көмек орталығы',
+          helpCenterSub: 'FAQ және қолдау',
+          aboutApp: 'DayindAI туралы',
+          aboutAppSub: 'Нұсқа және мәліметтер',
+          signOut: 'Шығу',
+        );
+      default:
+        return const _ProfileL10n(
+          pageTitle: 'Profile',
+          userFallback: 'User',
+          noEmail: 'No email',
+          sectionAccount: 'ACCOUNT',
+          sectionSupport: 'SUPPORT',
+          editProfile: 'Edit Profile',
+          editProfileSub: 'Change your name and info',
+          notifications: 'Notifications',
+          notificationsSub: 'Reminders and updates',
+          subscription: 'Subscription',
+          subscriptionSub: 'Upgrade to Pro',
+          helpCenter: 'Help Center',
+          helpCenterSub: 'FAQ and support',
+          aboutApp: 'About DayindAI',
+          aboutAppSub: 'Version and details',
+          signOut: 'Sign Out',
+        );
+    }
   }
 }

@@ -13,6 +13,8 @@ class LastInterviewCard extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return const SizedBox.shrink();
 
+    final langCode = Localizations.localeOf(context).languageCode;
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -21,18 +23,17 @@ class LastInterviewCard extends StatelessWidget {
           .doc('last')
           .snapshots(),
       builder: (context, snapshot) {
-        // Нет данных ещё — не показываем ничего
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return _emptyState(context);
+          return _emptyState(context, langCode);
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
-        final score       = data['score']    as int?    ?? 0;
-        final verdict     = data['verdict']  as String? ?? '';
-        final jobRole     = data['jobRole']  as String? ?? '';
-        final level       = data['level']    as String? ?? '';
+        final score        = data['score']    as int?    ?? 0;
+        final verdict      = data['verdict']  as String? ?? '';
+        final jobRole      = data['jobRole']  as String? ?? '';
+        final level        = data['level']    as String? ?? '';
         final improvements = List<String>.from(data['improvements'] ?? []);
-        final date        = data['date'] as Timestamp?;
+        final date         = data['date'] as Timestamp?;
 
         final scoreColor = score >= 75
             ? const Color(0xFF22C55E)
@@ -65,8 +66,6 @@ class LastInterviewCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                // ── Заголовок ──
                 Row(
                   children: [
                     Container(
@@ -96,9 +95,9 @@ class LastInterviewCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Score badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: scoreColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
@@ -115,7 +114,8 @@ class LastInterviewCard extends StatelessWidget {
                 if (verdict.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: verdictColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -128,10 +128,9 @@ class LastInterviewCard extends StatelessWidget {
                   ),
                 ],
 
-                // ── Что улучшить ──
                 if (improvements.isNotEmpty) ...[
                   const SizedBox(height: 14),
-                  Text('What to improve:',
+                  Text(_label('improve', langCode),
                       style: GoogleFonts.montserrat(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -163,18 +162,17 @@ class LastInterviewCard extends StatelessWidget {
                   )),
                 ],
 
-                // ── Дата + кнопка ──
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (date != null)
-                      Text(_formatDate(date.toDate()),
+                      Text(_formatDate(date.toDate(), langCode),
                           style: GoogleFonts.montserrat(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF94A3B8))),
-                    Text('Practice again →',
+                    Text(_label('practice', langCode),
                         style: GoogleFonts.montserrat(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
@@ -189,7 +187,7 @@ class LastInterviewCard extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(BuildContext context) {
+  Widget _emptyState(BuildContext context, String langCode) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -222,12 +220,12 @@ class LastInterviewCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("No interviews yet",
+                  Text(_label('noInterview', langCode),
                       style: GoogleFonts.montserrat(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFF0F172A))),
-                  Text("Start your first AI interview",
+                  Text(_label('startFirst', langCode),
                       style: GoogleFonts.montserrat(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -243,12 +241,34 @@ class LastInterviewCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _label(String key, String langCode) {
+    const map = {
+      'improve': {'en': 'What to improve:', 'ru': 'Что улучшить:', 'kk': 'Нені жақсарту керек:'},
+      'practice': {'en': 'Practice again →', 'ru': 'Практиковаться снова →', 'kk': 'Қайта жаттығу →'},
+      'noInterview': {'en': 'No interviews yet', 'ru': 'Интервью ещё не было', 'kk': 'Сұхбат әлі болған жоқ'},
+      'startFirst': {'en': 'Start your first AI interview', 'ru': 'Начните первое AI-интервью', 'kk': 'Алғашқы AI сұхбатын бастаңыз'},
+    };
+    return map[key]?[langCode] ?? map[key]?['en'] ?? key;
+  }
+
+  String _formatDate(DateTime date, String langCode) {
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7)  return '${diff.inDays} days ago';
-    return '${date.day}.${date.month}.${date.year}';
+    if (langCode == 'ru') {
+      if (diff.inDays == 0) return 'Сегодня';
+      if (diff.inDays == 1) return 'Вчера';
+      if (diff.inDays < 7)  return '${diff.inDays} дн. назад';
+      return '${date.day}.${date.month}.${date.year}';
+    } else if (langCode == 'kk') {
+      if (diff.inDays == 0) return 'Бүгін';
+      if (diff.inDays == 1) return 'Кеше';
+      if (diff.inDays < 7)  return '${diff.inDays} күн бұрын';
+      return '${date.day}.${date.month}.${date.year}';
+    } else {
+      if (diff.inDays == 0) return 'Today';
+      if (diff.inDays == 1) return 'Yesterday';
+      if (diff.inDays < 7)  return '${diff.inDays} days ago';
+      return '${date.day}.${date.month}.${date.year}';
+    }
   }
 }

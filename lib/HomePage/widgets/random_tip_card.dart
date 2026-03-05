@@ -11,26 +11,39 @@ class RandomTipCard extends StatefulWidget {
 }
 
 class _RandomTipCardState extends State<RandomTipCard> {
-  late final Map<String, dynamic> _tip;
+  String _lastLangCode = '';
+  late Map<String, dynamic> _tip;
 
-  // Цвета для разных иконок подсказок
   Color _iconColor(IconData icon) {
-    if (icon == Icons.lightbulb_rounded)      return const Color(0xFFF59E0B);
-    if (icon == Icons.mic_rounded)            return const Color(0xFF7C5CFF);
-    if (icon == Icons.description_rounded)    return const Color(0xFF3B82F6);
-    if (icon == Icons.psychology_rounded)     return const Color(0xFF10B981);
-    if (icon == Icons.trending_up_rounded)    return const Color(0xFF06B6D4);
-    if (icon == Icons.star_rounded)           return const Color(0xFFF59E0B);
-    if (icon == Icons.handshake_rounded)      return const Color(0xFFEC4899);
-    if (icon == Icons.timer_rounded)          return const Color(0xFFF97316);
-    return const Color(0xFF7C5CFF); // default
+    if (icon == Icons.lightbulb_rounded)   return const Color(0xFFF59E0B);
+    if (icon == Icons.mic_rounded)         return const Color(0xFF7C5CFF);
+    if (icon == Icons.description_rounded) return const Color(0xFF3B82F6);
+    if (icon == Icons.description_outlined)return const Color(0xFF3B82F6);
+    if (icon == Icons.psychology_rounded)  return const Color(0xFF10B981);
+    if (icon == Icons.psychology_alt_rounded) return const Color(0xFF10B981);
+    if (icon == Icons.trending_up_rounded) return const Color(0xFF06B6D4);
+    if (icon == Icons.star_rounded)        return const Color(0xFFF59E0B);
+    if (icon == Icons.handshake_rounded)   return const Color(0xFFEC4899);
+    if (icon == Icons.timer_rounded)       return const Color(0xFFF97316);
+    if (icon == Icons.work_outline_rounded)return const Color(0xFF3B82F6);
+    if (icon == Icons.folder_open_rounded) return const Color(0xFF06B6D4);
+    return const Color(0xFF7C5CFF);
+  }
+
+  void _pickTip(String langCode) {
+    final tips = List<Map<String, dynamic>>.from(TipsData.getTips(langCode))
+      ..shuffle();
+    _tip = tips.first;
+    _lastLangCode = langCode;
   }
 
   @override
-  void initState() {
-    super.initState();
-    final shuffled = List<Map<String, dynamic>>.from(TipsData.tips)..shuffle();
-    _tip = shuffled.first;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final langCode = Localizations.localeOf(context).languageCode;
+    if (langCode != _lastLangCode) {
+      _pickTip(langCode);
+    }
   }
 
   @override
@@ -46,9 +59,10 @@ class _RandomTipCardState extends State<RandomTipCard> {
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-              color: Colors.black.withValues(alpha: 0.05)),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.05),
+          ),
         ],
       ),
       child: Row(
@@ -70,9 +84,10 @@ class _RandomTipCardState extends State<RandomTipCard> {
                 Text(
                   _tip['title'] as String,
                   style: GoogleFonts.montserrat(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF0F172A)),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
