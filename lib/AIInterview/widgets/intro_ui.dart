@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dayindai/HomePage/l10n.dart'; // ← чтобы читать язык приложения
+
 enum InterviewType { behavioral, technical, mixed }
 enum InterviewLanguage { english, russian, kazakh }
 enum ExperienceLevel { intern, junior, middle, senior }
@@ -112,7 +114,7 @@ extension ExperienceLevelExt on ExperienceLevel {
 // ─── LANGUAGE ───
 extension InterviewLanguageExt on InterviewLanguage {
   String get flag => switch (this) {
-    InterviewLanguage.english => "🇺🇸",
+    InterviewLanguage.english => "🇬🇧",
     InterviewLanguage.russian => "🇷🇺",
     InterviewLanguage.kazakh  => "🇰🇿",
   };
@@ -184,9 +186,9 @@ extension InterviewLanguageExt on InterviewLanguage {
   };
 
   String get languageLabel => switch (this) {
-    InterviewLanguage.english => "Language",
-    InterviewLanguage.russian => "Язык",
-    InterviewLanguage.kazakh  => "Тіл",
+    InterviewLanguage.english => "Interview Language",
+    InterviewLanguage.russian => "Язык интервью",
+    InterviewLanguage.kazakh  => "Сұхбат тілі",
   };
 
   String get questionsWord => switch (this) {
@@ -194,6 +196,21 @@ extension InterviewLanguageExt on InterviewLanguage {
     InterviewLanguage.russian => "вопросов",
     InterviewLanguage.kazakh  => "сұрақ",
   };
+
+  String get langNote => switch (this) {
+    InterviewLanguage.english => "This only changes the interview language",
+    InterviewLanguage.russian => "Это меняет только язык интервью",
+    InterviewLanguage.kazakh  => "Бұл тек сұхбат тілін өзгертеді",
+  };
+}
+
+// ─── helper: map app locale → InterviewLanguage ───────────────────────────────
+InterviewLanguage _appLocaleToInterviewLanguage(String localeCode) {
+  switch (localeCode) {
+    case 'ru': return InterviewLanguage.russian;
+    case 'kk': return InterviewLanguage.kazakh;
+    default:   return InterviewLanguage.english;
+  }
 }
 
 // ─── WIDGET ───
@@ -218,12 +235,25 @@ class _IntroUIState extends State<IntroUI> {
   final _jdController   = TextEditingController();
 
   InterviewType     _selectedType     = InterviewType.mixed;
-  InterviewLanguage _selectedLanguage = InterviewLanguage.english;
+  // Will be set in didChangeDependencies from the app locale
+  InterviewLanguage? _selectedLanguage;
   ExperienceLevel   _selectedLevel    = ExperienceLevel.junior;
   int  _questionCount = 7;
-  bool _useJd         = false; // false = By Role, true = By JD
+  bool _useJd         = false;
 
-  List<String> get _presets => switch (_selectedLanguage) {
+  // ── On first build, sync interview language with app locale ──────────────
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_selectedLanguage == null) {
+      final appLocale = Localizations.localeOf(context).languageCode;
+      _selectedLanguage = _appLocaleToInterviewLanguage(appLocale);
+      // Update role preset to match language
+      _roleController.text = _presets(_selectedLanguage!)[0];
+    }
+  }
+
+  List<String> _presets(InterviewLanguage lang) => switch (lang) {
     InterviewLanguage.russian => ['Разработчик ПО', 'Продакт-менеджер', 'Дата-сайентист', 'UX дизайнер', 'DevOps инженер'],
     InterviewLanguage.kazakh  => ['Бағдарламашы', 'Өнім менеджері', 'Деректер ғалымы', 'UX дизайнер', 'DevOps инженер'],
     _                         => ['Software Engineer', 'Product Manager', 'Data Scientist', 'UX Designer', 'DevOps Engineer'],
@@ -238,7 +268,8 @@ class _IntroUIState extends State<IntroUI> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = _selectedLanguage;
+    // Fallback while not yet initialized
+    final lang = _selectedLanguage ?? InterviewLanguage.english;
 
     return Center(
       child: SingleChildScrollView(
@@ -252,16 +283,28 @@ class _IntroUIState extends State<IntroUI> {
 
             // ── LANGUAGE ──
             _sectionLabel(lang.languageLabel),
+            const SizedBox(height: 6),
+            // subtle note that this doesn't affect app language
+            Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 13, color: Colors.white.withValues(alpha: 0.35)),
+                const SizedBox(width: 5),
+                Text(
+                  lang.langNote,
+                  style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.35)),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             Row(
               children: InterviewLanguage.values.map((l) {
-                final isSelected = _selectedLanguage == l;
+                final isSelected = lang == l;
                 final isLast = l == InterviewLanguage.kazakh;
                 return Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() {
                       _selectedLanguage = l;
-                      _roleController.text = _presets[0];
+                      _roleController.text = _presets(l)[0];
                     }),
                     child: Container(
                       margin: EdgeInsets.only(right: isLast ? 0 : 8),
@@ -286,7 +329,7 @@ class _IntroUIState extends State<IntroUI> {
 
             const SizedBox(height: 18),
 
-            // ── MODE SWITCHER: By Role / By JD (только для Technical и Mixed) ──
+            // ── MODE SWITCHER ──
             if (_selectedType != InterviewType.behavioral) Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.07),
@@ -328,7 +371,7 @@ class _IntroUIState extends State<IntroUI> {
               Wrap(
                 spacing: 8, runSpacing: 8,
                 alignment: WrapAlignment.center,
-                children: _presets.map((role) => GestureDetector(
+                children: _presets(lang).map((role) => GestureDetector(
                   onTap: () => setState(() => _roleController.text = role),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -344,7 +387,6 @@ class _IntroUIState extends State<IntroUI> {
 
               const SizedBox(height: 18),
 
-              // ── EXPERIENCE LEVEL ──
               _sectionLabel(lang.levelLabel),
               const SizedBox(height: 10),
               Row(
@@ -400,16 +442,15 @@ class _IntroUIState extends State<IntroUI> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Подсказка
               Row(
                 children: [
                   Icon(Icons.info_outline_rounded, size: 14, color: Colors.white.withValues(alpha: 0.4)),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      _selectedLanguage == InterviewLanguage.russian
+                      lang == InterviewLanguage.russian
                           ? "AI проанализирует вакансию и задаст релевантные вопросы"
-                          : _selectedLanguage == InterviewLanguage.kazakh
+                          : lang == InterviewLanguage.kazakh
                               ? "AI вакансияны талдап, тиісті сұрақтар қояды"
                               : "AI will analyze the job posting and ask relevant questions",
                       style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.4)),
@@ -417,7 +458,7 @@ class _IntroUIState extends State<IntroUI> {
                   ),
                 ],
               ),
-            ], // end if (_selectedType != behavioral)
+            ],
 
             const SizedBox(height: 18),
 
@@ -502,12 +543,11 @@ class _IntroUIState extends State<IntroUI> {
                   if (_useJd) {
                     final jd = _jdController.text.trim();
                     if (jd.isEmpty) return;
-                    // Передаём JD как jobRole тоже (для отображения)
-                    widget.onStart('Custom Role', _selectedType, _questionCount, _selectedLanguage, _selectedLevel, jd);
+                    widget.onStart('Custom Role', _selectedType, _questionCount, lang, _selectedLevel, jd);
                   } else {
                     final role = _roleController.text.trim();
                     if (role.isEmpty) return;
-                    widget.onStart(role, _selectedType, _questionCount, _selectedLanguage, _selectedLevel, null);
+                    widget.onStart(role, _selectedType, _questionCount, lang, _selectedLevel, null);
                   }
                 },
                 style: ElevatedButton.styleFrom(

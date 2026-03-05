@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:dayindai/backend/auth_service.dart';
+import 'package:dayindai/locale_notifier.dart';
+import 'package:dayindai/HomePage/l10n.dart';
 import 'register_page.dart';
 
 class FirstPage extends StatefulWidget {
@@ -91,6 +93,19 @@ class _FirstPageState extends State<FirstPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLocale = Localizations.localeOf(context).languageCode;
+
+    const langs = [
+      {'code': 'en', 'flag': '🇬🇧', 'label': 'EN'},
+      {'code': 'ru', 'flag': '🇷🇺', 'label': 'RU'},
+      {'code': 'kk', 'flag': '🇰🇿', 'label': 'KZ'},
+    ];
+
+    final current = langs.firstWhere(
+      (l) => l['code'] == currentLocale,
+      orElse: () => langs[0],
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1220),
       body: Stack(
@@ -108,111 +123,245 @@ class _FirstPageState extends State<FirstPage> {
             child: _BlurBlob(size: 240, color: const Color(0xFF7C5CFF).withValues(alpha: 0.12)),
           ),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 60),
-                    _buildLogo(),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Prepare to interview with AI',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.55),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 52),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4F5FA),
-                        borderRadius: BorderRadius.circular(34),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(24, 30, 24, 30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Welcome back', style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-                          const SizedBox(height: 4),
-                          Text('Sign in to continue', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
-                          const SizedBox(height: 24),
-                          _buildLabel('Email'),
-                          const SizedBox(height: 8),
-                          _buildField(
-                            controller: _emailController,
-                            hint: 'your@email.com',
-                            icon: LucideIcons.mail,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Enter your email';
-                              if (!v.contains('@')) return 'Invalid email';
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildLabel('Password'),
-                          const SizedBox(height: 8),
-                          _buildField(
-                            controller: _passwordController,
-                            hint: '••••••••',
-                            icon: LucideIcons.lock,
-                            obscure: _isObscured,
-                            suffix: IconButton(
-                              onPressed: () => setState(() => _isObscured = !_isObscured),
-                              icon: Icon(_isObscured ? LucideIcons.eyeOff : LucideIcons.eye, color: const Color(0xFF94A3B8), size: 18),
-                            ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Enter your password';
-                              if (v.length < 6) return 'At least 6 characters';
-                              return null;
-                            },
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => Navigator.pushNamed(context, '/resetPassword'),
-                              child: Text('Forgot password?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF7C5CFF))),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _signIn,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7C5CFF),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: Column(
+              children: [
+                // ── Language switcher (top right) ──────────────────────────
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12, right: 16),
+                    child: PopupMenuButton<String>(
+                      tooltip: '',
+                      color: const Color(0xFF1E293B),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      offset: const Offset(0, 44),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(current['flag']!,
+                                style: const TextStyle(fontSize: 16)),
+                            const SizedBox(width: 6),
+                            Text(
+                              current['label']!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                  : Text('Sign In', style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900)),
+                            ),
+                            const SizedBox(width: 3),
+                            const Icon(Icons.keyboard_arrow_down_rounded,
+                                color: Colors.white, size: 16),
+                          ],
+                        ),
+                      ),
+                      onSelected: (code) {
+                        LocaleNotifier.of(context)?.setLocale(Locale(code));
+                      },
+                      itemBuilder: (_) => langs.map((lang) {
+                        final isActive = lang['code'] == currentLocale;
+                        return PopupMenuItem<String>(
+                          value: lang['code'],
+                          child: Row(
+                            children: [
+                              Text(lang['flag']!,
+                                  style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: 10),
+                              Text(
+                                lang['label']!,
+                                style: TextStyle(
+                                  color: isActive
+                                      ? const Color(0xFF7C5CFF)
+                                      : Colors.white,
+                                  fontWeight: isActive
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              if (isActive) ...[
+                                const Spacer(),
+                                const Icon(Icons.check_rounded,
+                                    size: 16, color: Color(0xFF7C5CFF)),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+
+                // ── Main scrollable content ────────────────────────────────
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          _buildLogo(),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Prepare to interview with AI',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.55),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
+                          const SizedBox(height: 52),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F5FA),
+                              borderRadius: BorderRadius.circular(34),
+                            ),
+                            padding:
+                                const EdgeInsets.fromLTRB(24, 30, 24, 30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Welcome back',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFF0F172A))),
+                                const SizedBox(height: 4),
+                                Text('Sign in to continue',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF64748B))),
+                                const SizedBox(height: 24),
+                                _buildLabel('Email'),
+                                const SizedBox(height: 8),
+                                _buildField(
+                                  controller: _emailController,
+                                  hint: 'your@email.com',
+                                  icon: LucideIcons.mail,
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty)
+                                      return 'Enter your email';
+                                    if (!v.contains('@'))
+                                      return 'Invalid email';
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                _buildLabel('Password'),
+                                const SizedBox(height: 8),
+                                _buildField(
+                                  controller: _passwordController,
+                                  hint: '••••••••',
+                                  icon: LucideIcons.lock,
+                                  obscure: _isObscured,
+                                  suffix: IconButton(
+                                    onPressed: () => setState(
+                                        () => _isObscured = !_isObscured),
+                                    icon: Icon(
+                                        _isObscured
+                                            ? LucideIcons.eyeOff
+                                            : LucideIcons.eye,
+                                        color: const Color(0xFF94A3B8),
+                                        size: 18),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty)
+                                      return 'Enter your password';
+                                    if (v.length < 6)
+                                      return 'At least 6 characters';
+                                    return null;
+                                  },
+                                ),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pushNamed(
+                                        context, '/resetPassword'),
+                                    child: Text('Forgot password?',
+                                        style: GoogleFonts.montserrat(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                const Color(0xFF7C5CFF))),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 54,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading ? null : _signIn,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          const Color(0xFF7C5CFF),
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18)),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2.5))
+                                        : Text('Sign In',
+                                            style: GoogleFonts.montserrat(
+                                                fontSize: 15,
+                                                fontWeight:
+                                                    FontWeight.w900)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Don't have an account?",
+                                  style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      color: Colors.white
+                                          .withValues(alpha: 0.6),
+                                      fontWeight: FontWeight.w500)),
+                              TextButton(
+                                onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const RegisterPage())),
+                                child: Text('Register',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        color: const Color(0xFF7C5CFF),
+                                        fontWeight: FontWeight.w800)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Don't have an account?", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white.withValues(alpha: 0.6), fontWeight: FontWeight.w500)),
-                        TextButton(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
-                          child: Text('Register', style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF7C5CFF), fontWeight: FontWeight.w800)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -225,22 +374,24 @@ class _FirstPageState extends State<FirstPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // пингвин без фона
-        Image.asset(
-          'assets/images/penguin.png',
-          width: 52,
-          height: 52,
-          fit: BoxFit.contain,
-        ),
+        Image.asset('assets/images/penguin.png',
+            width: 52, height: 52, fit: BoxFit.contain),
         const SizedBox(width: 10),
         RichText(
           text: TextSpan(
             text: 'Dayind',
-            style: GoogleFonts.montserrat(fontSize: 38, color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            style: GoogleFonts.montserrat(
+                fontSize: 38,
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5),
             children: [
               TextSpan(
                 text: 'AI',
-                style: GoogleFonts.montserrat(fontSize: 38, color: const Color(0xFF7C5CFF), fontWeight: FontWeight.w900),
+                style: GoogleFonts.montserrat(
+                    fontSize: 38,
+                    color: const Color(0xFF7C5CFF),
+                    fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -250,7 +401,11 @@ class _FirstPageState extends State<FirstPage> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(text, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)));
+    return Text(text,
+        style: GoogleFonts.montserrat(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A)));
   }
 
   Widget _buildField({
@@ -265,26 +420,42 @@ class _FirstPageState extends State<FirstPage> {
       controller: controller,
       obscureText: obscure,
       validator: validator,
-      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
+      style: GoogleFonts.montserrat(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF0F172A)),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+        hintStyle: GoogleFonts.montserrat(
+            fontSize: 13,
+            color: const Color(0xFF94A3B8),
+            fontWeight: FontWeight.w500),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFF94A3B8)),
         suffixIcon: suffix,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          borderSide:
+              BorderSide(color: Colors.black.withValues(alpha: 0.06)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF7C5CFF), width: 2),
+          borderSide:
+              const BorderSide(color: Color(0xFF7C5CFF), width: 2),
         ),
-        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.red)),
-        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.red, width: 2)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Colors.red)),
+        focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide:
+                const BorderSide(color: Colors.red, width: 2)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
