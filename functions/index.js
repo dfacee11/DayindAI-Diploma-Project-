@@ -27,6 +27,30 @@ exports.extractTextFromImage = onCall(async (request) => {
 });
 
 
+
+exports.extractTextFromPdf = onCall({ invoker: "public" }, async (request) => {
+  try {
+    const base64 = request.data?.pdfBase64;
+    if (!base64) throw new HttpsError("invalid-argument", "base64 pdf is required");
+
+    const cleanedBase64 = base64.includes("base64,") ? base64.split("base64,")[1] : base64;
+    const buffer = Buffer.from(cleanedBase64, "base64");
+
+  
+    const pdfParse = require("pdf-parse/lib/pdf-parse.js");
+    const data = await pdfParse(buffer);
+    const text = data.text || "";
+
+    if (!text.trim()) throw new HttpsError("internal", "PDF has no readable text");
+
+    return { text };
+  } catch (e) {
+    console.log("PDF parse error:", e);
+    throw new HttpsError("internal", e.message || "PDF parsing failed");
+  }
+});
+
+
 exports.analyzeResumeDeepseek = onCall(
   { secrets: [DEEPSEEK_API_KEY] },
   async (request) => {

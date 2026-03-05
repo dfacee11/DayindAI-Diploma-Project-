@@ -20,8 +20,21 @@ class ResumeAnalyzerPage extends StatelessWidget {
   }
 }
 
-class _ResumeAnalyzerView extends StatelessWidget {
+class _ResumeAnalyzerView extends StatefulWidget {
   const _ResumeAnalyzerView();
+
+  @override
+  State<_ResumeAnalyzerView> createState() => _ResumeAnalyzerViewState();
+}
+
+class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
+  final _professionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _professionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +55,7 @@ class _ResumeAnalyzerView extends StatelessWidget {
       body: Stack(
         children: [
           const DarkTopBackground(),
-          // ✅ белый фон заполняет весь низ
-          Positioned(
-            top: 200,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(color: const Color(0xFFF4F5FA)),
-          ),
+          Positioned(top: 200, left: 0, right: 0, bottom: 0, child: Container(color: const Color(0xFFF4F5FA))),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
@@ -59,10 +65,7 @@ class _ResumeAnalyzerView extends StatelessWidget {
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF4F5FA),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(34),
-                        topRight: Radius.circular(34),
-                      ),
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(34), topRight: Radius.circular(34)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 22, 20, 30),
@@ -75,9 +78,9 @@ class _ResumeAnalyzerView extends StatelessWidget {
                           const SizedBox(height: 18),
                           _buildUploadCard(context, p),
                           const SizedBox(height: 14),
-                          Text("Choose profession", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                          Text("Your profession", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
                           const SizedBox(height: 8),
-                          _buildDropdown(p),
+                          _buildProfessionField(p),
                           const SizedBox(height: 18),
                           _buildAnalyzeButton(context, p),
                           const SizedBox(height: 20),
@@ -97,6 +100,10 @@ class _ResumeAnalyzerView extends StatelessWidget {
   }
 
   Widget _buildUploadCard(BuildContext context, ResumeAnalyzerProvider p) {
+    final ext = p.selectedResumeFile?.path.split('.').last.toLowerCase();
+    final isPdf = ext == 'pdf';
+    final isImage = ext == 'jpg' || ext == 'jpeg' || ext == 'png';
+
     return WhiteCard(
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
@@ -110,13 +117,21 @@ class _ResumeAnalyzerView extends StatelessWidget {
                 height: 52,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
+                    colors: isPdf
+                        ? [const Color(0xFFEF4444), const Color(0xFFF97316)]
+                        : isImage
+                            ? [const Color(0xFF10B981), const Color(0xFF06B6D4)]
+                            : [const Color(0xFF7C5CFF), const Color(0xFF2DD4FF)],
                   ),
                 ),
-                child: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 26),
+                child: Icon(
+                  isPdf ? Icons.picture_as_pdf_rounded : isImage ? Icons.image_rounded : Icons.upload_file_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -129,7 +144,7 @@ class _ResumeAnalyzerView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      p.selectedResumeFile == null ? "PDF / TXT / PHOTO" : p.selectedResumeFile!.path.split('/').last,
+                      p.selectedResumeFile == null ? "PDF or Photo" : p.selectedResumeFile!.path.split('/').last,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
@@ -145,18 +160,20 @@ class _ResumeAnalyzerView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown(ResumeAnalyzerProvider p) {
+  Widget _buildProfessionField(ResumeAnalyzerProvider p) {
     return WhiteCard(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        child: DropdownButtonFormField<String>(
-          value: p.selectedProfession,
-          decoration: const InputDecoration(border: InputBorder.none),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
-          style: GoogleFonts.montserrat(color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w700),
-          hint: Text("Select profession", style: GoogleFonts.montserrat(color: const Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w700)),
-          items: p.professions.map((job) => DropdownMenuItem(value: job, child: Text(job))).toList(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: TextField(
+          controller: _professionController,
           onChanged: p.setProfession,
+          style: GoogleFonts.montserrat(color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: "e.g. Flutter Developer, Product Manager...",
+            hintStyle: GoogleFonts.montserrat(color: const Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w500),
+            prefixIcon: const Icon(Icons.work_outline_rounded, color: Color(0xFF94A3B8), size: 20),
+          ),
         ),
       ),
     );
@@ -199,14 +216,13 @@ class _ResumeAnalyzerView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 44,
-                  height: 5,
+                  width: 44, height: 5,
                   decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(100)),
                 ),
                 const SizedBox(height: 14),
-                BottomSheetTile(icon: Icons.picture_as_pdf_rounded, title: "Upload File (PDF/TXT)", onTap: () async { Navigator.pop(context); await p.pickResumeFile(); }),
-                BottomSheetTile(icon: Icons.photo_library_rounded,   title: "Choose Photo",         onTap: () async { Navigator.pop(context); await p.pickFromGallery(); }),
-                BottomSheetTile(icon: Icons.camera_alt_rounded,      title: "Take Photo",           onTap: () async { Navigator.pop(context); await p.takePhoto(); }),
+                BottomSheetTile(icon: Icons.picture_as_pdf_rounded, title: "Upload PDF", onTap: () async { Navigator.pop(context); await p.pickResumeFile(); }),
+                BottomSheetTile(icon: Icons.photo_library_rounded,  title: "Choose Photo from Gallery", onTap: () async { Navigator.pop(context); await p.pickFromGallery(); }),
+                BottomSheetTile(icon: Icons.camera_alt_rounded,     title: "Take Photo", onTap: () async { Navigator.pop(context); await p.takePhoto(); }),
               ],
             ),
           ),
@@ -234,8 +250,8 @@ class _ResumeAnalyzerView extends StatelessWidget {
                 const SizedBox(height: 10),
                 ...data.levelMatch.entries.map((entry) => _buildLevelBar(entry)),
                 const SizedBox(height: 8),
-                _buildList("Strengths",       data.strengths),
-                _buildList("Weaknesses",      data.weaknesses),
+                _buildList("Strengths", data.strengths),
+                _buildList("Weaknesses", data.weaknesses),
                 _buildList("Recommendations", data.recommendations),
               ],
             ),
@@ -249,8 +265,7 @@ class _ResumeAnalyzerView extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 46,
-          height: 46,
+          width: 46, height: 46,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: const LinearGradient(

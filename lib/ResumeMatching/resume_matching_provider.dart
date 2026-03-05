@@ -58,20 +58,11 @@ class ResumeMatchingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final ext = selectedResumeFile!.path.split('.').last.toLowerCase();
-      String resumeText = "";
-
-      if (ext == "jpg" || ext == "jpeg" || ext == "png") {
-        resumeText = await _ocrService.extractTextFromImage(selectedResumeFile!);
-      } else {
-        resumeText = "Resume file is not a picture: $ext";
-      }
-
+      final text = await _ocrService.extractText(selectedResumeFile!);
       final json = await _matchingService.matchWithDeepseek(
-        resumeText:     resumeText,
+        resumeText: text,
         jobDescription: jobDescription,
       );
-
       result = ResumeMatchingResult.fromJson(json);
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text("Error: $e")));
