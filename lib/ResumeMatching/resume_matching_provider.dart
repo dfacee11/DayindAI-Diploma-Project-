@@ -47,7 +47,6 @@ class ResumeMatchingProvider extends ChangeNotifier {
       messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
       return;
     }
-
     if (jobDescription.trim().length < 20) {
       messenger.showSnackBar(const SnackBar(content: Text("Paste job description")));
       return;
@@ -59,7 +58,7 @@ class ResumeMatchingProvider extends ChangeNotifier {
 
     try {
       final text = await _ocrService.extractText(selectedResumeFile!);
-      final json = await _matchingService.matchWithDeepseek(
+      final json = await _matchingService.matchWithGpt(
         resumeText: text,
         jobDescription: jobDescription,
       );

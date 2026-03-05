@@ -26,33 +26,8 @@ exports.extractTextFromImage = onCall(async (request) => {
   }
 });
 
-
-
-exports.extractTextFromPdf = onCall({ invoker: "public" }, async (request) => {
-  try {
-    const base64 = request.data?.pdfBase64;
-    if (!base64) throw new HttpsError("invalid-argument", "base64 pdf is required");
-
-    const cleanedBase64 = base64.includes("base64,") ? base64.split("base64,")[1] : base64;
-    const buffer = Buffer.from(cleanedBase64, "base64");
-
-  
-    const pdfParse = require("pdf-parse/lib/pdf-parse.js");
-    const data = await pdfParse(buffer);
-    const text = data.text || "";
-
-    if (!text.trim()) throw new HttpsError("internal", "PDF has no readable text");
-
-    return { text };
-  } catch (e) {
-    console.log("PDF parse error:", e);
-    throw new HttpsError("internal", e.message || "PDF parsing failed");
-  }
-});
-
-
-exports.analyzeResumeDeepseek = onCall(
-  { secrets: [DEEPSEEK_API_KEY] },
+exports.analyzeResume = onCall(
+  { secrets: [OPENAI_API_KEY] },
   async (request) => {
     try {
       const text = request.data?.text;
@@ -61,60 +36,66 @@ exports.analyzeResumeDeepseek = onCall(
       if (!text || text.trim().length < 30) throw new HttpsError("invalid-argument", "Resume text is too short");
       if (!profession) throw new HttpsError("invalid-argument", "Profession is required");
 
-      const apiKey = DEEPSEEK_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing DEEPSEEK_API_KEY secret");
+      const apiKey = OPENAI_API_KEY.value();
+      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
 
-      const prompt = `
-You are a professional HR recruiter.
-Analyze this resume for the profession: ${profession}
-Return ONLY valid JSON in this exact format:
+      const prompt = `You are a senior HR recruiter and resume expert.
+Analyze this resume for the role: ${profession}
+
+Return ONLY valid JSON, no markdown:
 {
-  "score": 0-10,
-  "strengths": ["..."],
-  "weaknesses": ["..."],
-  "recommendations": ["..."],
+  "score": <integer 1-10>,
+  "verdict": "Strong" | "Average" | "Weak",
+  "experienceLevel": "Intern" | "Junior" | "Middle" | "Senior",
+  "atsScore": <integer 0-100>,
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<weakness 1>", "<weakness 2>", "<weakness 3>"],
+  "recommendations": ["<rec 1>", "<rec 2>", "<rec 3>"],
+  "keySkillsFound": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>"],
+  "missingSkills": ["<missing 1>", "<missing 2>", "<missing 3>"],
   "levelMatch": {
-    "Junior": 0-100,
-    "Middle": 0-100,
-    "Senior": 0-100
+    "Junior": <integer 0-100>,
+    "Middle": <integer 0-100>,
+    "Senior": <integer 0-100>
   }
 }
-Resume text:
-${text}
-`;
+
+Resume:
+${text}`;
 
       const response = await axios.post(
-        "https://api.deepseek.com/chat/completions",
+        "https://api.openai.com/v1/chat/completions",
         {
-          model: "deepseek-chat",
+          model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: "You are a strict JSON generator. Return only valid JSON." },
+            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
             { role: "user", content: prompt },
           ],
-          temperature: 0.3,
+          temperature: 0.2,
+          max_tokens: 800,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
 
       const content = response.data?.choices?.[0]?.message?.content;
-      if (!content) throw new HttpsError("internal", "Empty DeepSeek response");
+      if (!content) throw new HttpsError("internal", "Empty response");
 
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
       try {
         return JSON.parse(cleaned);
       } catch {
-        throw new HttpsError("internal", "DeepSeek returned invalid JSON");
+        throw new HttpsError("internal", "Invalid JSON response");
       }
     } catch (e) {
-      console.log("Analyze error:", e);
+      console.log("Analyze error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Analyze failed");
     }
   }
 );
 
 
-exports.matchResumeDeepseek = onCall(
-  { secrets: [DEEPSEEK_API_KEY] },
+exports.matchResume = onCall(
+  { secrets: [OPENAI_API_KEY] },
   async (request) => {
     try {
       const resumeText = request.data?.resumeText;
@@ -123,56 +104,55 @@ exports.matchResumeDeepseek = onCall(
       if (!resumeText || resumeText.trim().length < 30) throw new HttpsError("invalid-argument", "Resume text is too short");
       if (!jobText || jobText.trim().length < 30) throw new HttpsError("invalid-argument", "Job text is too short");
 
-      const apiKey = DEEPSEEK_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing DEEPSEEK_API_KEY secret");
+      const apiKey = OPENAI_API_KEY.value();
+      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
 
-      const prompt = `
-You are a professional ATS and recruiter.
-Compare the RESUME with the JOB DESCRIPTION.
-Return ONLY valid JSON:
+      const prompt = `You are a professional ATS system and recruiter.
+Compare the resume with the job description.
+
+Return ONLY valid JSON, no markdown:
 {
-  "score": 0-100,
-  "matched": ["keyword1", "keyword2"],
-  "missing": ["keyword1", "keyword2"],
-  "tips": ["tip1", "tip2", "tip3"]
+  "score": <integer 0-100>,
+  "verdict": "Strong Match" | "Good Match" | "Weak Match",
+  "matched": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
+  "missing": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
+  "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
 }
+
 RESUME: ${resumeText}
-JOB DESCRIPTION: ${jobText}
-`;
+JOB DESCRIPTION: ${jobText}`;
 
       const response = await axios.post(
-        "https://api.deepseek.com/chat/completions",
+        "https://api.openai.com/v1/chat/completions",
         {
-          model: "deepseek-chat",
+          model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: "You are a strict JSON generator. Return only valid JSON." },
+            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
             { role: "user", content: prompt },
           ],
           temperature: 0.2,
+          max_tokens: 600,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
 
       const content = response.data?.choices?.[0]?.message?.content;
-      if (!content) throw new HttpsError("internal", "Empty DeepSeek response");
+      if (!content) throw new HttpsError("internal", "Empty response");
 
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
-      let parsed;
       try {
-        parsed = JSON.parse(cleaned);
+        const parsed = JSON.parse(cleaned);
+        if (typeof parsed.score === "number") parsed.score = Math.round(parsed.score);
+        return parsed;
       } catch {
-        throw new HttpsError("internal", "DeepSeek returned invalid JSON");
+        throw new HttpsError("internal", "Invalid JSON response");
       }
-
-      if (typeof parsed.score === "number") parsed.score = Math.round(parsed.score);
-      return parsed;
     } catch (e) {
-      console.log("Matching error:", e);
+      console.log("Matching error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Matching failed");
     }
   }
 );
-
 
 exports.transcribeAudio = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60,region: "europe-west1" },

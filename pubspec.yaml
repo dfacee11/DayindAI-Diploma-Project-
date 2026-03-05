@@ -25,6 +25,7 @@ dependencies:
   record: ^6.2.0          
   just_audio: ^0.10.5     
   path_provider: ^2.1.5   
+  syncfusion_flutter_pdf: ^27.1.48
 dev_dependencies:
   flutter_test:
     sdk: flutter

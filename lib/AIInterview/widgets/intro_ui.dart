@@ -2,13 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:dayindai/HomePage/l10n.dart'; // ← чтобы читать язык приложения
+import 'package:dayindai/HomePage/l10n.dart'; 
 
 enum InterviewType { behavioral, technical, mixed }
 enum InterviewLanguage { english, russian, kazakh }
 enum ExperienceLevel { intern, junior, middle, senior }
 
-// ─── INTERVIEW TYPE ───
 extension InterviewTypeExt on InterviewType {
   String label(InterviewLanguage lang) {
     switch (lang) {

@@ -47,10 +47,8 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
-        title: Text(
-          "Resume Analyzer",
-          style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-        ),
+        title: Text("Resume Analyzer",
+            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
       body: Stack(
         children: [
@@ -72,19 +70,22 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Upload your resume", style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                          Text("Upload your resume",
+                              style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
                           const SizedBox(height: 6),
-                          Text("Get AI analysis, strengths, weaknesses and tips.", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
+                          Text("Get AI analysis, strengths, weaknesses and tips.",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
                           const SizedBox(height: 18),
                           _buildUploadCard(context, p),
                           const SizedBox(height: 14),
-                          Text("Your profession", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                          Text("Your profession",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
                           const SizedBox(height: 8),
                           _buildProfessionField(p),
                           const SizedBox(height: 18),
                           _buildAnalyzeButton(context, p),
                           const SizedBox(height: 20),
-                          if (p.result != null) _buildResult(p),
+                          if (p.result != null) _buildResult(p.result!),
                           const SizedBox(height: 14),
                         ],
                       ),
@@ -113,8 +114,7 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
           child: Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 52, height: 52,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
                   gradient: LinearGradient(
@@ -129,8 +129,7 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
                 ),
                 child: Icon(
                   isPdf ? Icons.picture_as_pdf_rounded : isImage ? Icons.image_rounded : Icons.upload_file_rounded,
-                  color: Colors.white,
-                  size: 26,
+                  color: Colors.white, size: 26,
                 ),
               ),
               const SizedBox(width: 14),
@@ -145,8 +144,7 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
                     const SizedBox(height: 4),
                     Text(
                       p.selectedResumeFile == null ? "PDF or Photo" : p.selectedResumeFile!.path.split('/').last,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
                     ),
                   ],
@@ -215,14 +213,15 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 44, height: 5,
-                  decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(100)),
-                ),
+                Container(width: 44, height: 5,
+                    decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(100))),
                 const SizedBox(height: 14),
-                BottomSheetTile(icon: Icons.picture_as_pdf_rounded, title: "Upload PDF", onTap: () async { Navigator.pop(context); await p.pickResumeFile(); }),
-                BottomSheetTile(icon: Icons.photo_library_rounded,  title: "Choose Photo from Gallery", onTap: () async { Navigator.pop(context); await p.pickFromGallery(); }),
-                BottomSheetTile(icon: Icons.camera_alt_rounded,     title: "Take Photo", onTap: () async { Navigator.pop(context); await p.takePhoto(); }),
+                BottomSheetTile(icon: Icons.picture_as_pdf_rounded, title: "Upload PDF",
+                    onTap: () async { Navigator.pop(context); await p.pickResumeFile(); }),
+                BottomSheetTile(icon: Icons.photo_library_rounded, title: "Choose Photo from Gallery",
+                    onTap: () async { Navigator.pop(context); await p.pickFromGallery(); }),
+                BottomSheetTile(icon: Icons.camera_alt_rounded, title: "Take Photo",
+                    onTap: () async { Navigator.pop(context); await p.takePhoto(); }),
               ],
             ),
           ),
@@ -231,28 +230,114 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
     );
   }
 
-  Widget _buildResult(ResumeAnalyzerProvider p) {
-    final data = p.result!;
+  Widget _buildResult(ResumeAnalysisResult data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Result", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-        const SizedBox(height: 12),
+        Text("Analysis Result",
+            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+        const SizedBox(height: 14),
+
+        // ── Score + Verdict + ATS ──────────────────────────────────────────
+        WhiteCard(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                _buildScoreCircle(data.score),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildBadge(data.verdict, _verdictColor(data.verdict)),
+                      const SizedBox(height: 8),
+                      _buildBadge('${data.experienceLevel} level', const Color(0xFF7C5CFF)),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(Icons.fact_check_rounded, size: 14, color: Color(0xFF64748B)),
+                          const SizedBox(width: 6),
+                          Text("ATS Score: ${data.atsScore}%",
+                              style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF64748B))),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: LinearProgressIndicator(
+                          value: data.atsScore / 100,
+                          minHeight: 6,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          valueColor: AlwaysStoppedAnimation(_atsColor(data.atsScore)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // ── Level Match ───────────────────────────────────────────────────
         WhiteCard(
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildScoreHeader(data),
-                const SizedBox(height: 16),
-                Text("Level of preparation", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                Text("Level Match", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                const SizedBox(height: 12),
+                ...data.levelMatch.entries.map((e) => _buildLevelBar(e)),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // ── Skills ────────────────────────────────────────────────────────
+        WhiteCard(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Skills Found", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
                 const SizedBox(height: 10),
-                ...data.levelMatch.entries.map((entry) => _buildLevelBar(entry)),
-                const SizedBox(height: 8),
-                _buildList("Strengths", data.strengths),
-                _buildList("Weaknesses", data.weaknesses),
-                _buildList("Recommendations", data.recommendations),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: data.keySkillsFound.map((s) => _buildChip(s, const Color(0xFF7C5CFF))).toList(),
+                ),
+                if (data.missingSkills.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text("Missing Skills", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: data.missingSkills.map((s) => _buildChip(s, const Color(0xFFEF4444))).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // ── Strengths / Weaknesses / Recommendations ──────────────────────
+        WhiteCard(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildList("💪 Strengths",       data.strengths,       const Color(0xFF22C55E)),
+                _buildList("⚠️ Weaknesses",      data.weaknesses,      const Color(0xFFF59E0B)),
+                _buildList("💡 Recommendations", data.recommendations, const Color(0xFF7C5CFF)),
               ],
             ),
           ),
@@ -261,34 +346,45 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
     );
   }
 
-  Widget _buildScoreHeader(ResumeAnalysisResult data) {
-    return Row(
-      children: [
-        Container(
-          width: 46, height: 46,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
-            ),
-          ),
-          child: const Icon(Icons.insights_rounded, color: Colors.white, size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Resume score", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-              const SizedBox(height: 2),
-              Text("AI evaluation", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
-            ],
-          ),
-        ),
-        Text("${data.score} / 10", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-      ],
+  Widget _buildScoreCircle(int score) {
+    final color = score >= 8 ? const Color(0xFF22C55E) : score >= 5 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444);
+    return Container(
+      width: 80, height: 80,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color, width: 3),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('$score', style: GoogleFonts.montserrat(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
+          Text('/10', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(text, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+    );
+  }
+
+  Widget _buildChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(text, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
     );
   }
 
@@ -298,7 +394,13 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("${entry.key} — ${entry.value}%", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF64748B))),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(entry.key, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF64748B))),
+              Text('${entry.value}%', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+            ],
+          ),
           const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(100),
@@ -314,7 +416,8 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
     );
   }
 
-  Widget _buildList(String title, List<String> items) {
+  Widget _buildList(String title, List<String> items, Color color) {
+    if (items.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -323,9 +426,36 @@ class _ResumeAnalyzerViewState extends State<_ResumeAnalyzerView> {
         const SizedBox(height: 8),
         ...items.map((item) => Padding(
           padding: const EdgeInsets.only(bottom: 6),
-          child: Text("• $item", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B), height: 1.25)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 6, height: 6,
+                margin: const EdgeInsets.only(top: 5, right: 8),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+              ),
+              Expanded(
+                child: Text(item,
+                    style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF64748B), height: 1.3)),
+              ),
+            ],
+          ),
         )),
       ],
     );
+  }
+
+  Color _verdictColor(String verdict) {
+    switch (verdict) {
+      case 'Strong': return const Color(0xFF22C55E);
+      case 'Average': return const Color(0xFFF59E0B);
+      default: return const Color(0xFFEF4444);
+    }
+  }
+
+  Color _atsColor(int score) {
+    if (score >= 70) return const Color(0xFF22C55E);
+    if (score >= 40) return const Color(0xFFF59E0B);
+    return const Color(0xFFEF4444);
   }
 }

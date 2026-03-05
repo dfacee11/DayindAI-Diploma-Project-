@@ -47,7 +47,6 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
       messenger.showSnackBar(const SnackBar(content: Text("Enter a profession")));
       return;
     }
-
     if (selectedResumeFile == null) {
       messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
       return;
@@ -59,7 +58,7 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
 
     try {
       final text = await _ocrService.extractText(selectedResumeFile!);
-      final json = await _analysisService.analyzeWithDeepseek(
+      final json = await _analysisService.analyzeWithGpt(
         text: text,
         profession: profession.trim(),
       );
