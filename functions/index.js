@@ -114,8 +114,12 @@ Return ONLY valid JSON, no markdown:
 {
   "score": <integer 0-100>,
   "verdict": "Strong Match" | "Good Match" | "Weak Match",
+  "atsScore": <integer 0-100>,
+  "experienceMatch": "Exceeds" | "Meets" | "Below",
   "matched": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
   "missing": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
+  "topStrengths": ["<strength 1>", "<strength 2>"],
+  "criticalGaps": ["<gap 1>", "<gap 2>"],
   "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
 }
 
@@ -131,7 +135,7 @@ JOB DESCRIPTION: ${jobText}`;
             { role: "user", content: prompt },
           ],
           temperature: 0.2,
-          max_tokens: 600,
+          max_tokens: 700,
         },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
       );
@@ -143,6 +147,7 @@ JOB DESCRIPTION: ${jobText}`;
       try {
         const parsed = JSON.parse(cleaned);
         if (typeof parsed.score === "number") parsed.score = Math.round(parsed.score);
+        if (typeof parsed.atsScore === "number") parsed.atsScore = Math.round(parsed.atsScore);
         return parsed;
       } catch {
         throw new HttpsError("internal", "Invalid JSON response");
