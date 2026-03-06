@@ -1,3 +1,4 @@
+import 'package:dayindai/VisaInterview/visa_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -18,6 +19,9 @@ import 'ResumeMatching/resume_matching_page.dart';
 import 'AIInterview/ai_interview_page.dart';
 import 'HomePage/l10n.dart';
 import 'package:dayindai/locale_notifier.dart';
+import 'ToolsPage/JobSearch/job_search.dart';
+import 'splash_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -50,7 +54,6 @@ class _MainAppState extends State<MainApp> {
         debugShowCheckedModeBanner: false,
         title: 'DayInDai',
 
-        
         locale: _locale,
         supportedLocales: appSupportedLocales,
         localizationsDelegates: [
@@ -60,14 +63,14 @@ class _MainAppState extends State<MainApp> {
           GlobalCupertinoLocalizations.delegate,
         ],
 
-        
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
 
-       
-        home: const AuthGate(),
+  
+        home: const SplashPage(),
+
         routes: {
           '/FirstPage':      (context) => const FirstPage(),
           '/home':           (context) => const HomePage(),
@@ -82,6 +85,9 @@ class _MainAppState extends State<MainApp> {
           '/MainShell':      (context) => const MainShellPage(),
           '/ResumeMatching': (_)       => const ResumeMatchingPage(),
           '/AIInterview':    (context) => const AiInterviewPage(),
+          '/JobSearch':      (context) => const JobSearchPage(),
+          '/VisaInterview':  (context) => const VisaPage(),
+          '/AuthGate':       (context) => const AuthGate(),
         },
       ),
     );

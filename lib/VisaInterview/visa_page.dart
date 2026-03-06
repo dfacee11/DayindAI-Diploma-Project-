@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../HomePage/widgets/dark_background.dart';
 import 'visa_interview_provider.dart';
@@ -20,8 +21,30 @@ class VisaPage extends StatelessWidget {
   }
 }
 
-class _VisaView extends StatelessWidget {
+class _VisaView extends StatefulWidget {
   const _VisaView();
+
+  @override
+  State<_VisaView> createState() => _VisaViewState();
+}
+
+class _VisaViewState extends State<_VisaView> {
+  @override
+  void initState() {
+    super.initState();
+    _warmUp();
+  }
+
+  Future<void> _warmUp() async {
+    try {
+      final fns = FirebaseFunctions.instanceFor(region: 'europe-west1');
+      await Future.wait([
+        fns.httpsCallable('interviewChat').call({'warmup': true}),
+        fns.httpsCallable('textToSpeech').call({'warmup': true}),
+        fns.httpsCallable('transcribeAudio').call({'warmup': true}),
+      ]);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {

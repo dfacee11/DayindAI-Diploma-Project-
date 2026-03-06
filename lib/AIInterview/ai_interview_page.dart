@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../HomePage/widgets/dark_background.dart';
 import 'voice_interview_provider.dart';
@@ -21,8 +22,31 @@ class AiInterviewPage extends StatelessWidget {
   }
 }
 
-class _AiInterviewView extends StatelessWidget {
+class _AiInterviewView extends StatefulWidget {
   const _AiInterviewView();
+
+  @override
+  State<_AiInterviewView> createState() => _AiInterviewViewState();
+}
+
+class _AiInterviewViewState extends State<_AiInterviewView> {
+  @override
+  void initState() {
+    super.initState();
+    _warmUp();
+  }
+
+  
+  Future<void> _warmUp() async {
+    final fns = FirebaseFunctions.instanceFor(region: 'europe-west1');
+    try {
+      await Future.wait([
+        fns.httpsCallable('interviewChat').call({'warmup': true}),
+        fns.httpsCallable('textToSpeech').call({'warmup': true}),
+        fns.httpsCallable('transcribeAudio').call({'warmup': true}),
+      ]);
+    } catch (_) {} 
+  }
 
   @override
   Widget build(BuildContext context) {

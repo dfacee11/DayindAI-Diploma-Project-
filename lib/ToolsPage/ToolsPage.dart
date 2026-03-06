@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:dayindai/HomePage/widgets/dark_background.dart';
-import 'package:dayindai/HomePage/l10n.dart';
 import 'package:dayindai/locale_notifier.dart';
 import 'models/tool_item.dart';
 import 'widgets/tools_search_bar.dart';
@@ -28,6 +26,7 @@ class _ToolsPageState extends State<ToolsPage> {
   List<ToolItem> _allTools(String langCode) {
     final t = _ToolsL10n.of(langCode);
     return [
+      // ── AI Tools ──
       ToolItem(
         category: t.catAiTools,
         title: t.aiInterviewTitle,
@@ -53,7 +52,17 @@ class _ToolsPageState extends State<ToolsPage> {
         onTap: () => Navigator.pushNamed(context, "/ResumeMatching"),
       ),
       ToolItem(
-        category: t.catCareerDocs,
+        category: t.catAiTools,
+        title: t.visaInterviewTitle,
+        subtitle: t.visaInterviewSub,
+        icon: Icons.flight_takeoff_rounded,
+        color: const Color(0xFFF97316),
+        onTap: () => Navigator.pushNamed(context, "/VisaInterview"),
+      ),
+
+      // ── Career Tools (merged) ──
+      ToolItem(
+        category: t.catCareerTools,
         title: t.resumeTemplatesTitle,
         subtitle: t.resumeTemplatesSub,
         icon: Icons.auto_awesome_rounded,
@@ -61,7 +70,7 @@ class _ToolsPageState extends State<ToolsPage> {
         onTap: () {},
       ),
       ToolItem(
-        category: t.catCareerDocs,
+        category: t.catCareerTools,
         title: t.coverLetterTitle,
         subtitle: t.coverLetterSub,
         icon: Icons.draw_rounded,
@@ -69,7 +78,7 @@ class _ToolsPageState extends State<ToolsPage> {
         onTap: () {},
       ),
       ToolItem(
-        category: t.catInterviewPrep,
+        category: t.catCareerTools,
         title: t.questionBankTitle,
         subtitle: t.questionBankSub,
         icon: Icons.lightbulb_rounded,
@@ -77,12 +86,12 @@ class _ToolsPageState extends State<ToolsPage> {
         onTap: () {},
       ),
       ToolItem(
-        category: t.catInterviewPrep,
-        title: t.roadmapsTitle,
-        subtitle: t.roadmapsSub,
-        icon: Icons.explore_rounded,
-        color: const Color(0xFFF97316),
-        onTap: () {},
+        category: t.catCareerTools,
+        title: t.jobSearchTitle,
+        subtitle: t.jobSearchSub,
+        icon: Icons.search_rounded,
+        color: const Color(0xFFEF4444),
+        onTap: () => Navigator.pushNamed(context, "/JobSearch"),
       ),
     ];
   }
@@ -113,9 +122,8 @@ class _ToolsPageState extends State<ToolsPage> {
           tool.category.toLowerCase().contains(q);
     }).toList();
 
-    final aiTools       = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catAiTools).toList();
-    final careerDocs    = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catCareerDocs).toList();
-    final interviewPrep = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catInterviewPrep).toList();
+    final aiTools      = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catAiTools).toList();
+    final careerTools  = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catCareerTools).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5FA),
@@ -260,12 +268,8 @@ class _ToolsPageState extends State<ToolsPage> {
                               ToolsSection(title: t.catAiTools, tools: aiTools),
                               const SizedBox(height: 24),
                             ],
-                            if (careerDocs.isNotEmpty) ...[
-                              ToolsSection(title: t.catCareerDocs, tools: careerDocs),
-                              const SizedBox(height: 24),
-                            ],
-                            if (interviewPrep.isNotEmpty) ...[
-                              ToolsSection(title: t.catInterviewPrep, tools: interviewPrep),
+                            if (careerTools.isNotEmpty) ...[
+                              ToolsSection(title: t.catCareerTools, tools: careerTools,useGrid: true),
                             ],
                           ],
                         ),
@@ -287,44 +291,46 @@ class _ToolsL10n {
   final String pageSubtitle;
   final String noToolsFound;
   final String catAiTools;
-  final String catCareerDocs;
-  final String catInterviewPrep;
+  final String catCareerTools;
   final String aiInterviewTitle;
   final String aiInterviewSub;
   final String resumeAnalyzerTitle;
   final String resumeAnalyzerSub;
   final String resumeMatchingTitle;
   final String resumeMatchingSub;
+  final String jobSearchTitle;
+  final String jobSearchSub;
   final String resumeTemplatesTitle;
   final String resumeTemplatesSub;
   final String coverLetterTitle;
   final String coverLetterSub;
   final String questionBankTitle;
   final String questionBankSub;
-  final String roadmapsTitle;
-  final String roadmapsSub;
+  final String visaInterviewTitle;
+  final String visaInterviewSub;
 
   const _ToolsL10n({
     required this.pageTitle,
     required this.pageSubtitle,
     required this.noToolsFound,
     required this.catAiTools,
-    required this.catCareerDocs,
-    required this.catInterviewPrep,
+    required this.catCareerTools,
     required this.aiInterviewTitle,
     required this.aiInterviewSub,
     required this.resumeAnalyzerTitle,
     required this.resumeAnalyzerSub,
     required this.resumeMatchingTitle,
     required this.resumeMatchingSub,
+    required this.jobSearchTitle,
+    required this.jobSearchSub,
     required this.resumeTemplatesTitle,
     required this.resumeTemplatesSub,
     required this.coverLetterTitle,
     required this.coverLetterSub,
     required this.questionBankTitle,
     required this.questionBankSub,
-    required this.roadmapsTitle,
-    required this.roadmapsSub,
+    required this.visaInterviewTitle,
+    required this.visaInterviewSub,
   });
 
   static _ToolsL10n of(String langCode) {
@@ -335,22 +341,23 @@ class _ToolsL10n {
           pageSubtitle: 'Найдите нужный инструмент для карьеры',
           noToolsFound: 'Ничего не найдено',
           catAiTools: 'AI Инструменты',
-          catCareerDocs: 'Карьерные документы',
-          catInterviewPrep: 'Подготовка к интервью',
+          catCareerTools: 'Career Tools',
           aiInterviewTitle: 'AI Интервью',
           aiInterviewSub: 'Практика интервью и обратная связь',
           resumeAnalyzerTitle: 'Анализ резюме',
           resumeAnalyzerSub: 'AI-анализ вашего резюме',
           resumeMatchingTitle: 'Совпадение резюме',
           resumeMatchingSub: 'Проверьте резюме под вакансию',
+          jobSearchTitle: 'Поиск вакансий',
+          jobSearchSub: 'Актуальные вакансии с HH.ru',
           resumeTemplatesTitle: 'Шаблоны резюме',
           resumeTemplatesSub: 'Готовые дизайны CV',
           coverLetterTitle: 'Сопроводительное письмо',
           coverLetterSub: 'AI-конструктор письма',
           questionBankTitle: 'Банк вопросов',
           questionBankSub: 'Частые вопросы на интервью',
-          roadmapsTitle: 'Дорожные карты',
-          roadmapsSub: 'Навыки и пути обучения',
+          visaInterviewTitle: 'Интервью на визу',
+          visaInterviewSub: 'Подготовка к визовому интервью',
         );
       case 'kk':
         return const _ToolsL10n(
@@ -358,22 +365,23 @@ class _ToolsL10n {
           pageSubtitle: 'Мансабыңызға қажетті құралды табыңыз',
           noToolsFound: 'Ештеңе табылмады',
           catAiTools: 'AI Құралдары',
-          catCareerDocs: 'Мансап құжаттары',
-          catInterviewPrep: 'Сұхбатқа дайындық',
+          catCareerTools: 'Career Tools',
           aiInterviewTitle: 'AI Сұхбат',
           aiInterviewSub: 'Сұхбат жаттығуы және кері байланыс',
           resumeAnalyzerTitle: 'Түйіндемені талдау',
           resumeAnalyzerSub: 'AI арқылы түйіндемені тексеру',
           resumeMatchingTitle: 'Түйіндемені сәйкестендіру',
           resumeMatchingSub: 'Түйіндемені вакансияға тексеру',
+          jobSearchTitle: 'Жұмыс іздеу',
+          jobSearchSub: 'HH.ru-дан өзекті вакансиялар',
           resumeTemplatesTitle: 'Түйіндеме үлгілері',
           resumeTemplatesSub: 'Дайын CV дизайндары',
           coverLetterTitle: 'Ілеспе хат',
           coverLetterSub: 'AI хат құрастырушы',
           questionBankTitle: 'Сұрақтар банкі',
           questionBankSub: 'Жиі қойылатын сұхбат сұрақтары',
-          roadmapsTitle: 'Жол карталары',
-          roadmapsSub: 'Дағдылар мен оқу жолдары',
+          visaInterviewTitle: 'Виза сұхбаты',
+          visaInterviewSub: 'Виза сұхбатына дайындық',
         );
       default:
         return const _ToolsL10n(
@@ -381,22 +389,23 @@ class _ToolsL10n {
           pageSubtitle: 'Find the right tool for your career journey',
           noToolsFound: 'No tools found',
           catAiTools: 'AI Tools',
-          catCareerDocs: 'Career Docs',
-          catInterviewPrep: 'Interview Prep',
+          catCareerTools: 'Career Tools',
           aiInterviewTitle: 'AI Interview',
           aiInterviewSub: 'Practice interviews & get feedback',
           resumeAnalyzerTitle: 'Resume Analyzer',
           resumeAnalyzerSub: 'AI-powered resume review',
           resumeMatchingTitle: 'Resume Matching',
           resumeMatchingSub: 'Match your resume to a job',
+          jobSearchTitle: 'Job Search',
+          jobSearchSub: 'Latest vacancies from HH.ru',
           resumeTemplatesTitle: 'Resume Templates',
           resumeTemplatesSub: 'Ready-to-use CV designs',
           coverLetterTitle: 'Cover Letter',
           coverLetterSub: 'AI cover letter builder',
           questionBankTitle: 'Question Bank',
           questionBankSub: 'Common interview questions',
-          roadmapsTitle: 'Roadmaps',
-          roadmapsSub: 'Skills & learning paths',
+          visaInterviewTitle: 'Visa Interview',
+          visaInterviewSub: 'Prepare for visa interview',
         );
     }
   }

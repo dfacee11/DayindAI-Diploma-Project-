@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:dayindai/backend/auth_service.dart';
 import 'package:dayindai/locale_notifier.dart';
-import 'package:dayindai/HomePage/l10n.dart';
 import 'register_page.dart';
 
 class FirstPage extends StatefulWidget {

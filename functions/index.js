@@ -14,9 +14,7 @@ exports.extractTextFromImage = onCall(async (request) => {
   try {
     const base64 = request.data?.imageBase64;
     if (!base64) throw new HttpsError("invalid-argument", "base64 image is required");
-
     const cleanedBase64 = base64.includes("base64,") ? base64.split("base64,")[1] : base64;
-
     const [result] = await client.textDetection({ image: { content: cleanedBase64 } });
     const text = result.fullTextAnnotation?.text || "";
     return { text };
@@ -32,60 +30,15 @@ exports.analyzeResume = onCall(
     try {
       const text = request.data?.text;
       const profession = request.data?.profession;
-
       if (!text || text.trim().length < 30) throw new HttpsError("invalid-argument", "Resume text is too short");
       if (!profession) throw new HttpsError("invalid-argument", "Profession is required");
-
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
-
-      const prompt = `You are a senior HR recruiter and resume expert.
-Analyze this resume for the role: ${profession}
-
-Return ONLY valid JSON, no markdown:
-{
-  "score": <integer 1-10>,
-  "verdict": "Strong" | "Average" | "Weak",
-  "experienceLevel": "Intern" | "Junior" | "Middle" | "Senior",
-  "atsScore": <integer 0-100>,
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "weaknesses": ["<weakness 1>", "<weakness 2>", "<weakness 3>"],
-  "recommendations": ["<rec 1>", "<rec 2>", "<rec 3>"],
-  "keySkillsFound": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>"],
-  "missingSkills": ["<missing 1>", "<missing 2>", "<missing 3>"],
-  "levelMatch": {
-    "Junior": <integer 0-100>,
-    "Middle": <integer 0-100>,
-    "Senior": <integer 0-100>
-  }
-}
-
-Resume:
-${text}`;
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.2,
-          max_tokens: 800,
-        },
-        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
-      );
-
+      const prompt = `You are a senior HR recruiter and resume expert.\nAnalyze this resume for the role: ${profession}\n\nReturn ONLY valid JSON, no markdown:\n{\n  "score": <integer 1-10>,\n  "verdict": "Strong" | "Average" | "Weak",\n  "experienceLevel": "Intern" | "Junior" | "Middle" | "Senior",\n  "atsScore": <integer 0-100>,\n  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],\n  "weaknesses": ["<weakness 1>", "<weakness 2>", "<weakness 3>"],\n  "recommendations": ["<rec 1>", "<rec 2>", "<rec 3>"],\n  "keySkillsFound": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>"],\n  "missingSkills": ["<missing 1>", "<missing 2>", "<missing 3>"],\n  "levelMatch": {\n    "Junior": <integer 0-100>,\n    "Middle": <integer 0-100>,\n    "Senior": <integer 0-100>\n  }\n}\n\nResume:\n${text}`;
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", { model: "gpt-4o-mini", messages: [{ role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." }, { role: "user", content: prompt }], temperature: 0.2, max_tokens: 800 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } });
       const content = response.data?.choices?.[0]?.message?.content;
       if (!content) throw new HttpsError("internal", "Empty response");
-
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
-      try {
-        return JSON.parse(cleaned);
-      } catch {
-        throw new HttpsError("internal", "Invalid JSON response");
-      }
+      return JSON.parse(cleaned);
     } catch (e) {
       console.log("Analyze error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Analyze failed");
@@ -93,65 +46,24 @@ ${text}`;
   }
 );
 
-
 exports.matchResume = onCall(
   { secrets: [OPENAI_API_KEY] },
   async (request) => {
     try {
       const resumeText = request.data?.resumeText;
       const jobText = request.data?.jobText;
-
       if (!resumeText || resumeText.trim().length < 30) throw new HttpsError("invalid-argument", "Resume text is too short");
       if (!jobText || jobText.trim().length < 30) throw new HttpsError("invalid-argument", "Job text is too short");
-
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
-
-      const prompt = `You are a professional ATS system and recruiter.
-Compare the resume with the job description.
-
-Return ONLY valid JSON, no markdown:
-{
-  "score": <integer 0-100>,
-  "verdict": "Strong Match" | "Good Match" | "Weak Match",
-  "atsScore": <integer 0-100>,
-  "experienceMatch": "Exceeds" | "Meets" | "Below",
-  "matched": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
-  "missing": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],
-  "topStrengths": ["<strength 1>", "<strength 2>"],
-  "criticalGaps": ["<gap 1>", "<gap 2>"],
-  "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
-}
-
-RESUME: ${resumeText}
-JOB DESCRIPTION: ${jobText}`;
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.2,
-          max_tokens: 700,
-        },
-        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
-      );
-
+      const prompt = `You are a professional ATS system and recruiter.\nCompare the resume with the job description.\n\nReturn ONLY valid JSON, no markdown:\n{\n  "score": <integer 0-100>,\n  "verdict": "Strong Match" | "Good Match" | "Weak Match",\n  "atsScore": <integer 0-100>,\n  "experienceMatch": "Exceeds" | "Meets" | "Below",\n  "matched": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],\n  "missing": ["<keyword 1>", "<keyword 2>", "<keyword 3>"],\n  "topStrengths": ["<strength 1>", "<strength 2>"],\n  "criticalGaps": ["<gap 1>", "<gap 2>"],\n  "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]\n}\n\nRESUME: ${resumeText}\nJOB DESCRIPTION: ${jobText}`;
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", { model: "gpt-4o-mini", messages: [{ role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." }, { role: "user", content: prompt }], temperature: 0.2, max_tokens: 700 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } });
       const content = response.data?.choices?.[0]?.message?.content;
       if (!content) throw new HttpsError("internal", "Empty response");
-
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
-      try {
-        const parsed = JSON.parse(cleaned);
-        if (typeof parsed.score === "number") parsed.score = Math.round(parsed.score);
-        if (typeof parsed.atsScore === "number") parsed.atsScore = Math.round(parsed.atsScore);
-        return parsed;
-      } catch {
-        throw new HttpsError("internal", "Invalid JSON response");
-      }
+      const parsed = JSON.parse(cleaned);
+      if (typeof parsed.score === "number") parsed.score = Math.round(parsed.score);
+      if (typeof parsed.atsScore === "number") parsed.atsScore = Math.round(parsed.atsScore);
+      return parsed;
     } catch (e) {
       console.log("Matching error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Matching failed");
@@ -160,32 +72,24 @@ JOB DESCRIPTION: ${jobText}`;
 );
 
 exports.transcribeAudio = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60,region: "europe-west1" },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60, region: "europe-west1" },
   async (request) => {
     try {
+      // ─── WARMUP ───
+      if (request.data?.warmup) return { transcript: '' };
+
       const audioBase64 = request.data?.audioBase64;
       const mimeType = request.data?.mimeType || "audio/m4a";
-      const language = request.data?.language || "en"; 
-
+      const language = request.data?.language || "en";
       if (!audioBase64) throw new HttpsError("invalid-argument", "audioBase64 is required");
-
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
-
       const buffer = Buffer.from(audioBase64, "base64");
       const form = new FormData();
       form.append("file", buffer, { filename: "audio.m4a", contentType: mimeType });
       form.append("model", "whisper-1");
-      form.append("language", language); 
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/audio/transcriptions",
-        form,
-        { headers: { Authorization: `Bearer ${apiKey}`, ...form.getHeaders() } }
-      );
-
-      const transcript = response.data?.text || "";
-      return { transcript };
+      form.append("language", language);
+      const response = await axios.post("https://api.openai.com/v1/audio/transcriptions", form, { headers: { Authorization: `Bearer ${apiKey}`, ...form.getHeaders() } });
+      return { transcript: response.data?.text || "" };
     } catch (e) {
       console.log("Whisper error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Transcription failed");
@@ -193,13 +97,13 @@ exports.transcribeAudio = onCall(
   }
 );
 
-
-// Замени interviewChat и interviewFeedback в index.js:
-
 exports.interviewChat = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 60, region: "europe-west1" },
   async (request) => {
     try {
+      
+      if (request.data?.warmup) return { reply: 'ok' };
+
       const messages            = request.data?.messages || [];
       const jobRole             = request.data?.jobRole || "Software Engineer";
       const interviewTypeHint   = request.data?.interviewTypeHint || "";
@@ -207,13 +111,11 @@ exports.interviewChat = onCall(
       const levelHint           = request.data?.levelHint || "";
       const questionIndex       = request.data?.questionIndex || 0;
       const totalQuestions      = request.data?.totalQuestions || 7;
-
+      const jobDescription      = request.data?.jobDescription || null;
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
-
       const isLastQuestion = questionIndex >= totalQuestions - 1;
 
-      const systemPrompt = `You are a professional interviewer conducting a job interview.
+      let systemPrompt = `You are a professional interviewer conducting a job interview.
 
 Role: ${jobRole}
 LEVEL: ${levelHint}
@@ -232,26 +134,18 @@ ${isLastQuestion
 }
 - Do NOT number your questions out loud`;
 
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o",
-          messages: [{ role: "system", content: systemPrompt }, ...messages],
-          temperature: 0.7,
-          max_tokens: 250,
-        },
-        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
-      );
+      if (jobDescription) {
+        systemPrompt += `\n\nJOB DESCRIPTION PROVIDED BY CANDIDATE:\n${jobDescription}\n\nBase your interview questions specifically on this job posting. Focus on the required skills, technologies, and responsibilities mentioned in the job description.`;
+      }
 
-      const reply = response.data?.choices?.[0]?.message?.content || "";
-      return { reply };
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", { model: "gpt-4o", messages: [{ role: "system", content: systemPrompt }, ...messages], temperature: 0.7, max_tokens: 250 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } });
+      return { reply: response.data?.choices?.[0]?.message?.content || "" };
     } catch (e) {
       console.log("Interview chat error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Interview failed");
     }
   }
 );
-
 
 exports.interviewFeedback = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, region: "europe-west1" },
@@ -261,9 +155,8 @@ exports.interviewFeedback = onCall(
       const jobRole             = request.data?.jobRole || "Software Engineer";
       const languageInstruction = request.data?.languageInstruction || "Respond in English.";
       const level               = request.data?.level || "Junior";
-
+      const jobDescription      = request.data?.jobDescription || null;
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
 
       const pairs = [];
       for (let i = 0; i < messages.length - 1; i++) {
@@ -272,16 +165,15 @@ exports.interviewFeedback = onCall(
         }
       }
 
-      const transcript = messages
-        .map((m) => `${m.role === "user" ? "Candidate" : "Interviewer"}: ${m.content}`)
-        .join("\n");
+      const transcript = messages.map((m) => `${m.role === "user" ? "Candidate" : "Interviewer"}: ${m.content}`).join("\n");
+      const jobContext = jobDescription ? `\nJOB DESCRIPTION:\n${jobDescription}\nEvaluate answers specifically against requirements in this job posting.\n` : '';
 
       const prompt = `
 LANGUAGE INSTRUCTION: ${languageInstruction}
 
 You are a senior HR expert analyzing a ${level} job interview for: ${jobRole}
-
-Evaluate answers based on ${level} expectations — not too strict for Intern/Junior, more demanding for Middle/Senior.
+${jobContext}
+Evaluate answers based on ${level} expectations.
 
 Interview transcript:
 ${transcript}
@@ -309,30 +201,12 @@ Return ONLY valid JSON (keys in English, text values in interview language):
   ]
 }`;
 
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o",
-          messages: [
-            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.3,
-          max_tokens: 1800,
-        },
-        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
-      );
-
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", { model: "gpt-4o", messages: [{ role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." }, { role: "user", content: prompt }], temperature: 0.3, max_tokens: 1800 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } });
       const content = response.data?.choices?.[0]?.message?.content || "";
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
-
-      try {
-        const parsed = JSON.parse(cleaned);
-        if (typeof parsed.overallScore === "number") parsed.overallScore = Math.round(parsed.overallScore);
-        return parsed;
-      } catch {
-        throw new HttpsError("internal", "GPT returned invalid JSON");
-      }
+      const parsed = JSON.parse(cleaned);
+      if (typeof parsed.overallScore === "number") parsed.overallScore = Math.round(parsed.overallScore);
+      return parsed;
     } catch (e) {
       console.log("Feedback error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Feedback failed");
@@ -341,52 +215,27 @@ Return ONLY valid JSON (keys in English, text values in interview language):
 );
 
 exports.textToSpeech = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60,region: "europe-west1" },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60, region: "europe-west1" },
   async (request) => {
     try {
+      // ─── WARMUP ───
+      if (request.data?.warmup) return { audioBase64: '' };
+
       const text = request.data?.text;
       if (!text) throw new HttpsError("invalid-argument", "text is required");
-
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
-
       console.log("TTS OpenAI request, textLength:", text.length);
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/audio/speech",
-        {
-          model: "tts-1",
-          input: text,
-          voice: "nova",
-          response_format: "mp3",
-          speed: 1.0,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          responseType: "arraybuffer",
-        }
-      );
-
-      console.log("TTS status:", response.status);
+      const response = await axios.post("https://api.openai.com/v1/audio/speech", { model: "tts-1", input: text, voice: "nova", response_format: "mp3", speed: 1.0 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, responseType: "arraybuffer" });
       const audioBase64 = Buffer.from(response.data).toString("base64");
       console.log("TTS success, length:", audioBase64.length);
       return { audioBase64 };
-
     } catch (e) {
-      const errBody = e?.response?.data
-        ? Buffer.from(e.response.data).toString("utf8")
-        : e.message;
+      const errBody = e?.response?.data ? Buffer.from(e.response.data).toString("utf8") : e.message;
       console.log("TTS error:", e?.response?.status, errBody);
       throw new HttpsError("internal", errBody || "TTS failed");
     }
   }
 );
-
-
-// Замени функцию visaInterviewFeedback в index.js:
 
 exports.visaInterviewFeedback = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, region: "europe-west1" },
@@ -394,9 +243,7 @@ exports.visaInterviewFeedback = onCall(
     try {
       const messages = request.data?.messages || [];
       const city     = request.data?.city || "Астана";
-
       const apiKey = OPENAI_API_KEY.value();
-      if (!apiKey) throw new HttpsError("internal", "Missing OPENAI_API_KEY secret");
 
       const pairs = [];
       for (let i = 0; i < messages.length - 1; i++) {
@@ -405,9 +252,7 @@ exports.visaInterviewFeedback = onCall(
         }
       }
 
-      const transcript = messages
-        .map((m) => `${m.role === "user" ? "Candidate" : "Consul"}: ${m.content}`)
-        .join("\n");
+      const transcript = messages.map((m) => `${m.role === "user" ? "Candidate" : "Consul"}: ${m.content}`).join("\n");
 
       const prompt = `
 You are a US consular officer making a final visa decision for a Work & Travel (J-1) applicant from ${city}, Kazakhstan.
@@ -451,30 +296,12 @@ If verdict is "Одобрено": redFlags = [], approvalScore >= 70
 If verdict is "Отказано": redFlags must list specific reasons, approvalScore < 60
 `;
 
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o",
-          messages: [
-            { role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.3,
-          max_tokens: 2000,
-        },
-        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
-      );
-
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", { model: "gpt-4o", messages: [{ role: "system", content: "Strict JSON generator. Return only valid JSON, no markdown." }, { role: "user", content: prompt }], temperature: 0.3, max_tokens: 2000 }, { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } });
       const content = response.data?.choices?.[0]?.message?.content || "";
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
-
-      try {
-        const parsed = JSON.parse(cleaned);
-        if (typeof parsed.approvalScore === "number") parsed.approvalScore = Math.round(parsed.approvalScore);
-        return parsed;
-      } catch {
-        throw new HttpsError("internal", "GPT returned invalid JSON");
-      }
+      const parsed = JSON.parse(cleaned);
+      if (typeof parsed.approvalScore === "number") parsed.approvalScore = Math.round(parsed.approvalScore);
+      return parsed;
     } catch (e) {
       console.log("Visa feedback error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Visa feedback failed");
