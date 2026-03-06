@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:dayindai/HomePage/l10n.dart'; 
+
 
 enum InterviewType { behavioral, technical, mixed }
 enum InterviewLanguage { english, russian, kazakh }
