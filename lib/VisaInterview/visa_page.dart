@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../HomePage/widgets/dark_background.dart';
+import '../core/error_listener_mixin.dart';
 import 'visa_interview_provider.dart';
 import 'visa_feedback_page.dart';
 import 'widgets/visa_city_selector.dart';
@@ -28,7 +29,8 @@ class _VisaView extends StatefulWidget {
   State<_VisaView> createState() => _VisaViewState();
 }
 
-class _VisaViewState extends State<_VisaView> {
+class _VisaViewState extends State<_VisaView>
+    with ErrorListenerMixin<_VisaView> {
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,12 @@ class _VisaViewState extends State<_VisaView> {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<VisaInterviewProvider>();
+
+    // ← слушаем ошибки из провайдера
+    listenForErrors<VisaInterviewProvider>(
+      getError: (p) => p.lastError,
+      clearError: (p) => p.clearError(),
+    );
 
     if (p.isFinished && p.feedback != null) {
       return VisaFeedbackPage(
@@ -71,8 +79,8 @@ class _VisaViewState extends State<_VisaView> {
               child: p.started
                   ? VisaChatUI(provider: p)
                   : VisaCitySelector(
-                    onStart: (city, type) => p.startInterview(city, type),
-                  ),
+                      onStart: (city, type) => p.startInterview(city, type),
+                    ),
             ),
           ),
         ],

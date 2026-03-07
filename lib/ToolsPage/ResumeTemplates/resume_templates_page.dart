@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:printing/printing.dart';
-
+import 'package:dayindai/core/error_handler.dart';
 import 'resume_l10n.dart';
 import 'resume_pdf_builder.dart';
 import 'resume_preview_widgets.dart';
@@ -98,7 +98,7 @@ class _ResumeTemplatesPageState extends State<ResumeTemplatesPage> {
       setState(() { _improvedData = Map<String, dynamic>.from(result.data); _step = 3; });
     } catch (e) {
       setState(() => _step = 1);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      if (mounted) ErrorHandler.showSnackbar(context, e);
     }
   }
 

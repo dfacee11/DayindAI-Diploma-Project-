@@ -23,6 +23,7 @@ import 'ToolsPage/JobSearch/job_search.dart';
 import 'splash_page.dart';
 import 'ToolsPage/ResumeTemplates/resume_templates_page.dart';
 import 'CoverLetter/cover_letter_page.dart';
+import 'core/connectivity_service.dart'; // ← новый импорт
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,28 +71,29 @@ class _MainAppState extends State<MainApp> {
           useMaterial3: true,
         ),
 
-  
+        builder: (context, child) => ConnectivityProvider(child: child!),
+
         home: const SplashPage(),
 
         routes: {
-          '/FirstPage':      (context) => const FirstPage(),
-          '/home':           (context) => const HomePage(),
-          '/register':       (context) => RegisterPage(),
-          '/confirm':        (context) => const ConfirmReg(),
-          '/confirmEmail':   (context) => const ConfirmEmailPage(),
-          '/verified':       (context) => const EmailVerifiedPage(),
-          '/resetPassword':  (context) => const ResetPassword(),
-          '/AnalyzerResume': (context) => const ResumeAnalyzerPage(),
-          '/ToolsPage':      (context) => const ToolsPage(),
-          '/ProfilPage':     (context) => const ProfilePage(),
-          '/MainShell':      (context) => const MainShellPage(),
-          '/ResumeMatching': (_)       => const ResumeMatchingPage(),
-          '/AIInterview':    (context) => const AiInterviewPage(),
-          '/JobSearch':      (context) => const JobSearchPage(),
-          '/VisaInterview':  (context) => const VisaPage(),
-          '/AuthGate':       (context) => const AuthGate(),
+          '/FirstPage':       (context) => const FirstPage(),
+          '/home':            (context) => const HomePage(),
+          '/register':        (context) => RegisterPage(),
+          '/confirm':         (context) => const ConfirmReg(),
+          '/confirmEmail':    (context) => const ConfirmEmailPage(),
+          '/verified':        (context) => const EmailVerifiedPage(),
+          '/resetPassword':   (context) => const ResetPassword(),
+          '/AnalyzerResume':  (context) => const ResumeAnalyzerPage(),
+          '/ToolsPage':       (context) => const ToolsPage(),
+          '/ProfilPage':      (context) => const ProfilePage(),
+          '/MainShell':       (context) => const MainShellPage(),
+          '/ResumeMatching':  (_)       => const ResumeMatchingPage(),
+          '/AIInterview':     (context) => const AiInterviewPage(),
+          '/JobSearch':       (context) => const JobSearchPage(),
+          '/VisaInterview':   (context) => const VisaPage(),
+          '/AuthGate':        (context) => const AuthGate(),
           '/ResumeTemplates': (context) => const ResumeTemplatesPage(),
-          '/CoverLetter': (context) => const CoverLetterPage(),
+          '/CoverLetter':     (context) => const CoverLetterPage(),
         },
       ),
     );

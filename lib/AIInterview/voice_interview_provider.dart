@@ -13,7 +13,7 @@ import 'models/chat_message.dart';
 import 'interview_service.dart';
 import 'widgets/intro_ui.dart';
 
-enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, analyzing, finished }
+enum InterviewState { idle, aiSpeaking, userTurn, recording, thinking, analyzing, finished, error }
 
 class VoiceInterviewProvider extends ChangeNotifier {
   final InterviewService _service = InterviewService();
@@ -27,11 +27,15 @@ class VoiceInterviewProvider extends ChangeNotifier {
   bool showTranscript = false;
   bool voiceMode = true;
 
+  // ── Ошибка ────────────────────────────────────────────────────────────────
+  Object? lastError;
+  void clearError() { lastError = null; notifyListeners(); }
+
   final List<ChatMessage> messages = [];
   final List<Map<String, String>> _history = [];
 
   String jobRole = "Software Engineer";
-  String? jobDescription; // null = режим по роли, String = режим по JD
+  String? jobDescription;
   InterviewType interviewType = InterviewType.mixed;
   InterviewLanguage language = InterviewLanguage.english;
   ExperienceLevel level = ExperienceLevel.junior;
@@ -46,6 +50,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
   bool get isRecording  => state == InterviewState.recording;
   bool get isFinished   => state == InterviewState.finished;
   bool get isAnalyzing  => state == InterviewState.analyzing;
+  bool get hasError     => state == InterviewState.error;
 
   String get statusText {
     switch (language) {
@@ -55,6 +60,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
           case InterviewState.thinking:   return "ИИ думает...";
           case InterviewState.recording:  return "Слушаю...";
           case InterviewState.finished:   return "Интервью завершено!";
+          case InterviewState.error:      return "Ошибка соединения";
           default:                        return "Ваша очередь — нажмите микрофон";
         }
       case InterviewLanguage.kazakh:
@@ -63,6 +69,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
           case InterviewState.thinking:   return "ЖИ ойлап жатыр...";
           case InterviewState.recording:  return "Тыңдап жатырмын...";
           case InterviewState.finished:   return "Сұхбат аяқталды!";
+          case InterviewState.error:      return "Қосылым қатесі";
           default:                        return "Сіздің кезегіңіз — микрофонды басыңыз";
         }
       default:
@@ -71,6 +78,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
           case InterviewState.thinking:   return "AI is thinking...";
           case InterviewState.recording:  return "Listening...";
           case InterviewState.finished:   return "Interview complete!";
+          case InterviewState.error:      return "Connection error";
           default:                        return "Your turn — tap mic to speak";
         }
     }
@@ -93,7 +101,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── START ───
+  // ─── START ───────────────────────────────────────────────────────────────
   Future<void> startInterview(
     String role,
     InterviewType type,
@@ -113,12 +121,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
     messages.clear();
     _history.clear();
     feedback = null;
+    lastError = null;
     _notify();
 
     await _aiSpeak(_openingMessage);
   }
 
-  // ─── FINISH EARLY ───
+  // ─── FINISH EARLY ─────────────────────────────────────────────────────────
   Future<void> finishEarly() async {
     if (state == InterviewState.recording) await _recorder.stop();
     await _player.stop();
@@ -138,7 +147,14 @@ class VoiceInterviewProvider extends ChangeNotifier {
     _notify();
   }
 
-  // ─── AI SPEAK ───
+  // ─── RETRY after error ────────────────────────────────────────────────────
+  Future<void> retryAfterError() async {
+    state = InterviewState.userTurn;
+    lastError = null;
+    _notify();
+  }
+
+  // ─── AI SPEAK ─────────────────────────────────────────────────────────────
   Future<void> _aiSpeak(String text) async {
     state = InterviewState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -149,6 +165,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       final audioBase64 = await _service.textToSpeech(text);
       await _playAudio(audioBase64);
     } catch (e) {
+      // TTS failure — fallback to delay (non-critical, don't show error)
       debugPrint('TTS error: $e');
       final ms = (text.length * 50).clamp(1000, 8000);
       await Future.delayed(Duration(milliseconds: ms));
@@ -160,7 +177,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── AUDIO PLAYBACK ───
+  // ─── AUDIO PLAYBACK ───────────────────────────────────────────────────────
   Future<void> _playAudio(String base64Audio) async {
     try {
       final bytes = base64Decode(base64Audio);
@@ -196,11 +213,10 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── RECORDING ───
+  // ─── RECORDING ────────────────────────────────────────────────────────────
   Future<void> toggleRecording() async {
     if (state != InterviewState.userTurn && state != InterviewState.recording) return;
     HapticFeedback.lightImpact();
-
     if (state == InterviewState.recording) {
       await _stopRecordingAndProcess();
     } else {
@@ -249,12 +265,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
       await _getAiReply();
     } catch (e) {
       debugPrint('STT error: $e');
-      state = InterviewState.userTurn;
+      lastError = e;
+      state = InterviewState.error;
       _notify();
     }
   }
 
-  // ─── TEXT MODE ───
+  // ─── TEXT MODE ────────────────────────────────────────────────────────────
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == InterviewState.aiSpeaking || state == InterviewState.thinking) return;
@@ -266,7 +283,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     await _getAiReply();
   }
 
-  // ─── GPT REPLY ───
+  // ─── GPT REPLY ────────────────────────────────────────────────────────────
   Future<void> _getAiReply() async {
     try {
       final result = await _service.interviewChat(
@@ -283,8 +300,6 @@ class VoiceInterviewProvider extends ChangeNotifier {
       final reply = result['reply'] as String? ?? '';
       questionIndex++;
 
-      debugPrint('>>> Q$questionIndex/$totalQuestions');
-
       if (questionIndex >= totalQuestions) {
         await _aiSpeak(reply);
         state = InterviewState.analyzing;
@@ -298,12 +313,13 @@ class VoiceInterviewProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('GPT error: $e');
-      state = InterviewState.userTurn;
+      lastError = e;
+      state = InterviewState.error;
       _notify();
     }
   }
 
-  // ─── FEEDBACK ───
+  // ─── FEEDBACK ─────────────────────────────────────────────────────────────
   Future<void> _loadFeedback() async {
     try {
       feedback = await _service.interviewFeedback(
@@ -316,6 +332,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
       _notify();
     } catch (e) {
       debugPrint('Feedback error: $e');
+      lastError = e;
       feedback = {
         'overallScore': 0,
         'strengths': [],
@@ -327,7 +344,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     }
   }
 
-  // ─── SAVE TO FIRESTORE В ФОНЕ ───
+  // ─── FIRESTORE ────────────────────────────────────────────────────────────
   void _saveToFirestoreInBackground() {
     _doSave().catchError((e) => debugPrint('Firestore bg error: $e'));
   }
@@ -337,10 +354,8 @@ class VoiceInterviewProvider extends ChangeNotifier {
     if (uid == null || feedback == null) return;
 
     await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('interviews')
-        .doc('last')
+        .collection('users').doc(uid)
+        .collection('interviews').doc('last')
         .set({
       'jobRole':           jobRole,
       'level':             level.label,
@@ -369,6 +384,7 @@ class VoiceInterviewProvider extends ChangeNotifier {
     messages.clear();
     _history.clear();
     feedback = null;
+    lastError = null;
     questionIndex = 0;
     jobDescription = null;
     _notify();

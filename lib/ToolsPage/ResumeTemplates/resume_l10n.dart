@@ -27,7 +27,7 @@ class ResumeL10n {
 
   static ResumeL10n of(String l) => switch (l) {
     'ru' => const ResumeL10n(
-      title: 'Шаблоны резюме',
+      title: 'Resume Maker',
       sectionPersonal: 'ЛИЧНЫЕ ДАННЫЕ', sectionSummary: 'О СЕБЕ', sectionExperience: 'ОПЫТ РАБОТЫ',
       sectionEducation: 'ОБРАЗОВАНИЕ', sectionSkills: 'НАВЫКИ',
       fieldName: 'Полное имя', fieldTitle: 'Должность', fieldEmail: 'Email',
@@ -45,7 +45,7 @@ class ResumeL10n {
       downloadPdf: 'Скачать PDF', editResume: 'Редактировать',
     ),
     'kk' => const ResumeL10n(
-      title: 'Түйіндеме үлгілері',
+      title: 'Resume Maker',
       sectionPersonal: 'ЖЕКЕ ДЕРЕКТЕР', sectionSummary: 'ӨЗІ ТУРАЛЫ', sectionExperience: 'ЖҰМЫС ТӘЖІРИБЕСІ',
       sectionEducation: 'БІЛІМ', sectionSkills: 'ДАҒДЫЛАР',
       fieldName: 'Толық аты-жөні', fieldTitle: 'Лауазым', fieldEmail: 'Email',
@@ -63,7 +63,7 @@ class ResumeL10n {
       downloadPdf: 'PDF жүктеу', editResume: 'Өңдеу',
     ),
     _ => const ResumeL10n(
-      title: 'Resume Templates',
+      title: 'Resume Maker',
       sectionPersonal: 'PERSONAL INFO', sectionSummary: 'ABOUT ME', sectionExperience: 'EXPERIENCE',
       sectionEducation: 'EDUCATION', sectionSkills: 'SKILLS',
       fieldName: 'Full Name', fieldTitle: 'Job Title', fieldEmail: 'Email',

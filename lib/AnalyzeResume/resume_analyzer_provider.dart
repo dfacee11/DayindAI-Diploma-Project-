@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dayindai/AnalyzeResume/ocr_service.dart';
 import 'package:dayindai/AnalyzeResume/resume_upload_service.dart';
+import 'package:dayindai/core/error_handler.dart';
 import 'resume_analysis_result.dart';
 import 'resume_analysis_service.dart';
 
@@ -41,14 +42,27 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
   }
 
   Future<void> analyze(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-
+    // Validation — простые снекбары (не сетевые ошибки)
     if (profession.trim().isEmpty) {
-      messenger.showSnackBar(const SnackBar(content: Text("Enter a profession")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_label(context, 'enterProfession')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
       return;
     }
     if (selectedResumeFile == null) {
-      messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_label(context, 'uploadResume')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
       return;
     }
 
@@ -64,10 +78,22 @@ class ResumeAnalyzerProvider extends ChangeNotifier {
       );
       result = ResumeAnalysisResult.fromJson(json);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text("Error: $e")));
+      // Сетевая / серверная ошибка — умный обработчик
+      if (context.mounted) ErrorHandler.showSnackbar(context, e);
     } finally {
       isAnalyzing = false;
       notifyListeners();
     }
+  }
+
+  String _label(BuildContext context, String key) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isRu = lang == 'ru';
+    final isKk = lang == 'kk';
+    return switch (key) {
+      'enterProfession' => isKk ? 'Мамандықты енгіз' : isRu ? 'Введи профессию' : 'Enter a profession',
+      'uploadResume'    => isKk ? 'Түйіндемені жүктe' : isRu ? 'Загрузи резюме' : 'Upload a resume',
+      _ => '',
+    };
   }
 }

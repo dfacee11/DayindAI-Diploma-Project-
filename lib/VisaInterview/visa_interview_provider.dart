@@ -14,7 +14,7 @@ import 'models/visa_city.dart';
 
 export 'models/visa_city.dart';
 
-enum VisaState { idle, aiSpeaking, userTurn, recording, thinking, finished }
+enum VisaState { idle, aiSpeaking, userTurn, recording, thinking, finished, error }
 
 class VisaInterviewProvider extends ChangeNotifier {
   final InterviewService _service = InterviewService();
@@ -25,6 +25,10 @@ class VisaInterviewProvider extends ChangeNotifier {
   bool started = false;
   bool showTranscript = false;
   bool voiceMode = true;
+
+  // ── Ошибка ────────────────────────────────────────────────────────────────
+  Object? lastError;
+  void clearError() { lastError = null; notifyListeners(); }
 
   VisaCity city = VisaCity.astana;
   VisaApplicantType applicantType = VisaApplicantType.firstTime;
@@ -41,6 +45,7 @@ class VisaInterviewProvider extends ChangeNotifier {
   bool get isThinking   => state == VisaState.thinking;
   bool get isRecording  => state == VisaState.recording;
   bool get isFinished   => state == VisaState.finished;
+  bool get hasError     => state == VisaState.error;
   int  get totalQ       => questions.length;
 
   String get statusText => switch (state) {
@@ -48,12 +53,14 @@ class VisaInterviewProvider extends ChangeNotifier {
     VisaState.thinking   => "Processing...",
     VisaState.recording  => "Listening...",
     VisaState.finished   => "Interview complete!",
+    VisaState.error      => "Connection error",
     _                    => "Your turn — tap mic to speak",
   };
 
   String get _closingMessage =>
       "Thank you for your time. That concludes our interview. Have a great day!";
 
+  // ─── START ───────────────────────────────────────────────────────────────
   Future<void> startInterview(
     VisaCity selectedCity,
     VisaApplicantType selectedType,
@@ -66,6 +73,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     messages.clear();
     _history.clear();
     feedback = null;
+    lastError = null;
     notifyListeners();
 
     final greeting = applicantType == VisaApplicantType.returner
@@ -74,6 +82,14 @@ class VisaInterviewProvider extends ChangeNotifier {
     await _aiSpeak("$greeting ${questions[0]}");
   }
 
+  // ─── RETRY after error ────────────────────────────────────────────────────
+  Future<void> retryAfterError() async {
+    state = VisaState.userTurn;
+    lastError = null;
+    notifyListeners();
+  }
+
+  // ─── AI SPEAK ─────────────────────────────────────────────────────────────
   Future<void> _aiSpeak(String text) async {
     state = VisaState.aiSpeaking;
     messages.add(ChatMessage(isUser: false, text: text));
@@ -95,6 +111,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
+  // ─── AUDIO PLAYBACK ───────────────────────────────────────────────────────
   Future<void> _playAudio(String base64) async {
     try {
       final bytes = base64Decode(base64);
@@ -129,6 +146,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     }
   }
 
+  // ─── RECORDING ────────────────────────────────────────────────────────────
   Future<void> toggleRecording() async {
     if (state != VisaState.userTurn && state != VisaState.recording) return;
     HapticFeedback.lightImpact();
@@ -180,11 +198,13 @@ class VisaInterviewProvider extends ChangeNotifier {
       await _nextQuestion();
     } catch (e) {
       debugPrint('STT error: $e');
-      state = VisaState.userTurn;
+      lastError = e;
+      state = VisaState.error;
       notifyListeners();
     }
   }
 
+  // ─── TEXT MODE ────────────────────────────────────────────────────────────
   Future<void> sendText(String text) async {
     if (text.trim().isEmpty) return;
     if (state == VisaState.aiSpeaking || state == VisaState.thinking) return;
@@ -196,20 +216,29 @@ class VisaInterviewProvider extends ChangeNotifier {
     await _nextQuestion();
   }
 
+  // ─── NEXT QUESTION ────────────────────────────────────────────────────────
   Future<void> _nextQuestion() async {
-    questionIndex++;
-    if (questionIndex >= questions.length) {
-      await _aiSpeak(_closingMessage);
-      state = VisaState.thinking;
+    try {
+      questionIndex++;
+      if (questionIndex >= questions.length) {
+        await _aiSpeak(_closingMessage);
+        state = VisaState.thinking;
+        notifyListeners();
+        await _loadFeedback();
+        state = VisaState.finished;
+        notifyListeners();
+      } else {
+        await _aiSpeak(questions[questionIndex]);
+      }
+    } catch (e) {
+      debugPrint('Next question error: $e');
+      lastError = e;
+      state = VisaState.error;
       notifyListeners();
-      await _loadFeedback();
-      state = VisaState.finished;
-      notifyListeners();
-    } else {
-      await _aiSpeak(questions[questionIndex]);
     }
   }
 
+  // ─── FINISH EARLY ─────────────────────────────────────────────────────────
   Future<void> finishEarly() async {
     if (state == VisaState.recording) await _recorder.stop();
     await _player.stop();
@@ -226,6 +255,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ─── FEEDBACK ─────────────────────────────────────────────────────────────
   Future<void> _loadFeedback() async {
     try {
       final result = await FirebaseFunctions.instanceFor(region: 'europe-west1')
@@ -234,6 +264,7 @@ class VisaInterviewProvider extends ChangeNotifier {
       feedback = Map<String, dynamic>.from(result.data);
     } catch (e) {
       debugPrint('Visa feedback error: $e');
+      lastError = e;
       feedback = {
         'verdict': 'Одобрено',
         'approvalScore': 0,
@@ -257,6 +288,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     messages.clear();
     _history.clear();
     feedback = null;
+    lastError = null;
     notifyListeners();
   }
 

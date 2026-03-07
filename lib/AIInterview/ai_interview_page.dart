@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../HomePage/widgets/dark_background.dart';
+import '../core/error_listener_mixin.dart';
 import 'voice_interview_provider.dart';
 import 'feedback_page.dart';
 import 'widgets/intro_ui.dart';
@@ -29,14 +30,14 @@ class _AiInterviewView extends StatefulWidget {
   State<_AiInterviewView> createState() => _AiInterviewViewState();
 }
 
-class _AiInterviewViewState extends State<_AiInterviewView> {
+class _AiInterviewViewState extends State<_AiInterviewView>
+    with ErrorListenerMixin<_AiInterviewView> {
   @override
   void initState() {
     super.initState();
     _warmUp();
   }
 
-  
   Future<void> _warmUp() async {
     final fns = FirebaseFunctions.instanceFor(region: 'europe-west1');
     try {
@@ -45,12 +46,18 @@ class _AiInterviewViewState extends State<_AiInterviewView> {
         fns.httpsCallable('textToSpeech').call({'warmup': true}),
         fns.httpsCallable('transcribeAudio').call({'warmup': true}),
       ]);
-    } catch (_) {} 
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final p = context.watch<VoiceInterviewProvider>();
+
+    // ← слушаем ошибки из провайдера
+    listenForErrors<VoiceInterviewProvider>(
+      getError: (p) => p.lastError,
+      clearError: (p) => p.clearError(),
+    );
 
     if (p.isAnalyzing) {
       return InterviewAnalyzingScreen(
