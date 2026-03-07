@@ -6,6 +6,10 @@ import 'package:dayindai/HomePage/widgets/dark_background.dart';
 import 'package:dayindai/locale_notifier.dart';
 import 'widgets/profile_tile.dart';
 import 'EditProfilePage.dart';
+import 'NotificationsPage.dart';
+import 'SubscriptionPage.dart';
+import 'HelpCenterPage.dart';
+import 'AboutAppPage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -183,13 +187,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: Icons.notifications_none_rounded,
                 title: t.notifications,
                 subtitle: t.notificationsSub,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const NotificationsPage())),
               ),
               ProfileTile(
                 icon: Icons.workspace_premium_rounded,
                 title: t.subscription,
                 subtitle: t.subscriptionSub,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const SubscriptionPage())),
               ),
             ]),
             const SizedBox(height: 22),
@@ -200,13 +210,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: Icons.help_outline_rounded,
                 title: t.helpCenter,
                 subtitle: t.helpCenterSub,
-                onTap: () {},
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const HelpCenterPage())),
               ),
               ProfileTile(
                 icon: Icons.info_outline_rounded,
                 title: t.aboutApp,
                 subtitle: t.aboutAppSub,
-                onTap: () {},
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AboutAppPage())),
               ),
             ]),
             const SizedBox(height: 32),
@@ -218,59 +230,70 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildAvatar(String displayName, String email) {
-  final initials = displayName.isNotEmpty
-      ? displayName
-          .trim()
-          .split(' ')
-          .map((w) => w.isNotEmpty ? w[0] : '')
-          .take(2)
-          .join()
-          .toUpperCase()
-      : '?';
+    final initials = displayName.isNotEmpty
+        ? displayName
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
+        : '?';
 
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(28),
-      boxShadow: [
-        BoxShadow(
-          blurRadius: 24,
-          offset: const Offset(0, 10),
-          color: Colors.black.withValues(alpha: 0.07),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 68,
-          height: 68,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: _user?.photoURL == null
-                ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
-                  )
-                : null,
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.35),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.07),
           ),
-          child: ClipOval(
-            child: _user?.photoURL != null
-                ? Image.network(
-                    _user!.photoURL!,
-                    width: 68,
-                    height: 68,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: _user?.photoURL == null
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF7C5CFF), Color(0xFF2DD4FF)],
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.35),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: _user?.photoURL != null
+                  ? Image.network(
+                      _user!.photoURL!,
+                      width: 68,
+                      height: 68,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Text(
+                          initials,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
                       child: Text(
                         initials,
                         style: GoogleFonts.montserrat(
@@ -280,65 +303,54 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                  )
-                : Center(
-                    child: Text(
-                      initials,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
                   ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                displayName,
-                style: GoogleFonts.montserrat(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF0F172A),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                email,
-                style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7C5CFF), Color(0xFF9F7AFF)],
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            'Free',
-            style: GoogleFonts.montserrat(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+              ],
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7C5CFF), Color(0xFF9F7AFF)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              'Free',
+              style: GoogleFonts.montserrat(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildCard(List<Widget> children) {
     return Container(

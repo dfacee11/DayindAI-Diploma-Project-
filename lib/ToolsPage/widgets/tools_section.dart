@@ -25,9 +25,10 @@ class ToolsSection extends StatelessWidget {
         Text(
           title,
           style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF0F172A)),
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF0F172A),
+          ),
         ),
         const SizedBox(height: 12),
         if (!useGrid)
@@ -36,14 +37,17 @@ class ToolsSection extends StatelessWidget {
                 child: FeatureTile(tool: t),
               ))
         else
-          GridView.count(
-            crossAxisCount: 2,
+          GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.1,
-            children: tools.map((t) => _GridCard(tool: t)).toList(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              mainAxisExtent: 160,
+            ),
+            itemCount: tools.length,
+            itemBuilder: (_, i) => _GridCard(tool: tools[i]),
           ),
       ],
     );
@@ -59,7 +63,9 @@ class _GridCard extends StatelessWidget {
     return GestureDetector(
       onTap: tool.onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        height: 160,
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -73,7 +79,10 @@ class _GridCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Иконка вверху
             Container(
               width: 44,
               height: 44,
@@ -83,36 +92,42 @@ class _GridCard extends StatelessWidget {
               ),
               child: Icon(tool.icon, color: tool.color, size: 22),
             ),
-            const Spacer(),
-            Text(
-              tool.title,
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0F172A),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              tool.subtitle,
-              style: GoogleFonts.montserrat(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF94A3B8),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '→',
-              style: TextStyle(
-                fontSize: 16,
-                color: tool.color,
-                fontWeight: FontWeight.w900,
-              ),
+            // Текст внизу — без Spacer, без overflow
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  tool.title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  tool.subtitle,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '→',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: tool.color,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
