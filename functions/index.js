@@ -7,6 +7,7 @@ const FormData = require("form-data");
 const DEEPSEEK_API_KEY = defineSecret("DEEPSEEK_API_KEY");
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 const ELEVENLABS_API_KEY = defineSecret("ELEVENLABS_API_KEY");
+const ANTHROPIC_KEY = defineSecret("ANTHROPIC_KEY");
 
 const client = new vision.ImageAnnotatorClient();
 
@@ -305,6 +306,113 @@ If verdict is "Отказано": redFlags must list specific reasons, approvalS
     } catch (e) {
       console.log("Visa feedback error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Visa feedback failed");
+    }
+  }
+);
+
+
+// Добавь в начало файла рядом с другими defineSecret:
+// const ANTHROPIC_KEY = defineSecret("ANTHROPIC_KEY");
+
+exports.improveResume = onCall(
+  { secrets: [ANTHROPIC_KEY], timeoutSeconds: 60, region: "europe-west1" },
+  async (request) => {
+    try {
+      const {
+        fullName,
+        jobTitle,
+        email,
+        phone,
+        location,
+        summary,
+        experience,   // [{ company, role, period, description }]
+        education,    // [{ institution, degree, period }]
+        skills,       // string — через запятую
+        languages,    // string — например "Казахский, Русский, Английский"
+        language,     // язык вывода: "ru" | "kk" | "en"
+      } = request.data || {};
+
+      if (!fullName || !jobTitle) {
+        throw new HttpsError("invalid-argument", "fullName and jobTitle are required");
+      }
+
+      const apiKey = ANTHROPIC_KEY.value();
+
+      const langInstruction = language === "kk"
+        ? "Respond entirely in Kazakh language."
+        : language === "ru"
+        ? "Respond entirely in Russian language."
+        : "Respond entirely in English language.";
+
+      const expText = (experience && experience.length > 0)
+        ? experience.map(e => `Company: ${e.company}, Role: ${e.role}, Period: ${e.period}, Description: ${e.description}`).join('\n')
+        : 'No experience provided';
+
+      const eduText = (education && education.length > 0)
+        ? education.map(e => `Institution: ${e.institution}, Degree: ${e.degree}, Period: ${e.period}`).join('\n')
+        : 'No education provided';
+
+      const prompt = `${langInstruction}
+
+You are a professional resume writer. Improve this resume data to sound professional and ATS-friendly.
+
+STRICT RULES:
+- Do NOT invent facts, keep all real data
+- Make descriptions result-oriented with action verbs
+- Summary: exactly 2-3 sentences
+- Each job: 2-3 bullet points starting with action verbs
+- If no experience provided, return experience as empty array []
+- If no education provided, return education as empty array []
+- Return ONLY raw JSON, absolutely no markdown, no backticks, no explanation
+
+INPUT:
+Name: ${fullName}
+Title: ${jobTitle}
+Email: ${email || ''}
+Phone: ${phone || ''}
+Location: ${location || ''}
+Summary: ${summary || ''}
+Skills: ${skills || ''}
+Languages: ${languages || ''}
+Experience:
+${expText}
+Education:
+${eduText}
+
+OUTPUT FORMAT (raw JSON only):
+{"fullName":"${fullName}","jobTitle":"improved title","email":"${email || ''}","phone":"${phone || ''}","location":"${location || ''}","summary":"improved summary","experience":[{"company":"same","role":"same","period":"same","bullets":["bullet 1","bullet 2"]}],"education":[{"institution":"same","degree":"same","period":"same"}],"skills":"improved skills","languages":"${languages || ''}"}`;
+
+      const response = await axios.post(
+        "https://api.anthropic.com/v1/messages",
+        {
+          model: "claude-haiku-4-5",
+          max_tokens: 1500,
+          messages: [{ role: "user", content: prompt }],
+        },
+        {
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const content = response.data?.content?.[0]?.text || "";
+      // Aggressive cleaning — remove any markdown, backticks, leading text
+      let cleaned = content
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+      // Find first { and last } to extract pure JSON
+      const start = cleaned.indexOf('{');
+      const end = cleaned.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('No JSON found in response');
+      cleaned = cleaned.substring(start, end + 1);
+      return JSON.parse(cleaned);
+    } catch (e) {
+      console.log("improveResume error:", e?.response?.data || e.message);
+      throw new HttpsError("internal", e.message || "Resume improvement failed");
     }
   }
 );

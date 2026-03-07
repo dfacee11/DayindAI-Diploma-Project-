@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -26,6 +27,8 @@ class VisaInterviewProvider extends ChangeNotifier {
   bool voiceMode = true;
 
   VisaCity city = VisaCity.astana;
+  VisaApplicantType applicantType = VisaApplicantType.firstTime;
+
   List<String> questions = [];
   int questionIndex = 0;
 
@@ -35,29 +38,29 @@ class VisaInterviewProvider extends ChangeNotifier {
   String? _recordingPath;
 
   bool get isAiSpeaking => state == VisaState.aiSpeaking;
-  bool get isThinking => state == VisaState.thinking;
-  bool get isRecording => state == VisaState.recording;
-  bool get isFinished => state == VisaState.finished;
-  int get totalQ => questions.length;
+  bool get isThinking   => state == VisaState.thinking;
+  bool get isRecording  => state == VisaState.recording;
+  bool get isFinished   => state == VisaState.finished;
+  int  get totalQ       => questions.length;
 
-  String get statusText {
-    switch (state) {
-      case VisaState.aiSpeaking:
-        return "Консул говорит...";
-      case VisaState.thinking:
-        return "Обработка...";
-      case VisaState.recording:
-        return "Слушаю...";
-      case VisaState.finished:
-        return "Интервью завершено!";
-      default:
-        return "Ваша очередь — нажмите микрофон";
-    }
-  }
+  String get statusText => switch (state) {
+    VisaState.aiSpeaking => "Consul is speaking...",
+    VisaState.thinking   => "Processing...",
+    VisaState.recording  => "Listening...",
+    VisaState.finished   => "Interview complete!",
+    _                    => "Your turn — tap mic to speak",
+  };
 
-  Future<void> startInterview(VisaCity selectedCity) async {
+  String get _closingMessage =>
+      "Thank you for your time. That concludes our interview. Have a great day!";
+
+  Future<void> startInterview(
+    VisaCity selectedCity,
+    VisaApplicantType selectedType,
+  ) async {
     city = selectedCity;
-    questions = city.getRandomQuestions();
+    applicantType = selectedType;
+    questions = city.getQuestions(applicantType: applicantType);
     questionIndex = 0;
     started = true;
     messages.clear();
@@ -65,9 +68,10 @@ class VisaInterviewProvider extends ChangeNotifier {
     feedback = null;
     notifyListeners();
 
-    await _aiSpeak(
-      "Hello! I am the consular officer. Please answer my questions clearly and confidently. ${questions[0]}",
-    );
+    final greeting = applicantType == VisaApplicantType.returner
+        ? "Hello! I see you have participated in Work and Travel before. Let's begin."
+        : "Hello! I am the consular officer. Please answer my questions clearly and confidently.";
+    await _aiSpeak("$greeting ${questions[0]}");
   }
 
   Future<void> _aiSpeak(String text) async {
@@ -95,16 +99,31 @@ class VisaInterviewProvider extends ChangeNotifier {
     try {
       final bytes = base64Decode(base64);
       final dir = await getTemporaryDirectory();
-      final file = File(
-          '${dir.path}/visa_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
+      final file = File('${dir.path}/visa_speech_${DateTime.now().millisecondsSinceEpoch}.mp3');
       await file.writeAsBytes(bytes);
+
       await _player.stop();
-      await _player.setFilePath(file.path);
+      final duration = await _player.setFilePath(file.path);
       await _player.seek(Duration.zero);
+
+      final completer = Completer<void>();
+      final sub = _player.processingStateStream.listen((ps) {
+        if (ps == ProcessingState.completed) {
+          if (!completer.isCompleted) completer.complete();
+        }
+      });
+
       await _player.play();
-      await _player.playerStateStream.firstWhere(
-        (s) => s.processingState == ProcessingState.completed || !s.playing,
-      );
+
+      final timeout = (duration != null && duration.inMilliseconds > 0)
+          ? duration + const Duration(milliseconds: 500)
+          : const Duration(seconds: 30);
+
+      await completer.future.timeout(timeout, onTimeout: () {
+        debugPrint('Visa audio timeout');
+      });
+
+      await sub.cancel();
     } catch (e) {
       debugPrint('Audio play error: $e');
     }
@@ -128,8 +147,7 @@ class VisaInterviewProvider extends ChangeNotifier {
     _recordingPath = '${dir.path}/visa_answer.m4a';
 
     await _recorder.start(
-      RecordConfig(
-          encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
+      RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000),
       path: _recordingPath!,
     );
     state = VisaState.recording;
@@ -144,8 +162,10 @@ class VisaInterviewProvider extends ChangeNotifier {
     try {
       final audioBytes = await File(_recordingPath!).readAsBytes();
       final audioBase64 = base64Encode(audioBytes);
-      final transcript =
-          await _service.transcribeAudio(audioBase64, languageCode: 'en');
+      final transcript = await _service.transcribeAudio(
+        audioBase64,
+        languageCode: 'en',
+      );
 
       if (transcript.trim().isEmpty) {
         state = VisaState.userTurn;
@@ -179,8 +199,7 @@ class VisaInterviewProvider extends ChangeNotifier {
   Future<void> _nextQuestion() async {
     questionIndex++;
     if (questionIndex >= questions.length) {
-      await _aiSpeak(
-          "Thank you for your time. That concludes our interview today. Have a great day!");
+      await _aiSpeak(_closingMessage);
       state = VisaState.thinking;
       notifyListeners();
       await _loadFeedback();
@@ -228,15 +247,8 @@ class VisaInterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleTranscript() {
-    showTranscript = !showTranscript;
-    notifyListeners();
-  }
-
-  void toggleMode() {
-    voiceMode = !voiceMode;
-    notifyListeners();
-  }
+  void toggleTranscript() { showTranscript = !showTranscript; notifyListeners(); }
+  void toggleMode()        { voiceMode = !voiceMode; notifyListeners(); }
 
   void restart() {
     state = VisaState.idle;

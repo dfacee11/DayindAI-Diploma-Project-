@@ -1,8 +1,10 @@
 import 'dart:math';
 
 enum VisaCity { astana, almaty }
+enum VisaApplicantType { firstTime, returner }
 
-const _astanaQuestions = [
+
+const _astanaFirstTimeEn = [
   "Where will you work and as what position?",
   "Where are you studying and what is your major?",
   "What is your GPA? Are you happy with it?",
@@ -21,7 +23,6 @@ const _astanaQuestions = [
   "What is your favorite subject at university?",
   "When will you graduate?",
   "Tell me about your region or city.",
-  "Have you participated in Work and Travel before?",
   "What other places do you want to visit in the US?",
   "What do you do in your leisure time?",
   "What kind of music do you listen to?",
@@ -33,7 +34,24 @@ const _astanaQuestions = [
   "Which university do you attend and why did you choose it?",
 ];
 
-const _almatyQuestions = [
+const _astanaReturnerEn = [
+  "You participated in Work and Travel before. Where did you work?",
+  "What did you enjoy most about your previous W&T experience?",
+  "Did you travel after your program ended? Where did you go?",
+  "Did you return home on time after your previous program?",
+  "What will be different this time compared to your last visit?",
+  "Where will you work this time and in what position?",
+  "Why do you want to participate again?",
+  "What did you learn from your last W&T experience?",
+  "Did you have any issues with your previous employer?",
+  "How has your previous W&T experience helped your career or studies?",
+  "What do you plan to do differently this time?",
+  "Have you stayed in touch with anyone from your previous program?",
+];
+
+// ─── ALMATY QUESTIONS ───
+
+const _almatyFirstTimeEn = [
   "Where do you study and what is your major?",
   "Where are you going in the US?",
   "What is your position at work?",
@@ -52,12 +70,23 @@ const _almatyQuestions = [
   "What will you do after returning from America?",
   "Do you have family or friends in the USA?",
   "What does your father or mother do for a living?",
-  "Is this your first time participating in Work and Travel?",
   "What is your favorite film?",
   "What will be your job this summer?",
   "Tell me about your university.",
   "What kind of job do you want to find in the future?",
 ];
+
+const _almatyReturnerEn = [
+  "This is not your first Work and Travel. Where did you work last time?",
+  "Did you come back on time after your last program?",
+  "What was the best part of your previous experience?",
+  "Where will you work this time?",
+  "Why are you participating again?",
+  "What will be different this time?",
+  "Did you have any problems during your last trip?",
+  "How did your previous W&T experience change you?",
+];
+
 
 extension VisaCityExt on VisaCity {
   String get displayName => this == VisaCity.astana ? "Астана" : "Алматы";
@@ -65,13 +94,35 @@ extension VisaCityExt on VisaCity {
   int    get minQ        => this == VisaCity.astana ? 6 : 3;
   int    get maxQ        => this == VisaCity.astana ? 9 : 5;
 
-  List<String> get allQuestions =>
-      this == VisaCity.astana ? _astanaQuestions : _almatyQuestions;
+  List<String> getQuestions({required VisaApplicantType applicantType}) {
+    final isAstana = this == VisaCity.astana;
+    final isReturner = applicantType == VisaApplicantType.returner;
 
-  List<String> getRandomQuestions() {
-    final rng   = Random();
+    final rng = Random();
     final count = minQ + rng.nextInt(maxQ - minQ + 1);
-    final list  = List<String>.from(allQuestions)..shuffle(rng);
-    return list.take(count).toList();
+
+    if (!isReturner) {
+      final pool = List<String>.from(isAstana ? _astanaFirstTimeEn : _almatyFirstTimeEn)..shuffle(rng);
+      return pool.take(count).toList();
+    }
+
+    
+    final basePool     = List<String>.from(isAstana ? _astanaFirstTimeEn : _almatyFirstTimeEn)..shuffle(rng);
+    final returnerPool = List<String>.from(isAstana ? _astanaReturnerEn  : _almatyReturnerEn)..shuffle(rng);
+
+    final returnerCount = (count * 0.4).round().clamp(1, returnerPool.length);
+    final baseCount     = (count - returnerCount).clamp(1, basePool.length);
+
+    final result = [...basePool.take(baseCount), ...returnerPool.take(returnerCount)];
+    result.shuffle(rng);
+    return result;
   }
+
+  List<String> getRandomQuestions() => getQuestions(
+    applicantType: VisaApplicantType.firstTime,
+  );
+}
+
+extension VisaApplicantTypeExt on VisaApplicantType {
+  String get emoji => this == VisaApplicantType.firstTime ? "🌱" : "⭐";
 }

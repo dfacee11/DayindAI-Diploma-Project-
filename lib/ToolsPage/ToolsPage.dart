@@ -67,7 +67,7 @@ class _ToolsPageState extends State<ToolsPage> {
         subtitle: t.resumeTemplatesSub,
         icon: Icons.auto_awesome_rounded,
         color: const Color(0xFFF59E0B),
-        onTap: () {},
+        onTap: () => Navigator.pushNamed(context, "/ResumeTemplates"),
       ),
       ToolItem(
         category: t.catCareerTools,
@@ -122,8 +122,12 @@ class _ToolsPageState extends State<ToolsPage> {
           tool.category.toLowerCase().contains(q);
     }).toList();
 
-    final aiTools      = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catAiTools).toList();
-    final careerTools  = filtered.where((t) => t.category == _ToolsL10n.of(langCode).catCareerTools).toList();
+    final aiTools = filtered
+        .where((t) => t.category == _ToolsL10n.of(langCode).catAiTools)
+        .toList();
+    final careerTools = filtered
+        .where((t) => t.category == _ToolsL10n.of(langCode).catCareerTools)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5FA),
@@ -139,17 +143,24 @@ class _ToolsPageState extends State<ToolsPage> {
               width: 73,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset("assets/images/DayindAI1.png", fit: BoxFit.cover),
+                child: Image.asset("assets/images/DayindAI1.png",
+                    fit: BoxFit.cover),
               ),
             ),
             RichText(
               text: TextSpan(
                 text: "Dayind",
-                style: GoogleFonts.montserrat(fontSize: 27, color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.montserrat(
+                    fontSize: 27,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
                 children: [
                   TextSpan(
                     text: "AI",
-                    style: GoogleFonts.montserrat(fontSize: 27, color: const Color(0xFF7C5CFF), fontWeight: FontWeight.bold),
+                    style: GoogleFonts.montserrat(
+                        fontSize: 27,
+                        color: const Color(0xFF7C5CFF),
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -160,7 +171,8 @@ class _ToolsPageState extends State<ToolsPage> {
           PopupMenuButton<String>(
             tooltip: '',
             color: const Color(0xFF1E293B),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             offset: const Offset(0, 50),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -175,13 +187,19 @@ class _ToolsPageState extends State<ToolsPage> {
                 children: [
                   Text(current['flag']!, style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 5),
-                  Text(current['label']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(current['label']!,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13)),
                   const SizedBox(width: 2),
-                  const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                  const Icon(Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white, size: 16),
                 ],
               ),
             ),
-            onSelected: (code) => LocaleNotifier.of(context)?.setLocale(Locale(code)),
+            onSelected: (code) =>
+                LocaleNotifier.of(context)?.setLocale(Locale(code)),
             itemBuilder: (_) => langs.map((lang) {
               final isActive = lang['code'] == currentLocale;
               return PopupMenuItem<String>(
@@ -190,14 +208,18 @@ class _ToolsPageState extends State<ToolsPage> {
                   children: [
                     Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
                     const SizedBox(width: 10),
-                    Text(lang['label']!, style: TextStyle(
-                      color: isActive ? const Color(0xFF4C63FF) : Colors.white,
-                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 15,
-                    )),
+                    Text(lang['label']!,
+                        style: TextStyle(
+                          color:
+                              isActive ? const Color(0xFF4C63FF) : Colors.white,
+                          fontWeight:
+                              isActive ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 15,
+                        )),
                     if (isActive) ...[
                       const Spacer(),
-                      const Icon(Icons.check_rounded, size: 16, color: Color(0xFF4C63FF)),
+                      const Icon(Icons.check_rounded,
+                          size: 16, color: Color(0xFF4C63FF)),
                     ],
                   ],
                 ),
@@ -215,7 +237,10 @@ class _ToolsPageState extends State<ToolsPage> {
         children: [
           const DarkTopBackground(),
           Positioned(
-            top: 200, left: 0, right: 0, bottom: 0,
+            top: 200,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: Container(color: const Color(0xFFF4F5FA)),
           ),
           SafeArea(
@@ -226,7 +251,8 @@ class _ToolsPageState extends State<ToolsPage> {
                     const SizedBox(height: 14),
                     Container(
                       width: double.infinity,
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight - 110),
+                      constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 110),
                       decoration: const BoxDecoration(
                         color: Color(0xFFF4F5FA),
                         borderRadius: BorderRadius.only(
@@ -240,10 +266,16 @@ class _ToolsPageState extends State<ToolsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(t.pageTitle,
-                                style: GoogleFonts.montserrat(fontSize: 26, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF0F172A))),
                             const SizedBox(height: 6),
                             Text(t.pageSubtitle,
-                                style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF64748B))),
                             const SizedBox(height: 18),
                             ToolsSearchBar(
                               controller: _searchController,
@@ -256,10 +288,14 @@ class _ToolsPageState extends State<ToolsPage> {
                                   padding: const EdgeInsets.only(top: 30),
                                   child: Column(
                                     children: [
-                                      const Text("🐧", style: TextStyle(fontSize: 48)),
+                                      const Text("🐧",
+                                          style: TextStyle(fontSize: 48)),
                                       const SizedBox(height: 12),
                                       Text(t.noToolsFound,
-                                          style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF64748B))),
+                                          style: GoogleFonts.montserrat(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF64748B))),
                                     ],
                                   ),
                                 ),
@@ -269,7 +305,10 @@ class _ToolsPageState extends State<ToolsPage> {
                               const SizedBox(height: 24),
                             ],
                             if (careerTools.isNotEmpty) ...[
-                              ToolsSection(title: t.catCareerTools, tools: careerTools,useGrid: true),
+                              ToolsSection(
+                                  title: t.catCareerTools,
+                                  tools: careerTools,
+                                  useGrid: true),
                             ],
                           ],
                         ),

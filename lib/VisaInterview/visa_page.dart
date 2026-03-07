@@ -70,7 +70,9 @@ class _VisaViewState extends State<_VisaView> {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
               child: p.started
                   ? VisaChatUI(provider: p)
-                  : VisaCitySelector(onStart: p.startInterview),
+                  : VisaCitySelector(
+                    onStart: (city, type) => p.startInterview(city, type),
+                  ),
             ),
           ),
         ],

@@ -21,6 +21,7 @@ import 'HomePage/l10n.dart';
 import 'package:dayindai/locale_notifier.dart';
 import 'ToolsPage/JobSearch/job_search.dart';
 import 'splash_page.dart';
+import 'ToolsPage/ResumeTemplates/resume_templates_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -88,6 +89,7 @@ class _MainAppState extends State<MainApp> {
           '/JobSearch':      (context) => const JobSearchPage(),
           '/VisaInterview':  (context) => const VisaPage(),
           '/AuthGate':       (context) => const AuthGate(),
+          '/ResumeTemplates': (context) => const ResumeTemplatesPage(),
         },
       ),
     );
