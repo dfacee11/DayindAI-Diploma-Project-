@@ -40,7 +40,7 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
-        title: Text("${widget.city.flag} Результаты",
+        title: Text("Результаты",
             style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
       body: Stack(

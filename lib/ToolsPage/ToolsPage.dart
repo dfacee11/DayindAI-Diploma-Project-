@@ -75,7 +75,7 @@ class _ToolsPageState extends State<ToolsPage> {
         subtitle: t.coverLetterSub,
         icon: Icons.draw_rounded,
         color: const Color(0xFFEC4899),
-        onTap: () {},
+        onTap: () => Navigator.pushNamed(context, "/CoverLetter"),
       ),
       ToolItem(
         category: t.catCareerTools,

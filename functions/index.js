@@ -311,8 +311,7 @@ If verdict is "Отказано": redFlags must list specific reasons, approvalS
 );
 
 
-// Добавь в начало файла рядом с другими defineSecret:
-// const ANTHROPIC_KEY = defineSecret("ANTHROPIC_KEY");
+
 
 exports.improveResume = onCall(
   { secrets: [ANTHROPIC_KEY], timeoutSeconds: 60, region: "europe-west1" },
@@ -413,6 +412,69 @@ OUTPUT FORMAT (raw JSON only):
     } catch (e) {
       console.log("improveResume error:", e?.response?.data || e.message);
       throw new HttpsError("internal", e.message || "Resume improvement failed");
+    }
+  }
+);
+
+exports.generateCoverLetter = onCall(
+  { secrets: [ANTHROPIC_KEY], timeoutSeconds: 60, region: "europe-west1" },
+  async (request) => {
+    // Warmup
+    if (request.data?.warmup) return { letter: "" };
+
+    try {
+      const { jobTitle, company, jobDesc, aboutMe, language } = request.data || {};
+
+      if (!jobTitle || !company) {
+        throw new HttpsError("invalid-argument", "jobTitle and company are required");
+      }
+
+      const apiKey = ANTHROPIC_KEY.value();
+
+      const langInstruction = language === "kk"
+        ? "Write the cover letter entirely in Kazakh language."
+        : language === "ru"
+        ? "Write the cover letter entirely in Russian language."
+        : "Write the cover letter entirely in English language.";
+
+      const prompt = `${langInstruction}
+
+You are an expert career coach and professional writer.
+Write a compelling, personalized cover letter for the following position.
+
+STRICT RULES:
+- 1-2 paragraphs, professional and engaging tone
+- Tailored to the specific role and company
+- Do NOT use placeholder brackets like [Your Name] or [Date]
+- Return ONLY the cover letter text, no extra commentary
+
+Job Title: ${jobTitle}
+Company: ${company}
+${jobDesc ? `\nJob Description:\n${jobDesc}` : ""}
+${aboutMe ? `\nAbout the candidate:\n${aboutMe}` : ""}`;
+
+      const response = await axios.post(
+        "https://api.anthropic.com/v1/messages",
+        {
+          model: "claude-haiku-4-5",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: prompt }],
+        },
+        {
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const letter = response.data?.content?.[0]?.text || "";
+      return { letter };
+
+    } catch (e) {
+      console.log("generateCoverLetter error:", e?.response?.data || e.message);
+      throw new HttpsError("internal", e.message || "Cover letter generation failed");
     }
   }
 );
