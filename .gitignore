@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+*.json
+dayindai-firebase-adminsdk-fbsvc-21e99b8914.json
+serviceAccountKey.json
