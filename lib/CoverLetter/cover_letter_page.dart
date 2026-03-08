@@ -258,7 +258,7 @@ class _CoverLetterViewState extends State<_CoverLetterView> {
                           const SizedBox(height: 24),
 
                           // ── Result ──
-                          if (p.error != null) _buildError(p.error!),
+                          if (p.lastError != null) _buildError(p.lastError.toString()),
                           if (p.result != null) _buildResult(p),
                           const SizedBox(height: 14),
                         ],

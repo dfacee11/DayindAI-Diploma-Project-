@@ -24,15 +24,18 @@ extension CoverLetterLanguageExt on CoverLetterLanguage {
 }
 
 class CoverLetterProvider extends ChangeNotifier {
-  String jobTitle      = '';
-  String company       = '';
-  String jobDesc       = '';
-  String aboutMe       = '';
+  String jobTitle  = '';
+  String company   = '';
+  String jobDesc   = '';
+  String aboutMe   = '';
   CoverLetterLanguage language = CoverLetterLanguage.english;
 
-  bool   isGenerating  = false;
+  bool    isGenerating = false;
   String? result;
-  String? error;
+
+  // ── Ошибка (читается в пейдже через ErrorListenerMixin) ──────────────────
+  Object? lastError;
+  void clearError() { lastError = null; notifyListeners(); }
 
   bool get canGenerate =>
       jobTitle.trim().isNotEmpty && company.trim().isNotEmpty;
@@ -44,8 +47,8 @@ class CoverLetterProvider extends ChangeNotifier {
   void setLanguage(CoverLetterLanguage v) { language = v; notifyListeners(); }
 
   void reset() {
-    result = null;
-    error  = null;
+    result    = null;
+    lastError = null;
     notifyListeners();
   }
 
@@ -53,25 +56,28 @@ class CoverLetterProvider extends ChangeNotifier {
     if (!canGenerate) return;
 
     isGenerating = true;
-    result = null;
-    error  = null;
+    result    = null;
+    lastError = null;
     notifyListeners();
 
     try {
       final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
-          .httpsCallable('generateCoverLetter');
+          .httpsCallable(
+            'generateCoverLetter',
+            options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
+          );
 
       final res = await callable.call({
-        'jobTitle':  jobTitle.trim(),
-        'company':   company.trim(),
-        'jobDesc':   jobDesc.trim(),
-        'aboutMe':   aboutMe.trim(),
-        'language':  language.code,
+        'jobTitle': jobTitle.trim(),
+        'company':  company.trim(),
+        'jobDesc':  jobDesc.trim(),
+        'aboutMe':  aboutMe.trim(),
+        'language': language.code,
       });
 
       result = res.data['letter'] as String?;
     } catch (e) {
-      error = e.toString();
+      lastError = e;
     } finally {
       isGenerating = false;
       notifyListeners();

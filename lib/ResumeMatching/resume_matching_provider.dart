@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dayindai/AnalyzeResume/ocr_service.dart';
 import 'package:dayindai/AnalyzeResume/resume_upload_service.dart';
+import 'package:dayindai/core/error_handler.dart';
 import 'resume_matching_result.dart';
 import 'resume_matching_service.dart';
 
@@ -41,14 +42,13 @@ class ResumeMatchingProvider extends ChangeNotifier {
   }
 
   Future<void> match(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-
+    // Validation
     if (selectedResumeFile == null) {
-      messenger.showSnackBar(const SnackBar(content: Text("Upload a resume")));
+      _showInfo(context, _label(context, 'uploadResume'));
       return;
     }
     if (jobDescription.trim().length < 20) {
-      messenger.showSnackBar(const SnackBar(content: Text("Paste job description")));
+      _showInfo(context, _label(context, 'pasteJob'));
       return;
     }
 
@@ -64,10 +64,30 @@ class ResumeMatchingProvider extends ChangeNotifier {
       );
       result = ResumeMatchingResult.fromJson(json);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (context.mounted) ErrorHandler.showSnackbar(context, e);
     } finally {
       isMatching = false;
       notifyListeners();
     }
+  }
+
+  void _showInfo(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
+  }
+
+  String _label(BuildContext context, String key) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isRu = lang == 'ru';
+    final isKk = lang == 'kk';
+    return switch (key) {
+      'uploadResume' => isKk ? 'Түйіндемені жүктe'        : isRu ? 'Загрузи резюме'             : 'Upload a resume',
+      'pasteJob'     => isKk ? 'Жұмыс сипаттамасын қос'   : isRu ? 'Вставь описание вакансии'   : 'Paste job description',
+      _ => '',
+    };
   }
 }

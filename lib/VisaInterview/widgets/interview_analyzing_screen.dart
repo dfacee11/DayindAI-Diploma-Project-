@@ -2,65 +2,29 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class InterviewAnalyzingScreen extends StatefulWidget {
-  final String jobRole;
-  final String language; // 'en', 'ru', 'kk'
-
-  const InterviewAnalyzingScreen({
-    super.key,
-    required this.jobRole,
-    required this.language,
-  });
+class VisaAnalyzingScreen extends StatefulWidget {
+  const VisaAnalyzingScreen({super.key});
 
   @override
-  State<InterviewAnalyzingScreen> createState() => _InterviewAnalyzingScreenState();
+  State<VisaAnalyzingScreen> createState() => _VisaAnalyzingScreenState();
 }
 
-class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
+class _VisaAnalyzingScreenState extends State<VisaAnalyzingScreen>
     with TickerProviderStateMixin {
 
   late AnimationController _pulseController;
-
   late Animation<double> _pulseAnimation;
 
   int _currentStep = 0;
   Timer? _stepTimer;
 
-  List<String> get _steps => switch (widget.language) {
-    'ru' => [
-      'Обрабатываю ваши ответы...',
-      'Оцениваю коммуникацию...',
-      'Анализирую технические знания...',
-      'Формирую персональные советы...',
-      'Готовлю финальный отчёт...',
-    ],
-    'kk' => [
-      'Жауаптарыңызды өңдеп жатырмын...',
-      'Коммуникацияны бағалап жатырмын...',
-      'Техникалық білімді талдап жатырмын...',
-      'Жеке кеңестер дайындап жатырмын...',
-      'Қорытынды есепті жасап жатырмын...',
-    ],
-    _ => [
-      'Processing your answers...',
-      'Evaluating communication skills...',
-      'Analyzing technical knowledge...',
-      'Crafting personalized tips...',
-      'Preparing your final report...',
-    ],
-  };
-
-  String get _title => switch (widget.language) {
-    'ru' => 'Анализирую интервью',
-    'kk' => 'Сұхбатты талдап жатырмын',
-    _ => 'Analyzing Interview',
-  };
-
-  String get _subtitle => switch (widget.language) {
-    'ru' => 'AI изучает ваши ответы\nЭто займёт ~15 секунд',
-    'kk' => 'AI жауаптарыңызды зерттеп жатыр\nБұл ~15 секунд алады',
-    _ => 'AI is reviewing your answers\nThis takes ~15 seconds',
-  };
+  final List<String> _steps = [
+    'Reviewing your answers...',
+    'Evaluating confidence level...',
+    'Checking for red flags...',
+    'Assessing visa eligibility...',
+    'Preparing consular report...',
+  ];
 
   @override
   void initState() {
@@ -75,7 +39,6 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Псевдо-прогресс — меняем шаги каждые ~2.5 сек
     _stepTimer = Timer.periodic(const Duration(milliseconds: 2500), (t) {
       if (!mounted) return;
       setState(() {
@@ -104,7 +67,6 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
-              // ── ПУЛЬСИРУЮЩИЙ АВАТАР ──
               ScaleTransition(
                 scale: _pulseAnimation,
                 child: Container(
@@ -113,90 +75,73 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF7C5CFF).withValues(alpha: 0.4),
-                        const Color(0xFF7C5CFF).withValues(alpha: 0.1),
+                        const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                        const Color(0xFF3B82F6).withValues(alpha: 0.1),
                       ],
                     ),
                     border: Border.all(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.6),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.6),
                       width: 2,
                     ),
                   ),
-                  child: Center(
-                    child: Image.asset(
-                      'assets/images/aipenguin.png',
-                      width: 80, height: 80,
-                      fit: BoxFit.contain,
-                    ),
+                  child: const Center(
+                    child: Text("🇺🇸", style: TextStyle(fontSize: 52)),
                   ),
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // ── ЗАГОЛОВОК ──
               Text(
-                _title,
+                'Analyzing Interview',
                 style: GoogleFonts.montserrat(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
+                  fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white,
                 ),
               ),
 
               const SizedBox(height: 8),
 
               Text(
-                _subtitle,
+                'Consular AI is reviewing your responses\nThis takes ~15 seconds',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  height: 1.6,
+                  fontSize: 13, fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.55), height: 1.6,
                 ),
               ),
 
               const SizedBox(height: 40),
 
-              // ── ПРОГРЕСС БАР ──
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: progress),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOut,
-                    builder: (_, value, __) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${(value * 100).toInt()}%',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF7C5CFF),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: LinearProgressIndicator(
-                            value: value,
-                            minHeight: 8,
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF)),
-                          ),
-                        ),
-                      ],
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: progress),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOut,
+                builder: (_, value, __) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${(value * 100).toInt()}%',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12, fontWeight: FontWeight.w800,
+                        color: const Color(0xFF3B82F6),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 8,
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 32),
 
-              // ── СПИСОК ШАГОВ ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -209,31 +154,28 @@ class _InterviewAnalyzingScreenState extends State<InterviewAnalyzingScreen>
                   children: _steps.asMap().entries.map((e) {
                     final isDone    = e.key < _currentStep;
                     final isCurrent = e.key == _currentStep;
-                    
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(
                         children: [
-                          // Иконка
                           SizedBox(
                             width: 24, height: 24,
                             child: isDone
                                 ? const Icon(Icons.check_circle_rounded,
                                     color: Color(0xFF22C55E), size: 20)
                                 : isCurrent
-                                    ? SizedBox(
+                                    ? const SizedBox(
                                         width: 18, height: 18,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.5,
-                                          valueColor: const AlwaysStoppedAnimation(Color(0xFF7C5CFF)),
+                                          valueColor: AlwaysStoppedAnimation(Color(0xFF3B82F6)),
                                         ),
                                       )
                                     : Icon(Icons.circle_outlined,
                                         color: Colors.white.withValues(alpha: 0.2), size: 20),
                           ),
                           const SizedBox(width: 12),
-                          // Текст
                           Expanded(
                             child: Text(
                               e.value,

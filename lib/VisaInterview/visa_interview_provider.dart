@@ -11,6 +11,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '../AiInterview/interview_service.dart';
 import '../AiInterview/models/chat_message.dart';
 import 'models/visa_city.dart';
+import 'visa_questions_service.dart';
 
 export 'models/visa_city.dart';
 
@@ -67,14 +68,25 @@ class VisaInterviewProvider extends ChangeNotifier {
   ) async {
     city = selectedCity;
     applicantType = selectedType;
-    questions = city.getQuestions(applicantType: applicantType);
     questionIndex = 0;
     started = true;
     messages.clear();
     _history.clear();
     feedback = null;
     lastError = null;
+    state = VisaState.thinking; // показываем лоадер пока грузим вопросы
     notifyListeners();
+
+    // Загружаем вопросы из Firestore (или фоллбэк)
+    final cityId = selectedCity == VisaCity.astana ? 'astana' : 'almaty';
+    final type   = selectedType == VisaApplicantType.returner ? 'returner' : 'firstTime';
+    questions = List<String>.from(await VisaQuestionsService.instance.getQuestions(
+      cityId: cityId,
+      type: type,
+    ));
+    questions.shuffle();
+    final count = city.minQ + (questions.length - city.minQ) % (city.maxQ - city.minQ + 1);
+    questions = questions.take(count.clamp(city.minQ, city.minQ + city.maxQ)).toList();
 
     final greeting = applicantType == VisaApplicantType.returner
         ? "Hello! I see you have participated in Work and Travel before. Let's begin."

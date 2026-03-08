@@ -7,6 +7,8 @@ import '../HomePage/widgets/dark_background.dart';
 import '../core/error_listener_mixin.dart';
 import 'visa_interview_provider.dart';
 import 'visa_feedback_page.dart';
+import 'visa_questions_service.dart';
+import 'widgets/interview_analyzing_screen.dart';
 import 'widgets/visa_city_selector.dart';
 import 'widgets/visa_chat_ui.dart';
 
@@ -38,14 +40,20 @@ class _VisaViewState extends State<_VisaView>
   }
 
   Future<void> _warmUp() async {
-    try {
-      final fns = FirebaseFunctions.instanceFor(region: 'europe-west1');
-      await Future.wait([
-        fns.httpsCallable('interviewChat').call({'warmup': true}),
-        fns.httpsCallable('textToSpeech').call({'warmup': true}),
-        fns.httpsCallable('transcribeAudio').call({'warmup': true}),
-      ]);
-    } catch (_) {}
+    // Грузим вопросы параллельно с прогревом функций
+    await Future.wait([
+      VisaQuestionsService.instance.preload(),
+      Future(() async {
+        try {
+          final fns = FirebaseFunctions.instanceFor(region: 'europe-west1');
+          await Future.wait([
+            fns.httpsCallable('interviewChat').call({'warmup': true}),
+            fns.httpsCallable('textToSpeech').call({'warmup': true}),
+            fns.httpsCallable('transcribeAudio').call({'warmup': true}),
+          ]);
+        } catch (_) {}
+      }),
+    ]);
   }
 
   @override
@@ -64,6 +72,11 @@ class _VisaViewState extends State<_VisaView>
         city: p.city,
         onRestart: p.restart,
       );
+    }
+
+    // Показываем анимацию пока грузится фидбек
+    if (p.isThinking && p.started && p.questionIndex >= p.totalQ) {
+      return const VisaAnalyzingScreen();
     }
 
     return Scaffold(

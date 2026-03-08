@@ -23,12 +23,12 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
     final f = widget.feedback;
     final verdict   = f['verdict']       as String? ?? 'Одобрено';
     final summary   = f['summary']       as String? ?? '';
-    final redFlags  = List<String>.from(f['redFlags']       ?? []);
-    final strengths = List<String>.from(f['strengths']      ?? []);
-    final tips      = List<String>.from(f['tips']           ?? []);
-    final answers   = List<Map>.from(f['answerAnalysis']    ?? []);
+    final redFlags  = List<String>.from(f['redFlags']    ?? []);
+    final strengths = List<String>.from(f['strengths']   ?? []);
+    final tips      = List<String>.from(f['tips']        ?? []);
+    final answers   = List<Map>.from(f['answerAnalysis'] ?? []);
 
-    final isApproved = verdict == 'Одобрено';
+    final isApproved   = verdict == 'Одобрено';
     final verdictColor = isApproved ? const Color(0xFF22C55E) : Colors.redAccent;
     final verdictIcon  = isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded;
     final verdictLabel = isApproved ? '✅ VISA APPROVED' : '❌ VISA REJECTED';
@@ -51,8 +51,6 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
               child: Column(
                 children: [
-
-                  // ── VERDICT CARD ──
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
@@ -66,14 +64,12 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                         Icon(verdictIcon, color: verdictColor, size: 64),
                         const SizedBox(height: 14),
                         Text(verdictLabel,
-                            style: GoogleFonts.montserrat(
-                                fontSize: 22, fontWeight: FontWeight.w900, color: verdictColor)),
+                            style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: verdictColor)),
                         if (summary.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           Text(summary,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
+                              style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), height: 1.5)),
                         ],
                       ],
                     ),
@@ -81,7 +77,6 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
 
                   const SizedBox(height: 16),
 
-                  // ── RED FLAGS (только если Rejected) ──
                   if (!isApproved && redFlags.isNotEmpty) ...[
                     _card(Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,8 +91,7 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                               const Icon(Icons.warning_rounded, color: Colors.redAccent, size: 18),
                               const SizedBox(width: 10),
                               Expanded(child: Text(flag,
-                                  style: GoogleFonts.montserrat(
-                                      fontSize: 13, fontWeight: FontWeight.w600,
+                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600,
                                       color: Colors.redAccent, height: 1.4))),
                             ],
                           ),
@@ -107,13 +101,11 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                     const SizedBox(height: 14),
                   ],
 
-                  // ── TABS ──
                   if (answers.isNotEmpty) ...[
                     _buildTabs(),
                     const SizedBox(height: 14),
                   ],
 
-                  // ── TAB 0: ОБЗОР ──
                   if (_tab == 0) ...[
                     if (strengths.isNotEmpty) ...[
                       _card(_bulletSection("✅ Что хорошо", strengths, const Color(0xFF22C55E))),
@@ -151,7 +143,6 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                     ],
                   ],
 
-                  // ── TAB 1: ПО ВОПРОСАМ ──
                   if (_tab == 1)
                     ...answers.asMap().entries.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
@@ -174,7 +165,6 @@ class _VisaFeedbackPageState extends State<VisaFeedbackPage> {
                                 style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white))),
                           ]),
                           const SizedBox(height: 8),
-                          // Verdict badge
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(

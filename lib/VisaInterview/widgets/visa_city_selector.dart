@@ -17,8 +17,7 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
   VisaCity?         _selectedCity;
   VisaApplicantType _applicantType = VisaApplicantType.firstTime;
 
-  // Берём язык UI из контекста приложения
-  String get _lang => Localizations.localeOf(context).languageCode; // 'en', 'ru', 'kk'
+  String get _lang => Localizations.localeOf(context).languageCode;
   bool get _isRu => _lang == 'ru';
   bool get _isKk => _lang == 'kk';
 
@@ -82,12 +81,6 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
     if (_isRu) return "${city.displayName} Консульство";
     if (_isKk) return "${city.displayName} Консульствосы";
     return "${city.displayName} Consulate";
-  }
-
-  String _cityQuestions(VisaCity city) {
-    if (_isRu) return "${city.minQ}–${city.maxQ} случайных вопросов";
-    if (_isKk) return "${city.minQ}–${city.maxQ} кездейсоқ сұрақ";
-    return "${city.minQ}–${city.maxQ} random questions";
   }
 
   String _typeLabel(VisaApplicantType type) {
@@ -155,7 +148,7 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
                     onTap: () => setState(() => _applicantType = type),
                     child: Container(
                       margin: EdgeInsets.only(right: isLast ? 0 : 10),
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
                       decoration: BoxDecoration(
                         color: isSelected ? const Color(0xFF7C5CFF).withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(18),
@@ -167,15 +160,10 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
                       child: Column(
                         children: [
                           Text(
-                            type == VisaApplicantType.firstTime ? "🌱" : "⭐",
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
                             _typeLabel(type),
                             textAlign: TextAlign.center,
                             style: GoogleFonts.montserrat(
-                              fontSize: 12, fontWeight: FontWeight.w800,
+                              fontSize: 13, fontWeight: FontWeight.w800,
                               color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
                             ),
                           ),
@@ -190,7 +178,7 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
                           ),
                           if (isSelected)
                             const Padding(
-                              padding: EdgeInsets.only(top: 6),
+                              padding: EdgeInsets.only(top: 8),
                               child: Icon(Icons.check_circle_rounded, color: Color(0xFF7C5CFF), size: 16),
                             ),
                         ],
@@ -225,12 +213,9 @@ class _VisaCitySelectorState extends State<VisaCitySelector> {
                     Text(city.flag, style: const TextStyle(fontSize: 28)),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_cityLabel(city), style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
-                          Text(_cityQuestions(city), style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.6))),
-                        ],
+                      child: Text(
+                        _cityLabel(city),
+                        style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
                     if (_selectedCity == city)
